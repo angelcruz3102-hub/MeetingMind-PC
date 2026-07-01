@@ -457,7 +457,7 @@ function initUI() {
   nvidiaKeyInput.value = savedNvidiaKey;
   updateKeyStatus('nvidia', savedNvidiaKey, nvidiaKeyStatus);
 
-  // Modelo
+  // Modelo (se conserva el select por si se desea cambiar, pero en análisis se fuerza Nemotron)
   modelSelect.value = localStorage.getItem(LS_KEY_MODEL) || 'meta/llama-3.1-70b-instruct';
   modelSelect.addEventListener('change', () => { localStorage.setItem(LS_KEY_MODEL, modelSelect.value); });
 
@@ -852,7 +852,7 @@ async function transcribeWithGroq(file, apiKey) {
 }
 
 // ══════════════════════════════════════════════
-//  ANÁLISIS DE TEXTO - NVIDIA NIM (SIN CHUNKS)
+//  ANÁLISIS DE TEXTO - NVIDIA NEMOTRON (SIN CHUNKS)
 // ══════════════════════════════════════════════
 async function analyzeText(text, notesContainer) {
   const nvidiaKey = (localStorage.getItem(LS_KEY_NVIDIA) || '').trim();
@@ -865,10 +865,11 @@ async function analyzeText(text, notesContainer) {
   disableButtons(document.getElementById('btn-mic'), document.getElementById('btn-upload'), btnAnalyze, document.getElementById('btn-internal-audio'));
 
   const contextInstruction = getTemplateContext();
-  const currentModel = localStorage.getItem(LS_KEY_MODEL) || 'meta/llama-3.1-70b-instruct';
+  // Modelo fijo según requerimiento
+  const fixedModel = "nvidia/nemotron-3-ultra-550b-a55b";
 
   const payload = {
-    model: currentModel,
+    model: fixedModel,
     messages: [
       {
         role: "system",
@@ -879,13 +880,16 @@ async function analyzeText(text, notesContainer) {
         content: `TRANSCRIPCIÓN COMPLETA:\n${text}`
       }
     ],
-    temperature: 0.1,
-    max_tokens: 4096,
-    stream: false
+    temperature: 1,
+    top_p: 0.95,
+    max_tokens: 16384,
+    stream: false,
+    chat_template_kwargs: { enable_thinking: true },
+    reasoning_budget: 16384
   };
 
   try {
-    setStatus('loading', 'Analizando con NVIDIA NIM...');
+    setStatus('loading', 'Analizando con NVIDIA Nemotron...');
     const result = await callNvidiaChat(payload, nvidiaKey);
     const parsed = parseJSONResponse(result);
     parsed.transcripcion = text;
@@ -904,7 +908,11 @@ async function analyzeText(text, notesContainer) {
 }
 
 async function callNvidiaChat(payload, apiKey) {
-  let response = await fetch(NVIDIA_CHAT_URL, {
+  // Usamos corsproxy.io como puente para evitar el bloqueo de CORS de NVIDIA
+  const proxyUrl = 'https://corsproxy.io/?';
+  const targetUrl = encodeURIComponent(NVIDIA_CHAT_URL);
+  
+  let response = await fetch(proxyUrl + targetUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
