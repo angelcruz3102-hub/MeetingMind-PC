@@ -376,6 +376,8 @@
   <div class="tab-pane active" id="tab-transcripcion">
     <div class="notes-header">
       <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar Todo</button>
+      <button id="btn-listen-transcript" class="btn-copy-notion">▶️ Escuchar PDF/Audio</button>
+      <button id="btn-stop-transcript" class="btn-copy-notion">⏹️ Detener</button>
     </div>
     <div id="transcript-box">
       <span style="color:var(--muted)">El texto extraído de audios o PDFs aparecerá aquí...</span>
@@ -501,6 +503,7 @@ function initUI() {
     });
   });
 
+  // ── Botones de Transcripción ──
   const btnCopyTranscript = document.getElementById('btn-copy-transcript');
   if (btnCopyTranscript) {
     btnCopyTranscript.addEventListener('click', () => {
@@ -511,6 +514,15 @@ function initUI() {
         .catch(() => showToast('⚠️ Error al copiar'));
     });
   }
+
+  document.getElementById('btn-listen-transcript').addEventListener('click', () => {
+    if (!accumulatedTranscript.trim()) {
+      showToast('⚠️ No hay texto para escuchar.');
+      return;
+    }
+    startSpeech(accumulatedTranscript);
+  });
+  document.getElementById('btn-stop-transcript').addEventListener('click', stopSpeech);
 
   btnMic.addEventListener('click', () => {
     if (isRecording) stopRecording(btnMic);
@@ -908,8 +920,8 @@ async function analyzeText(text, notesContainer) {
 }
 
 async function callNvidiaChat(payload, apiKey) {
-  // Usamos corsproxy.io como puente para evitar el bloqueo de CORS de NVIDIA
-  const proxyUrl = 'https://corsproxy.io/?';
+  // Proxy más indulgente para modelos lentos
+  const proxyUrl = 'https://api.allorigins.win/raw?url=';
   const targetUrl = encodeURIComponent(NVIDIA_CHAT_URL);
   
   let response = await fetch(proxyUrl + targetUrl, {
