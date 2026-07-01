@@ -904,11 +904,7 @@ async function analyzeText(text, notesContainer) {
 }
 
 async function callNvidiaChat(payload, apiKey) {
-  // Usamos corsproxy.io como puente para evitar el bloqueo de CORS de NVIDIA
-  const proxyUrl = 'https://corsproxy.io/?';
-  const targetUrl = encodeURIComponent(NVIDIA_CHAT_URL);
-  
-  let response = await fetch(proxyUrl + targetUrl, {
+  let response = await fetch(NVIDIA_CHAT_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -916,7 +912,6 @@ async function callNvidiaChat(payload, apiKey) {
     },
     body: JSON.stringify(payload)
   });
-  
   let data = await response.json();
   if (!response.ok) throw new Error(data?.error?.message || `Error HTTP ${response.status}`);
   return data?.choices?.[0]?.message?.content || '{}';
