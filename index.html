@@ -106,7 +106,8 @@
       font-family: var(--font);
     }
     #config-panel input:focus, #config-panel select:focus, #config-panel textarea:focus { border-color: var(--accent); }
-    #groq-key-status, #template-hint { font-size: 0.78rem; margin-top: 8px; color: var(--muted); }
+    .key-status { font-size: 0.78rem; margin-top: 8px; color: var(--muted); }
+    #template-hint { font-size: 0.78rem; margin-top: 8px; color: var(--muted); }
 
     .key-divider {
       border-top: 1px solid var(--border);
@@ -188,7 +189,6 @@
 
     .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover:not(:disabled) { border-color: var(--accent); }
-    /* ── Estilo para botón secundario en grabación ── */
     .btn-secondary.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; }
 
     .btn-danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
@@ -268,16 +268,31 @@
     }
 
     /* ── Bloques de Tema ── */
-    .tema-block { margin-bottom: 18px; }
+    .tema-block { margin-bottom: 24px; }
     .tema-block:last-child { margin-bottom: 0; }
     .tema-block h4 {
-      color: var(--text); font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; margin-top: 0;
+      color: var(--text); font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; margin-top: 0;
     }
+    .tema-block p {
+      color: var(--muted); font-size: 0.9rem; margin-bottom: 12px;
+    }
+    
+    details {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+    }
+    summary {
+      color: var(--accent); cursor: pointer; font-size: 0.88rem; font-weight: 600; outline: none;
+    }
+    summary::marker { color: var(--accent); }
+    
     .tema-puntos {
       list-style: disc; margin-left: 22px; color: var(--muted);
-      line-height: 1.6; font-size: 0.88rem; margin-top: 0; padding-left: 0;
+      line-height: 1.6; font-size: 0.88rem; margin-top: 10px; padding-left: 0;
     }
     .tema-puntos li { margin-bottom: 6px; }
+    
+    .tareas-section { border-top: 1px solid var(--border); padding-top: 20px; }
+    .tareas-section h3 { color: var(--gold); }
 
     /* ── Error / Empty states ── */
     .state-msg {
@@ -313,13 +328,20 @@
 </header>
 
 <div id="config-panel">
-  <label for="groq-key-input">Groq — API Key (Motor Único: Transcripción y Análisis)</label>
+  <label for="groq-key-input">Groq — API Key (Motor Principal)</label>
   <input type="password" id="groq-key-input" placeholder="gsk_..." autocomplete="off" />
   <button id="btn-save-groq-key" class="btn-save">Guardar clave Groq</button>
-  <div id="groq-key-status">La clave se guarda solo en tu dispositivo (localStorage).</div>
+  <div id="groq-key-status" class="key-status">La clave se guarda solo en tu dispositivo (localStorage).</div>
 
   <div class="key-divider">
-    <label for="model-select">Modelo de Inteligencia Artificial (Texto)</label>
+    <label for="nvidia-key-input">NVIDIA — API Key (Respaldo)</label>
+    <input type="password" id="nvidia-key-input" placeholder="nvapi-..." autocomplete="off" />
+    <button id="btn-save-nvidia-key" class="btn-save">Guardar clave NVIDIA</button>
+    <div id="nvidia-key-status" class="key-status">Se usará automáticamente si Groq falla.</div>
+  </div>
+
+  <div class="key-divider">
+    <label for="model-select">Modelo de Inteligencia Artificial (Texto - Groq)</label>
     <select id="model-select">
       <option value="llama-3.3-70b-versatile">🧠 Llama 3.3 70B (Recomendado - Súper Inteligente)</option>
       <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B (El más rápido)</option>
@@ -335,7 +357,7 @@
       <option value="custom">✍️ Personalizado</option>
     </select>
     <textarea id="custom-template-input" placeholder="Escribe tus propias reglas (ej. 'Enfócate en fórmulas y cálculos')…"></textarea>
-    <div id="template-hint">Se aplica automáticamente en tu próximo análisis con Groq.</div>
+    <div id="template-hint">Se aplica automáticamente en tu próximo análisis.</div>
   </div>
 </div>
 
@@ -369,7 +391,7 @@
       <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar Todo</button>
     </div>
     <div id="transcript-box">
-      <span style="color:var(--muted)">La transcripción aparecerá aquí. Puedes seleccionar múltiples audios y se procesarán en cola con pausas automáticas para evitar los límites de la API...</span>
+      <span style="color:var(--muted)">La transcripción aparecerá aquí. Puedes seleccionar múltiples audios y se procesarán en cola...</span>
     </div>
   </div>
 
@@ -394,6 +416,7 @@ const GROQ_AUDIO_URL   = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const GROQ_CHAT_URL    = 'https://api.groq.com/openai/v1/chat/completions';
 
 const LS_KEY_GROQ   = 'meetingmind_groq_api_key';
+const LS_KEY_NVIDIA = 'meetingmind_nvidia_api_key';
 const LS_KEY_TEMPLATE = 'meetingmind_template';
 const LS_KEY_TEMPLATE_CUSTOM = 'meetingmind_template_custom';
 const LS_KEY_MODEL = 'meetingmind_groq_text_model';
@@ -404,7 +427,6 @@ let shouldRestart = false;
 let accumulatedTranscript = ''; 
 let currentParsedData = null; 
 
-// ── Variables para grabación de audio interno ──
 let internalRecorder = null;
 let internalStream = null;
 let internalChunks = [];
@@ -419,6 +441,9 @@ function initUI() {
   const configPanel = document.getElementById('config-panel');
   const groqKeyInput = document.getElementById('groq-key-input');
   const groqKeyStatus = document.getElementById('groq-key-status');
+  const nvidiaKeyInput = document.getElementById('nvidia-key-input');
+  const nvidiaKeyStatus = document.getElementById('nvidia-key-status');
+  
   const templateSelect = document.getElementById('template-select');
   const customTemplateInput = document.getElementById('custom-template-input');
   const modelSelect = document.getElementById('model-select');
@@ -434,7 +459,11 @@ function initUI() {
 
   const savedGroqKey = localStorage.getItem(LS_KEY_GROQ) || '';
   groqKeyInput.value = savedGroqKey;
-  updateGroqKeyStatus(savedGroqKey, groqKeyStatus);
+  updateAPIKeyStatus(savedGroqKey, groqKeyStatus, 'gsk_');
+
+  const savedNvidiaKey = localStorage.getItem(LS_KEY_NVIDIA) || '';
+  nvidiaKeyInput.value = savedNvidiaKey;
+  updateAPIKeyStatus(savedNvidiaKey, nvidiaKeyStatus, 'nvapi-');
 
   modelSelect.value = localStorage.getItem(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
   modelSelect.addEventListener('change', () => { localStorage.setItem(LS_KEY_MODEL, modelSelect.value); });
@@ -456,8 +485,16 @@ function initUI() {
     const k = groqKeyInput.value.trim();
     if (!k) { showToast('⚠️ Escribe una API Key de Groq.'); return; }
     localStorage.setItem(LS_KEY_GROQ, k);
-    updateGroqKeyStatus(k, groqKeyStatus);
-    showToast('✅ API Key guardada.');
+    updateAPIKeyStatus(k, groqKeyStatus, 'gsk_');
+    showToast('✅ API Key Groq guardada.');
+  });
+
+  document.getElementById('btn-save-nvidia-key').addEventListener('click', () => {
+    const k = nvidiaKeyInput.value.trim();
+    if (!k) { showToast('⚠️ Escribe una API Key de NVIDIA.'); return; }
+    localStorage.setItem(LS_KEY_NVIDIA, k);
+    updateAPIKeyStatus(k, nvidiaKeyStatus, 'nvapi-');
+    showToast('✅ API Key NVIDIA guardada.');
   });
 
   btnConfig.addEventListener('click', () => configPanel.classList.toggle('open'));
@@ -492,11 +529,9 @@ function initUI() {
     fileInput.click();
   });
 
-  // ── Nuevo botón de audio interno ──
   btnInternalAudio.addEventListener('click', () => {
-    if (isInternalRecording) {
-      stopInternalRecording();
-    } else {
+    if (isInternalRecording) stopInternalRecording();
+    else {
       if (isRecording) { showToast('Detén el micrófono antes de grabar audio interno.'); return; }
       startInternalRecording();
     }
@@ -526,15 +561,16 @@ function initUI() {
 }
 
 function syncCustomTemplateVisibility(selectEl, textEl) {
-  if (selectEl.value === 'custom') { textEl.classList.add('visible'); } else { textEl.classList.remove('visible'); }
+  if (selectEl.value === 'custom') textEl.classList.add('visible'); 
+  else textEl.classList.remove('visible');
 }
 
 function getTemplateContext() {
   const sel = localStorage.getItem(LS_KEY_TEMPLATE) || 'auto';
-  if (sel === 'trabajo') return "Contexto: Reunión laboral. Captura todos los detalles exhaustivos, decisiones y discusiones sin resumir los puntos clave.";
-  if (sel === 'clase') return "Contexto: Clase universitaria. Captura todos los detalles exhaustivos, explicaciones teóricas y conceptos sin resumir los puntos clave.";
-  if (sel === 'custom') return "Instrucciones personalizadas: " + (localStorage.getItem(LS_KEY_TEMPLATE_CUSTOM) || "Analiza el texto y extrae detalles exhaustivos.");
-  return "Extrae los temas con detalles completos y exhaustivos del siguiente texto.";
+  if (sel === 'trabajo') return "Contexto: Reunión laboral.";
+  if (sel === 'clase') return "Contexto: Clase universitaria.";
+  if (sel === 'custom') return "Instrucciones personalizadas: " + (localStorage.getItem(LS_KEY_TEMPLATE_CUSTOM) || "");
+  return "";
 }
 
 function resetSession() {
@@ -548,7 +584,7 @@ function resetSession() {
 }
 
 // ══════════════════════════════════════════════
-//  GRABACIÓN EN VIVO (Web Speech API)
+//  GRABACIÓN EN VIVO Y AUDIO INTERNO
 // ══════════════════════════════════════════════
 function startRecording(btnMic, transcriptBox) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -575,7 +611,7 @@ function _startSession(SR, transcriptBox) {
         accumulatedTranscript += (accumulatedTranscript && !accumulatedTranscript.endsWith('\n') ? ' ' : '') + t + ' '; 
         sessionInterim = ''; 
       }
-      else { sessionInterim += t; }
+      else sessionInterim += t;
     }
     transcriptBox.textContent = accumulatedTranscript + sessionInterim;
   };
@@ -596,65 +632,41 @@ function stopRecording(btnMic) {
   }
 }
 
-// ══════════════════════════════════════════════
-//  GRABACIÓN DE AUDIO INTERNO (getDisplayMedia)
-// ══════════════════════════════════════════════
 async function startInternalRecording() {
   try {
-    // Solicitar pantalla + audio del sistema
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true
-    });
-    
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
-      // No se compartió audio del sistema
       stream.getTracks().forEach(track => track.stop());
-      showToast('⚠️ No compartiste el audio del sistema. Marca la casilla "Compartir audio" en el diálogo.');
+      showToast('⚠️ No compartiste el audio del sistema.');
       return;
     }
-
-    // Crear un nuevo stream solo con la pista de audio
     const audioStream = new MediaStream(audioTracks);
-    internalStream = audioStream; // Guardamos referencia para detener después
+    internalStream = audioStream;
 
-    // Configurar MediaRecorder
     const options = { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' };
     internalRecorder = new MediaRecorder(audioStream, options);
     internalChunks = [];
 
-    internalRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) internalChunks.push(event.data);
-    };
-
+    internalRecorder.ondataavailable = (event) => { if (event.data.size > 0) internalChunks.push(event.data); };
     internalRecorder.onstop = async () => {
-      // Crear Blob y File
       const blob = new Blob(internalChunks, { type: internalRecorder.mimeType || 'audio/webm' });
       const file = new File([blob], `grabacion_interna_${Date.now()}.webm`, { type: blob.type });
       
-      // Limpiar estado visual y variables
       const btn = document.getElementById('btn-internal-audio');
       btn.textContent = '💻 Grabar Audio Interno';
       btn.classList.remove('recording');
       isInternalRecording = false;
       
-      // Detener pistas
-      if (internalStream) {
-        internalStream.getTracks().forEach(track => track.stop());
-        internalStream = null;
-      }
+      if (internalStream) { internalStream.getTracks().forEach(track => track.stop()); internalStream = null; }
       internalRecorder = null;
 
-      // Enviar a la cola de transcripción
       const btnMic = document.getElementById('btn-mic');
       const btnUpload = document.getElementById('btn-upload');
       const btnAnalyze = document.getElementById('btn-analyze');
       try {
         await handleMultipleAudioFiles([file], document.getElementById('transcript-box'), btnMic, btnUpload, btnAnalyze);
-      } catch (err) {
-        showToast('⚠️ Error al procesar el audio interno.');
-      }
+      } catch (err) { showToast('⚠️ Error al procesar el audio interno.'); }
     };
 
     internalRecorder.start();
@@ -664,38 +676,21 @@ async function startInternalRecording() {
     btn.textContent = '⏹️ Detener';
     btn.classList.add('recording');
     setStatus('active', 'Grabando audio del sistema...');
-    
   } catch (err) {
-    if (err.name === 'AbortError' || err.name === 'NotAllowedError') {
-      showToast('⚠️ Debes permitir compartir pantalla y audio para usar esta función.');
-    } else {
-      showToast(`⚠️ Error: ${err.message}`);
-    }
-    // Limpiar cualquier estado residual
-    if (internalStream) {
-      internalStream.getTracks().forEach(track => track.stop());
-      internalStream = null;
-    }
-    internalRecorder = null;
-    isInternalRecording = false;
+    if (err.name === 'AbortError' || err.name === 'NotAllowedError') showToast('⚠️ Debes permitir compartir pantalla y audio.');
+    else showToast(`⚠️ Error: ${err.message}`);
+    if (internalStream) { internalStream.getTracks().forEach(track => track.stop()); internalStream = null; }
+    internalRecorder = null; isInternalRecording = false;
     const btn = document.getElementById('btn-internal-audio');
-    btn.textContent = '💻 Grabar Audio Interno';
-    btn.classList.remove('recording');
+    btn.textContent = '💻 Grabar Audio Interno'; btn.classList.remove('recording');
   }
 }
 
 function stopInternalRecording() {
-  if (internalRecorder && internalRecorder.state !== 'inactive') {
-    internalRecorder.stop();
-  }
-  // El resto de la limpieza se hace en el evento onstop
+  if (internalRecorder && internalRecorder.state !== 'inactive') internalRecorder.stop();
 }
 
-// ══════════════════════════════════════════════
-//  SUBIDA DE MULTIPLES AUDIOS CON PAUSA
-// ══════════════════════════════════════════════
 async function handleMultipleAudioFiles(files, transcriptBox, btnMic, btnUpload, btnAnalyze) {
-  // Detener cualquier grabación activa
   shouldRestart = false; isRecording = false; 
   if (recognition) { recognition.onend = null; try { recognition.stop(); } catch(e){} recognition = null; }
   resetMicButton(btnMic);
@@ -715,7 +710,7 @@ async function handleMultipleAudioFiles(files, transcriptBox, btnMic, btnUpload,
   
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    setStatus('loading', `Transcribiendo Audio ${i + 1} de ${files.length}: "${file.name}"…`);
+    setStatus('loading', `Transcribiendo Audio ${i + 1} de ${files.length}…`);
     
     const tempIndicator = document.createElement('div');
     tempIndicator.style.color = 'var(--gold)';
@@ -725,7 +720,6 @@ async function handleMultipleAudioFiles(files, transcriptBox, btnMic, btnUpload,
 
     try {
       const transcript = await transcribeWithGroq(file, groqKey);
-
       if (transcript && transcript.trim()) {
         if (accumulatedTranscript.trim()) accumulatedTranscript += '\n\n';
         accumulatedTranscript += transcript.trim();
@@ -739,15 +733,14 @@ async function handleMultipleAudioFiles(files, transcriptBox, btnMic, btnUpload,
     }
 
     if (i < files.length - 1) {
-      setStatus('loading', `Pausa de seguridad (10s) para evitar bloqueo de API antes del próximo audio...`);
+      setStatus('loading', `Pausa de seguridad (10s)...`);
       await new Promise(r => setTimeout(r, 10000));
     }
   }
   
   btnAnalyze.style.display = 'flex';
   document.getElementById('btn-clear').style.display = 'block';
-  setStatus('idle', 'Todos los audios procesados. Genera las notas.');
-  
+  setStatus('idle', 'Todos los audios procesados.');
   enableButtons(btnMic, btnUpload, btnAnalyze, btnInternal);
 }
 
@@ -765,11 +758,11 @@ async function transcribeWithGroq(file, apiKey) {
 }
 
 // ══════════════════════════════════════════════
-//  ANÁLISIS DE TEXTO - MODO EXHAUSTIVO Y LIMPIO
+//  ANÁLISIS DE TEXTO - SISTEMA DE RESPALDO NVIDIA
 // ══════════════════════════════════════════════
 async function analyzeText(text, notesContainer) {
-  const apiKey = (localStorage.getItem(LS_KEY_GROQ) || '').trim();
-  if (!apiKey) return;
+  const groqKey = (localStorage.getItem(LS_KEY_GROQ) || '').trim();
+  if (!groqKey) return;
 
   const btnAnalyze = document.getElementById('btn-analyze');
   disableButtons(document.getElementById('btn-mic'), document.getElementById('btn-upload'), btnAnalyze, document.getElementById('btn-internal-audio'));
@@ -779,62 +772,59 @@ async function analyzeText(text, notesContainer) {
   
   const CHUNK_SIZE = 8000; 
   const chunks = [];
-  for (let i = 0; i < text.length; i += CHUNK_SIZE) {
-    chunks.push(text.slice(i, i + CHUNK_SIZE));
-  }
+  for (let i = 0; i < text.length; i += CHUNK_SIZE) chunks.push(text.slice(i, i + CHUNK_SIZE));
 
-  let finalData = { titulo_principal: "", temas: [], resumen_final: "" };
+  let finalData = { titulo_principal: "", temas: [], acciones_pendientes: [] };
   
   try {
     for (let i = 0; i < chunks.length; i++) {
-      setStatus('loading', `Extrayendo detalles... Parte ${i + 1} de ${chunks.length}`);
+      setStatus('loading', `Analizando... Parte ${i + 1} de ${chunks.length}`);
       
       const payload = {
         model: currentModel,
         messages: [
           {
             role: "system",
-            content: `Actúas como un experto tomando notas exhaustivas. Tu objetivo es transformar la transcripción en un JSON válido.\n\n${contextInstruction}\n\nREGLA ESTRICTA 1: NO RESUMAS la información en la sección de temas. Sé exhaustivo, extrae todos los detalles, explicaciones y datos.\nREGLA ESTRICTA 2: Solo devuelve el JSON puro sin markdown.\n\nEstructura exacta a devolver:\n{\n  "titulo_principal": "Título de la clase o reunión",\n  "temas": [\n    {\n      "titulo": "Tema 1",\n      "detalles": ["Detalle completo y exhaustivo 1", "Detalle completo y exhaustivo 2"]\n    }\n  ],\n  "resumen_final": "Resumen global de todo al final"\n}`
+            content: `Actúas como un experto estructurando información. Tu objetivo es procesar la transcripción.\n\n${contextInstruction}\n\nREGLAS ESTRICTAS:\n1. Debes devolver estrictamente un objeto JSON puro (sin bloques de código markdown, sin texto adicional).\n2. Extrae del texto cualquier compromiso, examen, entrega de trabajo o acción pendiente y agrúpalos en "acciones_pendientes". Si no hay, devuelve [].\n\nESTRUCTURA EXACTA REQUERIDA:\n{\n  "titulo_principal": "Título de la clase o reunión",\n  "temas": [\n    {\n      "titulo": "Nombre del tema o concepto",\n      "resumen_rapido": "Un párrafo conciso y directo que resuma de qué trata este tema en específico.",\n      "apuntes_detallados": ["Explicación profunda o dato técnico 1", "Detalle exhaustivo 2", "Concepto clave desarrollado 3"]\n    }\n  ],\n  "acciones_pendientes": ["Entregar trabajo práctico el viernes", "Estudiar para el examen"]\n}`
           },
-          {
-            role: "user",
-            content: `TRANSCRIPCIÓN PARTE ${i + 1}/${chunks.length}:\n${chunks[i]}`
-          }
+          { role: "user", content: `TRANSCRIPCIÓN PARTE ${i + 1}/${chunks.length}:\n${chunks[i]}` }
         ],
         temperature: 0.1,
         response_format: { type: "json_object" } 
       };
 
       try {
-        const result = await callGroqChat(payload, apiKey);
-        const parsed = parseJSONResponse(result);
-        
-        if (parsed.titulo_principal && !finalData.titulo_principal) finalData.titulo_principal = parsed.titulo_principal;
-        
-        if (Array.isArray(parsed.temas)) finalData.temas = finalData.temas.concat(parsed.temas);
-        if (typeof parsed.resumen_final === 'string' && parsed.resumen_final.trim()) {
-          finalData.resumen_final += (finalData.resumen_final ? "\n\n" : "") + parsed.resumen_final;
-        }
+        const result = await callGroqChat(payload, groqKey);
+        mergeData(finalData, parseJSONResponse(result));
       } catch (chunkErr) {
-        showToast(`⚠️ Error en parte ${i + 1}: ${chunkErr.message}`);
+        const nvidiaKey = (localStorage.getItem(LS_KEY_NVIDIA) || '').trim();
+        if (nvidiaKey) {
+          setStatus('loading', '⚠️ Groq falló. Usando NVIDIA de respaldo...');
+          try {
+            const nvidiaResult = await callNvidiaChat(payload, nvidiaKey);
+            mergeData(finalData, parseJSONResponse(nvidiaResult));
+          } catch (nvidiaErr) {
+            showToast(`⚠️ Error en NVIDIA (Parte ${i + 1}): ${nvidiaErr.message}`);
+          }
+        } else {
+          showToast(`⚠️ Error en Groq (Parte ${i + 1}): ${chunkErr.message} - Sin respaldo NVIDIA configurado.`);
+        }
       }
 
       if (i < chunks.length - 1) {
-        setStatus('loading', `Pausa de seguridad (20s) protegiendo la cuota de la API...`);
+        setStatus('loading', `Pausa de seguridad (20s)...`);
         await new Promise(r => setTimeout(r, 20000));
       }
     }
     
-    finalData.transcripcion = text;
     currentParsedData = finalData; 
-    
     renderNotes(finalData, notesContainer);
     setStatus('active', 'Análisis completo');
-    showToast('✅ Notas detalladas generadas');
+    showToast('✅ Notas estructuradas generadas');
     document.querySelector('[data-tab="notas"]')?.click();
     
   } catch (err) {
-    showError(`Error al estructurar notas: ${err.message}`);
+    showError(`Error estructural: ${err.message}`);
     setStatus('error', 'Error en apuntes');
   } finally {
     enableButtons(document.getElementById('btn-mic'), document.getElementById('btn-upload'), btnAnalyze, document.getElementById('btn-internal-audio'));
@@ -852,29 +842,59 @@ async function callGroqChat(payload, apiKey) {
   return data?.choices?.[0]?.message?.content || '{}';
 }
 
+async function callNvidiaChat(payload, apiKey) {
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://integrate.api.nvidia.com/v1/chat/completions');
+  const nvidiaPayload = { ...payload, model: 'meta/llama-3.1-70b-instruct' };
+  delete nvidiaPayload.response_format; // Algunos modelos NVIDIA no soportan json_object nativo, confíamos en el prompt
+
+  let response = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify(nvidiaPayload)
+  });
+  let data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message || `Error HTTP ${response.status} en NVIDIA`);
+  return data?.choices?.[0]?.message?.content || '{}';
+}
+
 function parseJSONResponse(raw) {
   let clean = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '').trim();
-  try { 
-    return JSON.parse(clean); 
-  } catch (e) { 
-    return { titulo_principal: "Apuntes Generales", temas: [{ titulo: "Detalles", detalles: ["Se recuperó el texto, pero la IA falló el formato.", clean] }], resumen_final: "Error de formato." }; 
-  }
+  try { return JSON.parse(clean); } 
+  catch (e) { return { temas: [], acciones_pendientes: [] }; }
+}
+
+function mergeData(finalData, parsed) {
+  if (parsed.titulo_principal && !finalData.titulo_principal) finalData.titulo_principal = parsed.titulo_principal;
+  if (Array.isArray(parsed.temas)) finalData.temas = finalData.temas.concat(parsed.temas);
+  if (Array.isArray(parsed.acciones_pendientes)) finalData.acciones_pendientes = finalData.acciones_pendientes.concat(parsed.acciones_pendientes);
 }
 
 // ══════════════════════════════════════════════
-//  RENDER UI Y EXPORTACIÓN A TEXTO LIMPIO
+//  RENDER UI Y EXPORTACIÓN LIMPIA
 // ══════════════════════════════════════════════
 function renderNotes(data, container) {
   const temas = Array.isArray(data.temas) ? data.temas : [];
+  const acciones = Array.isArray(data.acciones_pendientes) ? data.acciones_pendientes : [];
 
   const temasHtml = temas.length ? temas.map(t => {
     const titulo = t.titulo || 'Tema';
-    const detalles = Array.isArray(t.detalles) ? t.detalles : [];
+    const resumen = t.resumen_rapido || '';
+    const detalles = Array.isArray(t.apuntes_detallados) ? t.apuntes_detallados : [];
+    
     return `<div class="tema-block">
-              <h4 style="color:var(--accent);">${escHtml(titulo)}</h4>
-              ${detalles.length ? `<ul class="tema-puntos">${detalles.map(p => `<li>${escHtml(p)}</li>`).join('')}</ul>` : ''}
+              <h4>${escHtml(titulo)}</h4>
+              <p>${escHtml(resumen)}</p>
+              ${detalles.length ? `
+              <details>
+                <summary>Ver apuntes detallados...</summary>
+                <ul class="tema-puntos">${detalles.map(p => `<li>${escHtml(p)}</li>`).join('')}</ul>
+              </details>` : ''}
             </div>`;
-  }).join('') : '<span style="color:var(--muted)">Ninguno identificado.</span>';
+  }).join('') : '<span style="color:var(--muted)">Ningún tema identificado.</span>';
+
+  const tareasHtml = acciones.length ? 
+    `<ul class="tema-puntos" style="color:var(--text); margin-left: 16px;">${acciones.map(a => `<li>${escHtml(a)}</li>`).join('')}</ul>` : 
+    '<p style="color:var(--muted); font-size:0.9rem;">No se detectaron tareas pendientes.</p>';
 
   container.innerHTML = `
     <div class="notes-header">
@@ -886,13 +906,12 @@ function renderNotes(data, container) {
     </div>
 
     <div class="note-section" style="margin-top: 20px;">
-      <h3>💡 Temas y Detalles Estructurados</h3>
-      <div class="note-content">${temasHtml}</div>
+      <div class="note-content" style="border:none; padding:0; background:transparent;">${temasHtml}</div>
     </div>
     
-    <div class="note-section">
-      <h3>📝 Resumen Final</h3>
-      <div class="note-content">${escHtml(data.resumen_final || 'No disponible.')}</div>
+    <div class="note-section tareas-section">
+      <h3>✅ Tareas y Acciones Pendientes</h3>
+      <div class="note-content" style="margin-top: 12px;">${tareasHtml}</div>
     </div>
   `;
   document.getElementById('btn-copy-notion').addEventListener('click', exportToCleanText);
@@ -907,20 +926,26 @@ function exportToCleanText() {
   cleanText += `========================================\n\n`;
 
   if (Array.isArray(data.temas) && data.temas.length) {
-    cleanText += `TEMAS Y DETALLES:\n`;
+    cleanText += `TEMAS TRATADOS:\n`;
     cleanText += `----------------------------------------\n`;
     data.temas.forEach(t => {
-      cleanText += `• ${t.titulo || 'Tema'}:\n`;
-      if (Array.isArray(t.detalles)) {
-        t.detalles.forEach(d => cleanText += `  - ${d}\n`);
+      cleanText += `• ${t.titulo || 'Tema'}\n`;
+      if (t.resumen_rapido) cleanText += `  Resumen: ${t.resumen_rapido}\n`;
+      if (Array.isArray(t.apuntes_detallados) && t.apuntes_detallados.length) {
+        cleanText += `  Detalles:\n`;
+        t.apuntes_detallados.forEach(d => cleanText += `    - ${d}\n`);
       }
       cleanText += `\n`;
     });
   }
 
-  cleanText += `RESUMEN FINAL:\n`;
+  cleanText += `TAREAS Y ACCIONES PENDIENTES:\n`;
   cleanText += `----------------------------------------\n`;
-  cleanText += `${data.resumen_final || ''}\n`;
+  if (Array.isArray(data.acciones_pendientes) && data.acciones_pendientes.length) {
+    data.acciones_pendientes.forEach(a => cleanText += `[ ] ${a}\n`);
+  } else {
+    cleanText += `Ninguna detectada.\n`;
+  }
 
   navigator.clipboard.writeText(cleanText.trim())
     .then(() => showToast('✅ Copiado en formato limpio'))
@@ -928,12 +953,12 @@ function exportToCleanText() {
 }
 
 // ══════════════════════════════════════════════
-//  UTILIDADES FINALES
+//  UTILIDADES
 // ══════════════════════════════════════════════
-function updateGroqKeyStatus(key, el) {
-  if (key.startsWith('gsk_') && key.length > 20) { el.textContent = '✅ API Key configurada correctamente.'; el.style.color = 'var(--success)'; } 
-  else if (key.length > 0) { el.textContent = '⚠️ Clave sospechosa (debe iniciar con gsk_).'; el.style.color = 'var(--gold)'; } 
-  else { el.textContent = 'Sin clave. Consíguela en console.groq.com'; el.style.color = 'var(--muted)'; }
+function updateAPIKeyStatus(key, el, prefix) {
+  if (key.startsWith(prefix) && key.length > 20) { el.textContent = '✅ API Key configurada correctamente.'; el.style.color = 'var(--success)'; } 
+  else if (key.length > 0) { el.textContent = `⚠️ Clave sospechosa (debe iniciar con ${prefix}).`; el.style.color = 'var(--gold)'; } 
+  else { el.textContent = 'Sin clave configurada.'; el.style.color = 'var(--muted)'; }
 }
 
 function setStatus(type, text) {
