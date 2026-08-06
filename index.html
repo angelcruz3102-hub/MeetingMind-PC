@@ -1029,14 +1029,17 @@
     // ═══════════════════ ESTADO GLOBAL ═══════════════════
     let recognition = null;
     let isRecording = false;
-    let isInternalRecording = false;
     let shouldRestart = false;
     let accumulatedTranscript = '';
     let currentParsedData = null;
     let currentOpenProjectId = null;
     let currentMode = 'academico';
-    let internalMediaRecorder = null;
+
+    // Variables para chunking de audio interno
     let internalStream = null;
+    let currentInternalRecorder = null;
+    let isInternalRecordingActive = false;
+    let internalChunkInterval = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       try { initUI(); } catch (err) { alert('Error al inicializar la app: ' + err.message); }
@@ -1101,19 +1104,19 @@
       }
 
       btnMic.addEventListener('click', () => {
-        if (isInternalRecording) { showToast('Detén la grabación interna primero.'); return; }
+        if (isInternalRecordingActive) { showToast('Detén la grabación interna primero.'); return; }
         if (isRecording) stopRecording(btnMic);
         else startRecording(btnMic, document.getElementById('transcript-box'));
       });
 
       btnInternalAudio.addEventListener('click', () => {
         if (isRecording) { showToast('Detén el micrófono primero.'); return; }
-        if (isInternalRecording) stopInternalRecording(btnInternalAudio);
+        if (isInternalRecordingActive) stopInternalRecording(btnInternalAudio);
         else startInternalRecording(btnInternalAudio);
       });
 
       btnUpload.addEventListener('click', () => {
-        if (isRecording || isInternalRecording) { showToast('Detén la grabación activa primero.'); return; }
+        if (isRecording || isInternalRecordingActive) { showToast('Detén la grabación activa primero.'); return; }
         fileInput.click();
       });
 
@@ -1196,139 +1199,111 @@
       }
     }
 
-    // ═══════════════════ GRABACIÓN DE AUDIO INTERNO DEL SISTEMA ═══════════════════
+    // ═══════════════════ CHUNKING DE AUDIO INTERNO DEL SISTEMA ═══════════════════
     async function startInternalRecording(btnInternalAudio) {
       try {
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
         const audioTracks = displayStream.getAudioTracks();
+
         if (audioTracks.length === 0) {
-          // No se compartió audio del sistema
           displayStream.getTracks().forEach(t => t.stop());
-          showToast('⚠️ No se detectó audio del sistema. Asegúrate de marcar "Compartir audio del sistema" al seleccionar la pantalla.');
+          showToast('⚠️ No se detectó audio del sistema.');
           return;
         }
 
-        // Crear un nuevo stream solo con los tracks de audio
-        const audioStream = new MediaStream(audioTracks);
-        internalStream = displayStream; // Guardar referencia para detener todos los tracks luego
+        internalStream = new MediaStream(audioTracks);
+        isInternalRecordingActive = true;
 
-        // Detectar codec preferido
-        let mimeType = 'audio/webm';
-        if (!MediaRecorder.isTypeSupported('audio/webm')) {
-          mimeType = 'audio/mp4';
-          if (!MediaRecorder.isTypeSupported('audio/mp4')) {
-            mimeType = 'audio/ogg';
-            if (!MediaRecorder.isTypeSupported('audio/ogg')) {
-              mimeType = '';
-            }
-          }
-        }
-
-        const recorderOptions = mimeType ? { mimeType } : {};
-        const mediaRecorder = new MediaRecorder(audioStream, recorderOptions);
-        internalMediaRecorder = mediaRecorder;
-        const chunks = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data && event.data.size > 0) {
-            chunks.push(event.data);
-          }
-        };
-
-        mediaRecorder.onstop = async () => {
-          // Detener todos los tracks del stream original
-          if (internalStream) {
-            internalStream.getTracks().forEach(t => t.stop());
-            internalStream = null;
-          }
-
-          if (chunks.length === 0) {
-            showToast('⚠️ No se capturaron datos de audio.');
-            finishInternalRecording(btnInternalAudio);
-            return;
-          }
-
-          const blobMimeType = mimeType || 'audio/webm';
-          const blob = new Blob(chunks, { type: blobMimeType });
-          const extension = blobMimeType.includes('mp4') ? 'mp4' : blobMimeType.includes('ogg') ? 'ogg' : 'webm';
-          const fileName = `grabacion_interna_${Date.now()}.${extension}`;
-          const file = new File([blob], fileName, { type: blobMimeType, lastModified: Date.now() });
-
-          // Pasar el archivo a la función existente de transcripción
-          const transcriptBox = document.getElementById('transcript-box');
-          const btnMic = document.getElementById('btn-mic');
-          const btnUpload = document.getElementById('btn-upload');
-          const btnAnalyze = document.getElementById('btn-analyze');
-
-          try {
-            await handleMultipleAudioFiles([file], transcriptBox, btnMic, btnUpload, btnAnalyze, btnInternalAudio);
-            showToast('✅ Audio interno procesado correctamente.');
-          } catch (err) {
-            showError(`Error al procesar audio interno: ${err.message}`);
-            setStatus('error', 'Error al procesar');
-            enableAllButtons(btnMic, btnInternalAudio, btnUpload, btnAnalyze);
-          }
-
-          finishInternalRecording(btnInternalAudio);
-        };
-
-        mediaRecorder.onerror = (event) => {
-          console.error('Error en MediaRecorder:', event.error);
-          showToast('⚠️ Error en la grabación interna.');
-          if (internalStream) {
-            internalStream.getTracks().forEach(t => t.stop());
-            internalStream = null;
-          }
-          finishInternalRecording(btnInternalAudio);
-        };
-
-        mediaRecorder.start(1000);
-        isInternalRecording = true;
         btnInternalAudio.textContent = '⏹️ Detener Grabación Interna';
         btnInternalAudio.classList.add('recording');
-        setStatus('active', 'Grabando audio interno del sistema…');
+        setStatus('active', 'Grabando y transcribiendo en tiempo real (bloques de 5 min)…');
         disableButtonsExcept(btnInternalAudio);
-        showToast('🔴 Grabando audio del sistema. Haz clic en "Detener" para finalizar.');
+
+        recordAndTranscribeChunk();
 
       } catch (err) {
-        console.error('Error al iniciar getDisplayMedia:', err);
-        if (err.name === 'AbortError') {
-          showToast('⚠️ Selección de pantalla cancelada.');
-        } else {
-          showToast(`⚠️ Error: ${err.message}`);
-        }
+        if (err.name === 'AbortError') showToast('⚠️ Selección cancelada.');
+        else showToast(`⚠️ Error: ${err.message}`);
       }
+    }
+
+    function recordAndTranscribeChunk() {
+      if (!isInternalRecordingActive) return;
+
+      const recorderOptions = { mimeType: 'audio/webm', audioBitsPerSecond: 16000 };
+      currentInternalRecorder = new MediaRecorder(internalStream, recorderOptions);
+      const chunks = [];
+
+      currentInternalRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+      currentInternalRecorder.onstop = async () => {
+        if (chunks.length === 0) return;
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([blob], `chunk_${Date.now()}.webm`, { type: 'audio/webm' });
+        transcribeChunkBackground(file);
+      };
+
+      currentInternalRecorder.start();
+
+      internalChunkInterval = setTimeout(() => {
+        if (isInternalRecordingActive && currentInternalRecorder.state !== 'inactive') {
+          currentInternalRecorder.stop();
+          recordAndTranscribeChunk();
+        }
+      }, 300000);
     }
 
     function stopInternalRecording(btnInternalAudio) {
-      if (internalMediaRecorder && internalMediaRecorder.state !== 'inactive') {
-        internalMediaRecorder.stop();
-      } else {
-        // Si ya está inactivo, limpiar
-        if (internalStream) {
-          internalStream.getTracks().forEach(t => t.stop());
-          internalStream = null;
-        }
-        finishInternalRecording(btnInternalAudio);
-      }
-    }
+      isInternalRecordingActive = false;
+      clearTimeout(internalChunkInterval);
 
-    function finishInternalRecording(btnInternalAudio) {
-      isInternalRecording = false;
-      internalMediaRecorder = null;
+      if (currentInternalRecorder && currentInternalRecorder.state !== 'inactive') {
+        currentInternalRecorder.stop();
+      }
+
+      if (internalStream) {
+        internalStream.getTracks().forEach(t => t.stop());
+        internalStream = null;
+      }
+
       btnInternalAudio.textContent = '💻 Grabar Audio Interno';
       btnInternalAudio.classList.remove('recording');
-      setStatus('idle', 'Grabación interna finalizada.');
+      setStatus('idle', 'Grabación interna finalizada. Genera las notas.');
       enableAllButtons(
         document.getElementById('btn-mic'),
         btnInternalAudio,
         document.getElementById('btn-upload'),
         document.getElementById('btn-analyze')
       );
+    }
+
+    async function transcribeChunkBackground(file) {
+      const transcriptBox = document.getElementById('transcript-box');
+      const tempId = 'temp_' + Date.now();
+
+      const tempIndicator = document.createElement('div');
+      tempIndicator.id = tempId;
+      tempIndicator.style.color = 'var(--gold)';
+      tempIndicator.style.margin = '10px 0';
+      tempIndicator.textContent = '⏳ Transcribiendo bloque de 5 minutos...';
+      transcriptBox.appendChild(tempIndicator);
+
+      try {
+        const transcript = await transcribeWithGroq(file);
+        if (transcript && transcript.trim()) {
+          accumulatedTranscript += (accumulatedTranscript.trim() ? '\n\n' : '') + transcript.trim();
+          transcriptBox.textContent = accumulatedTranscript;
+
+          document.getElementById('btn-analyze').style.display = 'flex';
+          document.getElementById('btn-clear').style.display = 'block';
+          document.getElementById('mode-selector').style.display = 'block';
+        }
+      } catch (err) {
+        showToast(`❌ Fallo al transcribir bloque: ${err.message}`);
+      } finally {
+        const ind = document.getElementById(tempId);
+        if (ind) ind.remove();
+      }
     }
 
     function disableButtonsExcept(activeBtn) {
@@ -1426,7 +1401,6 @@
       setStatus('active', 'Escuchando micrófono…');
       if (!accumulatedTranscript.trim()) transcriptBox.textContent = '';
       _startSession(SR, transcriptBox);
-      // Deshabilitar otros botones
       disableButtonsExcept(btnMic);
     }
 
