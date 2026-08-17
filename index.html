@@ -902,8 +902,7 @@
   <div id="config-panel">
     <label for="model-select">Modelo de Inteligencia Artificial (Texto — Groq)</label>
     <select id="model-select">
-      <option value="llama-3.1-70b-versatile">🧠 Llama 3.1 70B Versatile (Groq)</option>
-      <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B Instant (Groq)</option>
+      <option value="">Cargando modelos dinámicos...</option>
     </select>
 
     <div class="key-divider">
@@ -1028,9 +1027,11 @@
 
       const data = await response.json();
       const ids = (data.data || []).map(m => m.id);
-      const llamaModels = ids.filter(id => id.toLowerCase().includes('llama'));
-      const otherModels = ids.filter(id => !id.toLowerCase().includes('llama'));
-      const selected = [...llamaModels, ...otherModels].slice(0, 2);
+      
+      const validChatModels = ids.filter(id => !id.toLowerCase().includes('whisper') && !id.toLowerCase().includes('prompt-guard'));
+      const preferred = validChatModels.filter(id => id.includes('llama') || id.includes('mixtral') || id.includes('gemma') || id.includes('gpt-oss'));
+      
+      const selected = preferred.length > 0 ? preferred.slice(0, 2) : validChatModels.slice(0, 2);
       return selected;
     }
 
@@ -1084,8 +1085,20 @@
       const tabs = document.querySelectorAll('.tab');
       const tabPanes = document.querySelectorAll('.tab-pane');
 
-      // Cargar modelo Groq
-      modelSelect.value = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.1-70b-versatile';
+      // Cargar modelo Groq dinámicamente en el select
+      fetchAvailableModels().then(models => {
+        if(models.length > 0) {
+          modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
+          const saved = memoriaTemporal.obtener(LS_KEY_MODEL);
+          if(saved && models.includes(saved)) {
+            modelSelect.value = saved;
+          } else {
+            modelSelect.value = models[0];
+            memoriaTemporal.guardar(LS_KEY_MODEL, models[0]);
+          }
+        }
+      }).catch(e => console.error("Error al obtener modelos: ", e));
+
       modelSelect.addEventListener('change', () => {
         memoriaTemporal.guardar(LS_KEY_MODEL, modelSelect.value);
       });
@@ -1655,7 +1668,8 @@
     }
 
     async function callGroqChat(payload) {
-      const modelsToTry = await fetchAvailableModels();
+      const dynamicModels = await fetchAvailableModels();
+      const modelsToTry = [...new Set([payload.model, ...dynamicModels])].filter(Boolean);
       let lastError = null;
 
       for (const model of modelsToTry) {
