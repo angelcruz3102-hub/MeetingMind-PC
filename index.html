@@ -902,8 +902,8 @@
   <div id="config-panel">
     <label for="model-select">Modelo de Inteligencia Artificial (Texto — Groq)</label>
     <select id="model-select">
-      <option value="gpt-oss-120b">🧠 GPT-OSS 120B (Groq)</option>
-      <option value="qwen3.6-27b">⚡ Qwen 3.6 27B (Groq)</option>
+      <option value="llama-3.1-70b-versatile">🧠 Llama 3.1 70B Versatile (Groq)</option>
+      <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B Instant (Groq)</option>
     </select>
 
     <div class="key-divider">
@@ -1061,7 +1061,7 @@
       const tabPanes = document.querySelectorAll('.tab-pane');
 
       // Cargar modelo Groq
-      modelSelect.value = memoriaTemporal.obtener(LS_KEY_MODEL) || 'gpt-oss-120b';
+      modelSelect.value = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.1-70b-versatile';
       modelSelect.addEventListener('change', () => {
         memoriaTemporal.guardar(LS_KEY_MODEL, modelSelect.value);
       });
@@ -1563,7 +1563,7 @@
       const btnUpload = document.getElementById('btn-upload');
       disableAllButtons(btnMic, btnInternalAudio, btnUpload, btnAnalyze);
 
-      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'gpt-oss-120b';
+      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.1-70b-versatile';
       const CHUNK_SIZE = 8000;
       const chunks = [];
       for (let i = 0; i < text.length; i += CHUNK_SIZE) chunks.push(text.slice(i, i + CHUNK_SIZE));
@@ -1631,7 +1631,7 @@
     }
 
     async function callGroqChat(payload) {
-      const fallbackModels = ['gpt-oss-120b', 'qwen3.6-27b'];
+      const fallbackModels = ['llama-3.1-70b-versatile', 'llama-3.1-8b-instant'];
       let lastError = null;
 
       for (const model of fallbackModels) {
@@ -2010,7 +2010,7 @@
       }).join('\n\n');
 
       openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen global con Groq, por favor espera…');
-      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'gpt-oss-120b';
+      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.1-70b-versatile';
       const CHUNK_SIZE = 10000;
       const chunks = [];
       for (let i = 0; i < combinedText.length; i += CHUNK_SIZE) chunks.push(combinedText.slice(i, i +
