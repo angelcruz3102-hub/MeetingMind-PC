@@ -1005,10 +1005,34 @@
 
     const GROQ_AUDIO_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
     const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
+    const GROQ_MODELS_URL = 'https://api.groq.com/openai/v1/models';
 
     const LS_KEY_MODEL = 'meetingmind_groq_text_model';
     const LS_KEY_PROJECTS = 'meetingmind_projects';
     const LS_KEY_MODE = 'meetingmind_analysis_mode';
+
+    // ═══════════════════ CONSULTA DINÁMICA DE MODELOS ═══════════════════
+    async function fetchAvailableModels() {
+      const apiKey = GROQ_KEYS[groqKeyIndex];
+      const response = await fetch(GROQ_MODELS_URL, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const ids = (data.data || []).map(m => m.id);
+      const llamaModels = ids.filter(id => id.toLowerCase().includes('llama'));
+      const otherModels = ids.filter(id => !id.toLowerCase().includes('llama'));
+      const selected = [...llamaModels, ...otherModels].slice(0, 2);
+      return selected;
+    }
 
     // ═══════════════════ MEMORIA TEMPORAL ═══════════════════
     const memoriaTemporal = {
@@ -1631,10 +1655,10 @@
     }
 
     async function callGroqChat(payload) {
-      const fallbackModels = ['llama-3.1-70b-versatile', 'llama-3.1-8b-instant'];
+      const modelsToTry = await fetchAvailableModels();
       let lastError = null;
 
-      for (const model of fallbackModels) {
+      for (const model of modelsToTry) {
         const currentPayload = { ...payload, model };
 
         for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
