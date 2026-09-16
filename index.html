@@ -6,7 +6,11 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>MeetingMind AI — Notion Style (Groq Edition)</title>
+  <title>Meeting Mind — Notion AI Style</title>
+
+  <!-- marked.js para renderizar Markdown → HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+
   <style>
     /* ── Reset & Base ── */
     *, *::before, *::after {
@@ -32,21 +36,9 @@
       --muted: #8AA2B7;
       --max-width: 1100px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
-
-      /* Notion light palette */
-      --notion-bg: #ffffff;
-      --notion-text: #37352f;
-      --notion-muted: #787774;
-      --notion-border: #e9e9e7;
-      --notion-code-bg: #f7f6f3;
-      --notion-quote-border: #37352f;
-      --notion-callout-bg: #f7f6f3;
     }
 
-    html, body {
-      height: 100%;
-      overscroll-behavior: none;
-    }
+    html, body { height: 100%; overscroll-behavior: none; }
 
     body {
       background: var(--bg);
@@ -57,7 +49,6 @@
       flex-direction: column;
       align-items: center;
       padding: 20px 14px calc(40px + var(--safe-bottom));
-      transition: background 0.2s, color 0.2s;
       -webkit-user-select: none;
       user-select: none;
       touch-action: manipulation;
@@ -65,7 +56,7 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    #transcript-box, .note-content, .modal-content, .nota-body, .notion-content {
+    #transcript-box, .notion-content, .modal-content, .nota-body {
       -webkit-user-select: text;
       user-select: text;
     }
@@ -81,7 +72,6 @@
       flex-wrap: wrap;
       gap: 12px;
     }
-
     .logo {
       display: flex;
       align-items: center;
@@ -101,7 +91,6 @@
       letter-spacing: 0.07em;
       text-transform: uppercase;
     }
-
     #btn-config {
       background: var(--surface);
       border: 2px solid var(--border);
@@ -115,7 +104,6 @@
       align-items: center;
       gap: 8px;
       transition: all 0.25s ease;
-      letter-spacing: 0.02em;
       min-height: 44px;
       touch-action: manipulation;
     }
@@ -148,7 +136,6 @@
     }
     #config-panel select {
       width: 100%;
-      max-width: 100%;
       background: var(--bg);
       border: 2px solid var(--border);
       color: var(--text);
@@ -157,19 +144,125 @@
       font-size: 0.9rem;
       outline: none;
       font-family: var(--font);
-      transition: border-color 0.2s;
       cursor: pointer;
       min-height: 44px;
     }
     #config-panel select:focus { border-color: var(--accent); }
-
     .key-divider {
       border-top: 1px solid var(--border);
       margin-top: 16px;
       padding-top: 16px;
     }
 
-    /* ── Main Card ── */
+    /* ── Mode Selector (chips) ── */
+    #mode-selector {
+      width: 100%;
+      max-width: var(--max-width);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .mode-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .mode-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .mode-chip {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 44px;
+      padding: 11px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+    .mode-chip:active { transform: scale(0.96); }
+    .mode-chip:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.4);
+    }
+    .mode-chip input[type="radio"] { display: none; }
+
+    /* ══════════ NOTION OPTIONS (selects) ══════════ */
+    #notion-options {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto 20px;
+      padding: 0 4px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeSlide 0.25s ease;
+    }
+    .notion-opt-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .notion-opt-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-left: 6px;
+    }
+    .notion-select {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 13px 42px 13px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-family: var(--font);
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      min-height: 48px;
+      touch-action: manipulation;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238AA2B7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 14px;
+    }
+    .notion-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.15);
+    }
+    .notion-select:active { transform: scale(0.99); }
+    .notion-select option {
+      background: var(--surface);
+      color: var(--text);
+      padding: 10px;
+      font-size: 0.92rem;
+    }
+
+    /* ── Card ── */
     .card {
       width: 100%;
       max-width: var(--max-width);
@@ -181,7 +274,7 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
-    /* ── Action Buttons ── */
+    /* ── Actions ── */
     .actions {
       padding: 20px 16px;
       display: flex;
@@ -189,16 +282,13 @@
       align-items: center;
       gap: 16px;
     }
-
     .actions-label {
       font-size: 0.7rem;
       letter-spacing: 0.11em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 2px;
       font-weight: 600;
     }
-
     .btn-row {
       display: flex;
       gap: 10px;
@@ -206,7 +296,6 @@
       justify-content: center;
       width: 100%;
     }
-
     .btn {
       display: inline-flex;
       align-items: center;
@@ -219,16 +308,12 @@
       cursor: pointer;
       border: none;
       transition: all 0.2s ease;
-      letter-spacing: 0.02em;
       white-space: nowrap;
-      position: relative;
-      overflow: hidden;
       min-height: 48px;
       touch-action: manipulation;
     }
     .btn:active { transform: scale(0.96); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-
     .btn-primary {
       background: var(--accent);
       color: #fff;
@@ -239,7 +324,6 @@
       animation: pulse 1.4s ease-in-out infinite;
       box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4);
     }
-
     .btn-secondary {
       background: var(--bg);
       color: var(--text);
@@ -249,16 +333,13 @@
       border-color: var(--accent);
       background: rgba(255, 122, 0, 0.05);
     }
-
     .btn-danger {
       background: transparent;
       color: var(--error);
       border: 2px solid var(--error);
     }
-
     #btn-analyze {
       width: 100%;
-      justify-content: center;
       padding: 16px;
       font-size: 1rem;
       font-weight: 700;
@@ -267,10 +348,8 @@
       letter-spacing: 0.04em;
       min-height: 52px;
     }
-
     #btn-start-record {
       width: 100%;
-      justify-content: center;
       padding: 16px;
       font-size: 1rem;
       font-weight: 700;
@@ -284,7 +363,6 @@
       animation: pulse 1.4s ease-in-out infinite;
       box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4);
     }
-
     @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.55); }
       50% { box-shadow: 0 0 0 10px rgba(255, 92, 92, 0); }
@@ -300,7 +378,6 @@
       border-radius: 99px;
       border: 1px solid var(--border);
       margin-top: 8px;
-      transition: all 0.25s;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -311,20 +388,18 @@
       height: 8px;
       border-radius: 50%;
       background: var(--muted);
-      transition: background 0.3s;
       flex-shrink: 0;
+      transition: background 0.3s;
     }
     #status-dot.active .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
     #status-dot.loading .dot { background: var(--gold); animation: blink 0.8s step-start infinite; }
     #status-dot.error .dot { background: var(--error); box-shadow: 0 0 8px var(--error); }
-
     @keyframes blink { 50% { opacity: 0; } }
 
     /* ── Tabs ── */
     .tabs {
       display: flex;
       border-top: 1px solid var(--border);
-      gap: 0;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -343,7 +418,6 @@
       border-top: none;
       border-left: none;
       border-right: none;
-      letter-spacing: 0.03em;
       white-space: nowrap;
       touch-action: manipulation;
     }
@@ -355,11 +429,7 @@
     }
 
     /* ── Tab Content ── */
-    .tab-pane {
-      display: none;
-      padding: 16px;
-      min-height: 180px;
-    }
+    .tab-pane { display: none; padding: 16px; min-height: 180px; }
     .tab-pane.active { display: block; animation: fadeSlide 0.2s ease; }
 
     #transcript-box {
@@ -387,19 +457,14 @@
       flex-wrap: wrap;
       align-items: center;
     }
-    .notes-header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      flex-wrap: wrap;
-    }
+    .notes-header-left,
     .notes-header-right {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
     }
+    .notes-header-left { flex: 1; }
     .btn-copy-notion {
       background: var(--bg);
       border: 2px solid var(--border);
@@ -421,7 +486,6 @@
       color: var(--accent);
       background: rgba(255, 122, 0, 0.05);
     }
-
     .select-inline {
       background: var(--bg);
       border: 2px solid var(--border);
@@ -433,99 +497,126 @@
       outline: none;
       max-width: 180px;
       cursor: pointer;
-      transition: border-color 0.2s;
       min-height: 44px;
     }
     .select-inline:focus { border-color: var(--accent); }
 
-    /* ══════════════════════════════════════════════════════
-       NOTION-STYLE RENDERING
-       ══════════════════════════════════════════════════════ */
+    /* ══════════ NOTION MARKDOWN RENDERING ══════════ */
     .notion-content {
-      background: var(--notion-bg);
-      color: var(--notion-text);
+      background: #ffffff;
+      color: #37352f;
       border-radius: var(--radius);
-      padding: 28px 24px;
+      padding: 28px 22px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Helvetica, Arial, sans-serif;
       font-size: 15px;
-      line-height: 1.6;
+      line-height: 1.65;
       letter-spacing: -0.003em;
       word-break: break-word;
       overflow-wrap: break-word;
+      -webkit-user-select: text;
+      user-select: text;
     }
-
     .notion-content > *:first-child { margin-top: 0 !important; }
     .notion-content > *:last-child { margin-bottom: 0 !important; }
 
-    .notion-h {
-      color: var(--notion-text);
-      font-weight: 600;
-      line-height: 1.3;
-      letter-spacing: -0.011em;
-      scroll-margin-top: 20px;
-    }
-    .notion-h1 {
-      font-size: 1.875em;
+    .notion-content h1 {
+      font-size: 1.9em;
       font-weight: 700;
-      margin: 0.4em 0 0.3em;
+      margin: 0.3em 0 0.4em;
       letter-spacing: -0.02em;
+      color: #37352f;
     }
-    .notion-h2 {
+    .notion-content h2 {
       font-size: 1.4em;
       font-weight: 600;
       margin: 1.4em 0 0.5em;
+      color: #37352f;
     }
-    .notion-h3 {
+    .notion-content h3 {
       font-size: 1.15em;
       font-weight: 600;
       margin: 1.2em 0 0.4em;
+      color: #37352f;
     }
-    .notion-h4,
-    .notion-h5,
-    .notion-h6 {
+    .notion-content h4 {
       font-size: 1em;
       font-weight: 600;
       margin: 1em 0 0.3em;
-      color: var(--notion-muted);
+      color: #787774;
     }
-
-    .notion-p {
-      margin: 0.6em 0;
-      color: var(--notion-text);
-    }
-
-    .notion-list {
-      margin: 0.4em 0 0.6em;
+    .notion-content p { margin: 0.6em 0; color: #37352f; }
+    .notion-content ul,
+    .notion-content ol {
+      margin: 0.5em 0 0.7em;
       padding-left: 1.6em;
     }
-    .notion-list li {
+    .notion-content li {
       margin: 0.25em 0;
-      padding-left: 0.2em;
+      padding-left: 0.15em;
     }
-    .notion-list li::marker {
-      color: var(--notion-muted);
+    .notion-content li::marker { color: #b7b6b4; }
+    .notion-content strong { font-weight: 600; }
+    .notion-content em { font-style: italic; }
+    .notion-content a {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-color: rgba(55, 53, 47, 0.4);
+      text-underline-offset: 2px;
+    }
+    .notion-content code {
+      background: rgba(135, 131, 120, 0.15);
+      color: #eb5757;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.85em;
+    }
+    .notion-content pre {
+      background: #f7f6f3;
+      color: #37352f;
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin: 0.8em 0;
+      overflow-x: auto;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.85em;
+      line-height: 1.5;
+      -webkit-overflow-scrolling: touch;
+    }
+    .notion-content pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+    .notion-content blockquote {
+      margin: 0.8em 0;
+      padding: 2px 0 2px 14px;
+      border-left: 3px solid #37352f;
+      color: #37352f;
+    }
+    .notion-content hr {
+      border: none;
+      border-top: 1px solid #e9e9e7;
+      margin: 1.4em 0;
     }
 
-    /* Checklist Notion-style */
-    .notion-checklist {
+    /* ══════════ CHECKBOXES estilo Notion ══════════ */
+    .notion-content ul.notion-checklist,
+    .notion-content ul:has(> li > input[type="checkbox"]) {
       list-style: none;
-      margin: 0.4em 0 0.6em;
-      padding: 0;
+      padding-left: 0;
+      margin: 0.5em 0 0.7em;
     }
-    .notion-checklist .notion-check-item {
-      margin: 0.15em 0;
-    }
-    .notion-checkbox-wrapper {
+    .notion-content li.notion-check-item {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      cursor: pointer;
       padding: 3px 0;
-      user-select: none;
-      -webkit-user-select: none;
-      line-height: 1.5;
+      margin: 0.15em 0;
+      list-style: none;
     }
-    .notion-checkbox {
+    .notion-content input.notion-checkbox {
       appearance: none;
       -webkit-appearance: none;
       width: 16px;
@@ -536,16 +627,16 @@
       cursor: pointer;
       flex-shrink: 0;
       position: relative;
-      transition: background 0.12s, border-color 0.12s;
       background: transparent;
+      transition: background 0.12s, border-color 0.12s;
       outline: none;
     }
-    .notion-checkbox:active { transform: scale(0.92); }
-    .notion-checkbox:checked {
+    .notion-content input.notion-checkbox:active { transform: scale(0.9); }
+    .notion-content input.notion-checkbox:checked {
       background: #2383e2;
       border-color: #2383e2;
     }
-    .notion-checkbox:checked::after {
+    .notion-content input.notion-checkbox:checked::after {
       content: '';
       position: absolute;
       left: 4px;
@@ -556,101 +647,14 @@
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
     }
-    .notion-check-text {
+    .notion-content li.notion-check-item .notion-check-text {
       flex: 1;
-      color: var(--notion-text);
-      transition: color 0.15s, text-decoration 0.15s;
+      transition: color 0.15s;
     }
-    .notion-check-item.checked .notion-check-text {
+    .notion-content li.notion-check-item.notion-checked .notion-check-text {
       color: #9b9a97;
       text-decoration: line-through;
       text-decoration-color: #c4c4c2;
-    }
-
-    /* Blockquote */
-    .notion-quote {
-      margin: 0.8em 0;
-      padding: 2px 0 2px 14px;
-      border-left: 3px solid var(--notion-quote-border);
-      color: var(--notion-text);
-      font-style: normal;
-    }
-
-    /* Code */
-    .notion-inline-code {
-      background: rgba(135, 131, 120, 0.15);
-      color: #eb5757;
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.85em;
-    }
-    .notion-code {
-      background: var(--notion-code-bg);
-      color: #37352f;
-      border-radius: 4px;
-      padding: 16px 16px;
-      margin: 0.8em 0;
-      overflow-x: auto;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.85em;
-      line-height: 1.5;
-      -webkit-overflow-scrolling: touch;
-    }
-    .notion-code code {
-      background: none;
-      padding: 0;
-      color: inherit;
-      font-size: inherit;
-    }
-
-    /* Divider */
-    .notion-hr {
-      border: none;
-      border-top: 1px solid var(--notion-border);
-      margin: 1.4em 0;
-    }
-
-    /* Links */
-    .notion-content a {
-      color: inherit;
-      text-decoration: underline;
-      text-decoration-color: rgba(55, 53, 47, 0.4);
-      text-underline-offset: 2px;
-    }
-    .notion-content a:active {
-      text-decoration-color: var(--accent);
-    }
-
-    /* Strong / em */
-    .notion-content strong { font-weight: 600; }
-    .notion-content em { font-style: italic; }
-
-    /* Title block */
-    .notion-title-block {
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--notion-border);
-      margin-bottom: 20px;
-    }
-    .notion-title {
-      font-size: 1.9em;
-      font-weight: 700;
-      color: var(--notion-text);
-      letter-spacing: -0.02em;
-      line-height: 1.25;
-    }
-    .notion-meta {
-      font-size: 0.8em;
-      color: var(--notion-muted);
-      margin-top: 6px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .notion-meta span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
     }
 
     /* ── Proyectos ── */
@@ -669,9 +673,7 @@
       padding: 11px 14px;
       border-radius: var(--radius-sm);
       font-size: 0.9rem;
-      font-family: var(--font);
       outline: none;
-      transition: border-color 0.2s;
       min-height: 44px;
     }
     .proyectos-create-row input:focus { border-color: var(--accent); }
@@ -685,7 +687,6 @@
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.22s ease;
       min-height: 44px;
     }
     .proyectos-create-row button:active { background: var(--accent-h); }
@@ -709,7 +710,7 @@
     }
     .proyecto-card:active { transform: scale(0.96); }
     .proyecto-card .p-icon { font-size: 1.6rem; }
-    .proyecto-card .p-name { font-size: 0.9rem; font-weight: 600; color: var(--text); word-break: break-word; }
+    .proyecto-card .p-name { font-size: 0.9rem; font-weight: 600; word-break: break-word; }
     .proyecto-card .p-meta { font-size: 0.72rem; color: var(--muted); }
 
     .proyecto-detail-header {
@@ -727,7 +728,6 @@
       border-radius: var(--radius-sm);
       font-size: 0.82rem;
       cursor: pointer;
-      transition: all 0.22s ease;
       min-height: 44px;
     }
     .btn-back:active { border-color: var(--accent); background: rgba(255, 122, 0, 0.04); }
@@ -740,17 +740,12 @@
       border-radius: var(--radius-sm);
       font-size: 0.8rem;
       cursor: pointer;
-      transition: all 0.22s ease;
       min-height: 44px;
     }
     .btn-delete-proyecto:active { background: rgba(255, 92, 92, 0.12); }
 
     .btn-global-summary {
       width: 100%;
-      justify-content: center;
-      display: flex;
-      align-items: center;
-      gap: 8px;
       padding: 14px;
       font-size: 0.95rem;
       font-weight: 700;
@@ -761,7 +756,6 @@
       cursor: pointer;
       margin-bottom: 16px;
       box-shadow: 0 4px 16px rgba(255, 122, 0, 0.28);
-      transition: all 0.22s ease;
       min-height: 48px;
     }
     .btn-global-summary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -772,7 +766,6 @@
       border-radius: var(--radius-sm);
       padding: 12px 14px;
       margin-bottom: 10px;
-      transition: border-color 0.2s;
     }
     .nota-guardada summary {
       color: var(--text);
@@ -789,6 +782,7 @@
     .nota-guardada summary::-webkit-details-marker { display: none; }
     .nota-guardada .fecha-tag { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
     .nota-guardada .nota-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .nota-guardada .notion-content { padding: 18px 16px; font-size: 14.5px; }
 
     /* ── Modales ── */
     .modal-overlay {
@@ -818,174 +812,16 @@
     .modal-box h3 {
       color: var(--accent);
       font-size: 1.05rem;
-      margin-bottom: 6px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-    .modal-subtitle {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-bottom: 20px;
-      line-height: 1.5;
     }
     .modal-box .modal-content {
       font-size: 0.9rem;
       line-height: 1.7;
       color: var(--text);
-      white-space: pre-wrap;
     }
-
-    /* ── Checklist modal ── */
-    .ctx-section {
-      margin-bottom: 18px;
-    }
-    .ctx-section-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-      display: block;
-    }
-    .ctx-radio-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 8px;
-    }
-    .ctx-radio {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 500;
-      transition: all 0.18s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 44px;
-      color: var(--text);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .ctx-radio:active { transform: scale(0.97); }
-    .ctx-radio input { display: none; }
-    .ctx-radio:has(input:checked) {
-      border-color: var(--accent);
-      background: rgba(255, 122, 0, 0.1);
-      color: var(--text);
-    }
-    .ctx-radio:has(input:checked)::before {
-      content: '✓';
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .ctx-check-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 8px;
-    }
-    .ctx-check {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 500;
-      transition: all 0.18s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 44px;
-      color: var(--text);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .ctx-check:active { transform: scale(0.97); }
-    .ctx-check input { display: none; }
-    .ctx-check-box {
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid var(--muted);
-      border-radius: 4px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-    }
-    .ctx-check:has(input:checked) {
-      border-color: var(--accent);
-      background: rgba(255, 122, 0, 0.08);
-    }
-    .ctx-check:has(input:checked) .ctx-check-box {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .ctx-check:has(input:checked) .ctx-check-box::after {
-      content: '';
-      width: 4px;
-      height: 8px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) translate(-1px, -1px);
-    }
-
-    .ctx-textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 11px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-family: var(--font);
-      outline: none;
-      min-height: 70px;
-      resize: vertical;
-      transition: border-color 0.2s;
-    }
-    .ctx-textarea:focus { border-color: var(--accent); }
-
-    .ctx-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .ctx-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.92rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.22s;
-      min-height: 48px;
-      touch-action: manipulation;
-    }
-    .ctx-btn-primary {
-      background: linear-gradient(135deg, var(--accent), #E0551F);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3);
-    }
-    .ctx-btn-primary:active { transform: scale(0.97); }
-    .ctx-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .ctx-btn-secondary {
-      background: transparent;
-      color: var(--muted);
-      border: 2px solid var(--border);
-    }
-    .ctx-btn-secondary:active {
-      border-color: var(--accent);
-      color: var(--text);
-    }
-
     .btn-close-modal {
       margin-top: 16px;
       width: 100%;
@@ -997,12 +833,11 @@
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.22s ease;
       min-height: 48px;
     }
     .btn-close-modal:active { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Error / Empty states ── */
+    /* ── State messages ── */
     .state-msg {
       display: flex;
       flex-direction: column;
@@ -1056,15 +891,14 @@
       body { padding: 12px 8px calc(30px + var(--safe-bottom)); }
       .logo { font-size: 1.2rem; }
       .btn { padding: 11px 16px; font-size: 0.82rem; min-height: 44px; }
+      .mode-chip { padding: 9px 14px; font-size: 0.78rem; min-height: 40px; }
       .tab { font-size: 0.75rem; padding: 12px 6px; min-width: 80px; }
       .proyectos-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
       .notion-content { padding: 20px 16px; font-size: 14.5px; }
-      .notion-h1 { font-size: 1.6em; }
-      .notion-h2 { font-size: 1.25em; }
-      .notion-title { font-size: 1.6em; }
-      .modal-box { padding: 18px 16px; }
-      .ctx-radio-group,
-      .ctx-check-group { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+      .notion-content h1 { font-size: 1.55em; }
+      .notion-content h2 { font-size: 1.25em; }
+      .notion-content h3 { font-size: 1.08em; }
+      .notion-select { font-size: 0.86rem; padding: 12px 38px 12px 14px; min-height: 46px; }
     }
   </style>
 </head>
@@ -1073,13 +907,13 @@
   <header>
     <div class="logo">
       <span class="logo-icon">🧠</span>
-      <span>MeetingMind</span>
+      <span>Meeting Mind</span>
       <span class="badge">GROQ</span>
     </div>
     <button id="btn-config">⚙️ Configuración</button>
   </header>
 
-  <!-- Panel de configuración -->
+  <!-- Config Panel -->
   <div id="config-panel">
     <label for="model-select">Modelo de Inteligencia Artificial (Texto — Groq)</label>
     <select id="model-select">
@@ -1087,12 +921,46 @@
     </select>
 
     <div class="key-divider">
-      <label>Copia de Seguridad (Sincronizar con celular)</label>
+      <label>Copia de Seguridad</label>
       <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
         <button id="btn-export-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📤 Exportar Datos</button>
         <button id="btn-import-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📥 Importar Datos</button>
         <input type="file" id="import-file" accept=".json,application/json" />
       </div>
+    </div>
+  </div>
+
+  <!-- Selector de estructura -->
+  <div id="mode-selector" style="display:none;">
+    <span class="mode-label">¿Qué tipo de estructura deseas?</span>
+    <div class="mode-chips">
+      <label class="mode-chip"><input type="radio" name="mode" value="academico"> 🎓 Académico</label>
+      <label class="mode-chip"><input type="radio" name="mode" value="ejecutivo" checked> 💼 Ejecutivo</label>
+      <label class="mode-chip"><input type="radio" name="mode" value="libre"> 📝 Registro Libre</label>
+      <label class="mode-chip"><input type="radio" name="mode" value="idiomas"> 🌐 Profesor de Idiomas</label>
+    </div>
+  </div>
+
+  <!-- ══════════ NOTION OPTIONS: Contexto + Enfoque ══════════ -->
+  <div id="notion-options">
+    <div class="notion-opt-row">
+      <label class="notion-opt-label" for="ctx-select">🎙️ Contexto del Audio</label>
+      <select id="ctx-select" class="notion-select">
+        <option value="Programa de Radio / Podcast">📻 Programa de Radio / Podcast</option>
+        <option value="Reunión Técnica">🛠️ Reunión Técnica</option>
+        <option value="Entrevista">🎤 Entrevista</option>
+        <option value="Lluvia de Ideas">💡 Lluvia de Ideas</option>
+        <option value="Otro">🗂️ Otro</option>
+      </select>
+    </div>
+
+    <div class="notion-opt-row">
+      <label class="notion-opt-label" for="focus-select">🎯 Enfoque Principal</label>
+      <select id="focus-select" class="notion-select">
+        <option value="Resumen y Puntos Clave">📌 Resumen y Puntos Clave</option>
+        <option value="Tareas y Decisiones">✅ Tareas y Decisiones</option>
+        <option value="Extraer Todo el Detalle">🔍 Extraer Todo el Detalle</option>
+      </select>
     </div>
   </div>
 
@@ -1102,12 +970,12 @@
 
       <div class="btn-row">
         <button class="btn btn-primary" id="btn-start-record">🔴 Iniciar Grabación</button>
-        <button class="btn btn-secondary" id="btn-upload" title="Puedes seleccionar varios archivos a la vez">📂 Subir Audios</button>
-        <button class="btn btn-danger" id="btn-clear" style="display:none;" title="Borrar todo e iniciar de cero">🗑️</button>
+        <button class="btn btn-secondary" id="btn-upload">📂 Subir Audios</button>
+        <button class="btn btn-danger" id="btn-clear" style="display:none;">🗑️</button>
       </div>
 
       <div class="btn-row" style="margin-top: 8px;">
-        <button class="btn btn-primary" id="btn-analyze" style="display:none;">✨ Generar Apuntes con IA</button>
+        <button class="btn btn-primary" id="btn-analyze" style="display:none;">✨ Generar Notas Inteligentes</button>
       </div>
 
       <input type="file" id="file-input"
@@ -1119,7 +987,7 @@
 
     <div class="tabs">
       <button class="tab active" data-tab="transcripcion">📄 Transcripción</button>
-      <button class="tab" data-tab="notas">✨ Apuntes</button>
+      <button class="tab" data-tab="notas">✨ Notas Inteligentes</button>
       <button class="tab" data-tab="proyectos">📁 Mis Proyectos</button>
     </div>
 
@@ -1136,7 +1004,7 @@
       <div id="notes-container">
         <div class="state-msg">
           <span class="big">✨</span>
-          <span>Sube tus audios primero y luego haz clic en "Generar Apuntes con IA".</span>
+          <span>Sube tus audios primero y luego pulsa "Generar Notas Inteligentes".</span>
         </div>
       </div>
     </div>
@@ -1148,61 +1016,7 @@
 
   <div id="toast"></div>
 
-  <!-- ═══════════════ MODAL: Checklist de contexto ═══════════════ -->
-  <div class="modal-overlay" id="context-modal">
-    <div class="modal-box">
-      <h3>🧭 Contexto para tus apuntes</h3>
-      <p class="modal-subtitle">Cuéntame un poco sobre la conversación para generar apuntes más precisos y útiles (estilo Notion AI).</p>
-
-      <div class="ctx-section">
-        <label class="ctx-section-label">Tipo de conversación</label>
-        <div class="ctx-radio-group" id="ctx-type-group">
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="reunion" checked> 💼 Reunión de trabajo</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="clase"> 🎓 Clase / conferencia</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="entrevista"> 🎤 Entrevista</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="llamada"> 📞 Llamada informal</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="estudio"> 📚 Sesión de estudio</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-type" value="otro"> 🗂️ Otro</label>
-        </div>
-      </div>
-
-      <div class="ctx-section">
-        <label class="ctx-section-label">¿Qué quieres extraer?</label>
-        <div class="ctx-check-group" id="ctx-extract-group">
-          <label class="ctx-check"><input type="checkbox" value="resumen" checked><span class="ctx-check-box"></span>📌 Resumen ejecutivo</label>
-          <label class="ctx-check"><input type="checkbox" value="decisiones" checked><span class="ctx-check-box"></span>🎯 Decisiones clave</label>
-          <label class="ctx-check"><input type="checkbox" value="tareas" checked><span class="ctx-check-box"></span>✅ Elementos de acción</label>
-          <label class="ctx-check"><input type="checkbox" value="preguntas"><span class="ctx-check-box"></span>❓ Preguntas abiertas</label>
-          <label class="ctx-check"><input type="checkbox" value="datos"><span class="ctx-check-box"></span>📊 Datos y métricas</label>
-          <label class="ctx-check"><input type="checkbox" value="citas"><span class="ctx-check-box"></span>💬 Citas destacadas</label>
-          <label class="ctx-check"><input type="checkbox" value="detalles"><span class="ctx-check-box"></span>📝 Detalles y notas</label>
-          <label class="ctx-check"><input type="checkbox" value="temas"><span class="ctx-check-box"></span>🔁 Temas de seguimiento</label>
-        </div>
-      </div>
-
-      <div class="ctx-section">
-        <label class="ctx-section-label">Tono del apunte</label>
-        <div class="ctx-radio-group">
-          <label class="ctx-radio"><input type="radio" name="ctx-tone" value="profesional" checked> Profesional</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-tone" value="academico"> Académico</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-tone" value="tecnico"> Técnico</label>
-          <label class="ctx-radio"><input type="radio" name="ctx-tone" value="casual"> Casual</label>
-        </div>
-      </div>
-
-      <div class="ctx-section">
-        <label class="ctx-section-label">Instrucciones adicionales (opcional)</label>
-        <textarea class="ctx-textarea" id="ctx-extra" placeholder="Ej: Enfócate en las fechas límite. Usa nombres propios. Escribe en inglés..."></textarea>
-      </div>
-
-      <div class="ctx-actions">
-        <button class="ctx-btn ctx-btn-secondary" id="ctx-cancel">Cancelar</button>
-        <button class="ctx-btn ctx-btn-primary" id="ctx-generate">✨ Generar apuntes</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para resumen global -->
+  <!-- Modal resumen global -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-box">
       <h3 id="modal-title">🧠 Resumen Global</h3>
@@ -1221,7 +1035,6 @@
       "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"
     ];
     let groqKeyIndex = 0;
-
     function getNextGroqKey() {
       const key = GROQ_KEYS[groqKeyIndex];
       groqKeyIndex = (groqKeyIndex + 1) % GROQ_KEYS.length;
@@ -1234,27 +1047,25 @@
 
     const LS_KEY_MODEL = 'meetingmind_groq_text_model';
     const LS_KEY_PROJECTS = 'meetingmind_projects';
-    const LS_KEY_CHECKBOX = 'meetingmind_checkbox_state';
+    const LS_KEY_MODE = 'meetingmind_analysis_mode';
+    const LS_KEY_CHECKBOX = 'meetingmind_notion_checkboxes';
 
     // ═══════════════════ UTILIDADES ═══════════════════
-    function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const response = await fetch(url, {
+        return await fetch(url, {
           ...options,
           signal: controller.signal,
           mode: 'cors',
           credentials: 'omit'
         });
-        return response;
       } catch (err) {
-        if (err.name === 'AbortError') {
-          throw new Error('La petición excedió el tiempo límite (timeout).');
-        }
-        throw new Error(`Error de red: ${err.message || 'Error desconocido de red'}`);
+        if (err.name === 'AbortError') throw new Error('La petición excedió el tiempo límite (timeout).');
+        throw new Error(`Error de red: ${err.message || 'Error desconocido'}`);
       } finally {
         clearTimeout(timeoutId);
       }
@@ -1285,181 +1096,8 @@
       txt.textContent = text;
     }
 
-    // ═══════════════════ ESTADO DE CHECKBOXES (persistencia) ═══════════════════
-    function getCheckboxState() {
-      try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); }
-      catch (e) { return {}; }
-    }
-    function saveCheckboxState(state) {
-      try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(state)); }
-      catch (e) {}
-    }
-    function toggleCheckboxState(key, checked) {
-      const state = getCheckboxState();
-      state[key] = checked;
-      saveCheckboxState(state);
-    }
-
-    // ═══════════════════ MARKDOWN RENDERER (Notion style) ═══════════════════
-    function renderMarkdown(md, noteKey = '') {
-      if (!md || typeof md !== 'string') return '';
-
-      // Normalize
-      md = md.replace(/\r\n/g, '\n').replace(/\t/g, '  ');
-
-      // Extract code blocks first
-      const codeBlocks = [];
-      md = md.replace(/```([a-zA-Z0-9_+-]*)\n?([\s\S]*?)```/g, (m, lang, code) => {
-        const idx = codeBlocks.length;
-        codeBlocks.push(`<pre class="notion-code"><code>${escHtml(code.replace(/\n$/, ''))}</code></pre>`);
-        return `\n\u0000CB${idx}\u0000\n`;
-      });
-
-      // Escape remaining HTML
-      md = escHtml(md);
-
-      // Inline formatter
-      function inline(text) {
-        if (!text) return '';
-        return text
-          .replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>')
-          .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-          .replace(/(^|[^\*])\*([^\*\n]+?)\*(?!\*)/g, '$1<em>$2</em>')
-          .replace(/(^|[^_])_([^_\n]+?)_(?!_)/g, '$1<em>$2</em>')
-          .replace(/`([^`]+)`/g, '<code class="notion-inline-code">$1</code>')
-          .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-      }
-
-      const lines = md.split('\n');
-      const out = [];
-      let i = 0;
-      let checkboxCounter = 0;
-      const storedState = getCheckboxState();
-
-      while (i < lines.length) {
-        const rawLine = lines[i];
-        const line = rawLine.trim();
-
-        // Blank
-        if (!line) { i++; continue; }
-
-        // Code block placeholder
-        const cbMatch = line.match(/^\u0000CB(\d+)\u0000$/);
-        if (cbMatch) {
-          out.push(codeBlocks[parseInt(cbMatch[1], 10)] || '');
-          i++;
-          continue;
-        }
-
-        // Horizontal rule
-        if (/^(---|\*\*\*|___)\s*$/.test(line)) {
-          out.push('<hr class="notion-hr">');
-          i++;
-          continue;
-        }
-
-        // Headings
-        const headingMatch = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
-        if (headingMatch) {
-          const level = headingMatch[1].length;
-          const text = inline(headingMatch[2]);
-          out.push(`<h${level} class="notion-h notion-h${level}">${text}</h${level}>`);
-          i++;
-          continue;
-        }
-
-        // Blockquote
-        if (/^>\s?/.test(line)) {
-          const buf = [];
-          while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
-            buf.push(lines[i].trim().replace(/^>\s?/, ''));
-            i++;
-          }
-          out.push(`<blockquote class="notion-quote">${inline(buf.join(' '))}</blockquote>`);
-          continue;
-        }
-
-        // Checkbox list (- [ ] / - [x])
-        if (/^[-*+]\s+\[[ xX]\]\s+/.test(line)) {
-          const items = [];
-          while (i < lines.length && /^[-*+]\s+\[[ xX]\]\s+/.test(lines[i].trim())) {
-            const m = lines[i].trim().match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
-            const checked = m[1].toLowerCase() === 'x';
-            const text = inline(m[2]);
-            const id = `cb_${noteKey}_${checkboxCounter++}`;
-            const savedState = storedState[id];
-            const finalChecked = (typeof savedState === 'boolean') ? savedState : checked;
-            items.push({ id, checked: finalChecked, text });
-            i++;
-          }
-          out.push('<ul class="notion-checklist">' +
-            items.map(it => `
-              <li class="notion-check-item ${it.checked ? 'checked' : ''}" data-check-id="${it.id}">
-                <label class="notion-checkbox-wrapper">
-                  <input type="checkbox" class="notion-checkbox" data-check-id="${it.id}" ${it.checked ? 'checked' : ''}>
-                  <span class="notion-check-text">${it.text}</span>
-                </label>
-              </li>
-            `).join('') + '</ul>');
-          continue;
-        }
-
-        // Bullet list
-        if (/^[-*+]\s+/.test(line)) {
-          const items = [];
-          while (i < lines.length && /^[-*+]\s+/.test(lines[i].trim()) && !/^[-*+]\s+\[[ xX]\]/.test(lines[i].trim())) {
-            items.push(inline(lines[i].trim().replace(/^[-*+]\s+/, '')));
-            i++;
-          }
-          out.push('<ul class="notion-list">' + items.map(t => `<li>${t}</li>`).join('') + '</ul>');
-          continue;
-        }
-
-        // Numbered list
-        if (/^\d+[.)]\s+/.test(line)) {
-          const items = [];
-          while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) {
-            items.push(inline(lines[i].trim().replace(/^\d+[.)]\s+/, '')));
-            i++;
-          }
-          out.push('<ol class="notion-list">' + items.map(t => `<li>${t}</li>`).join('') + '</ol>');
-          continue;
-        }
-
-        // Paragraph (accumulate until blank or block-starter)
-        const paraBuf = [line];
-        i++;
-        while (i < lines.length) {
-          const next = lines[i].trim();
-          if (!next) break;
-          if (/^(#{1,6}\s|[-*+]\s|>\s?|\d+[.)]\s|---|\*\*\*|___)/.test(next)) break;
-          if (/^\u0000CB\d+\u0000$/.test(next)) break;
-          paraBuf.push(next);
-          i++;
-        }
-        out.push(`<p class="notion-p">${inline(paraBuf.join(' '))}</p>`);
-      }
-
-      return out.join('\n');
-    }
-
-    // Aplicar listeners a los checkboxes después de renderizar
-    function attachCheckboxListeners(container) {
-      if (!container) return;
-      container.querySelectorAll('.notion-checkbox').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-          const id = cb.getAttribute('data-check-id');
-          const isChecked = cb.checked;
-          toggleCheckboxState(id, isChecked);
-          const li = cb.closest('.notion-check-item');
-          if (li) li.classList.toggle('checked', isChecked);
-        });
-      });
-    }
-
     // ═══════════════════ CONSULTA DINÁMICA DE MODELOS ═══════════════════
     let cachedAvailableModels = null;
-
     async function fetchAvailableModels(forceRefresh = false) {
       if (cachedAvailableModels && !forceRefresh) return cachedAvailableModels;
       try {
@@ -1467,28 +1105,24 @@
           method: 'GET',
           headers: { 'Authorization': `Bearer ${GROQ_KEYS[0]}` }
         }, 20000);
-
         if (!response.ok) {
           cachedAvailableModels = ['llama-3.3-70b-versatile'];
           return cachedAvailableModels;
         }
-
         const data = await response.json();
         const ids = (data.data || []).map(m => m.id);
-        const validChatModels = ids.filter(id =>
+        const valid = ids.filter(id =>
           !id.toLowerCase().includes('whisper') &&
           !id.toLowerCase().includes('prompt-guard')
         );
-        const preferred = validChatModels.filter(id =>
+        const preferred = valid.filter(id =>
           id.includes('llama') || id.includes('mixtral') ||
           id.includes('gemma') || id.includes('gpt-oss')
         );
-
         cachedAvailableModels = preferred.length > 0
           ? preferred.slice(0, 3)
-          : validChatModels.slice(0, 3);
-
-        if (cachedAvailableModels.length === 0) {
+          : valid.slice(0, 3);
+        if (!cachedAvailableModels.length) {
           cachedAvailableModels = ['llama-3.3-70b-versatile'];
         }
         return cachedAvailableModels;
@@ -1502,29 +1136,25 @@
     // ═══════════════════ MEMORIA TEMPORAL ═══════════════════
     const memoriaTemporal = {
       datos: {},
-      guardar(clave, valor) {
-        try { localStorage.setItem(clave, valor); } catch (e) { this.datos[clave] = valor; }
-      },
-      obtener(clave) {
-        try { return localStorage.getItem(clave); } catch (e) { return this.datos[clave] || null; }
-      }
+      guardar(c, v) { try { localStorage.setItem(c, v); } catch (e) { this.datos[c] = v; } },
+      obtener(c) { try { return localStorage.getItem(c); } catch (e) { return this.datos[c] || null; } }
     };
 
     // ═══════════════════ ESTADO GLOBAL ═══════════════════
     let accumulatedTranscript = '';
-    let currentMarkdown = '';       // Markdown crudo de los apuntes actuales
-    let currentContext = null;      // Opciones del checklist usadas
+    let currentNotionMarkdown = '';
+    let currentNoteKey = '';
     let currentOpenProjectId = null;
-    let currentNoteKey = '';        // Para persistir checkboxes por nota
+    let currentMode = 'ejecutivo';
 
-    // Grabación
     let micStream = null;
     let currentRecorder = null;
     let isRecordingActive = false;
     let recordingChunkInterval = null;
 
+    // ═══════════════════ INIT ═══════════════════
     window.addEventListener('DOMContentLoaded', () => {
-      try { initUI(); } catch (err) { alert('Error al inicializar la app: ' + err.message); }
+      try { initUI(); } catch (err) { alert('Error al inicializar: ' + err.message); }
     });
 
     function initUI() {
@@ -1538,9 +1168,8 @@
       const fileInput = document.getElementById('file-input');
       const tabs = document.querySelectorAll('.tab');
       const tabPanes = document.querySelectorAll('.tab-pane');
-      const contextModal = document.getElementById('context-modal');
 
-      // Cargar modelos dinámicamente
+      // Modelos
       fetchAvailableModels().then(models => {
         if (models.length > 0) {
           modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
@@ -1552,13 +1181,24 @@
           memoriaTemporal.guardar(LS_KEY_MODEL, 'llama-3.3-70b-versatile');
         }
       });
-
       modelSelect.addEventListener('change', () => {
         memoriaTemporal.guardar(LS_KEY_MODEL, modelSelect.value);
       });
 
+      // Modo
+      currentMode = memoriaTemporal.obtener(LS_KEY_MODE) || 'ejecutivo';
+      const savedRadio = document.querySelector(`input[name="mode"][value="${currentMode}"]`);
+      if (savedRadio) savedRadio.checked = true;
+      document.querySelectorAll('input[name="mode"]').forEach(r => {
+        r.addEventListener('change', () => {
+          currentMode = r.value;
+          memoriaTemporal.guardar(LS_KEY_MODE, currentMode);
+        });
+      });
+
       btnConfig.addEventListener('click', () => configPanel.classList.toggle('open'));
 
+      // Tabs
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           tabs.forEach(t => t.classList.remove('active'));
@@ -1572,82 +1212,60 @@
         });
       });
 
-      // Botón de grabación
+      // Grabar
       btnStartRecord.addEventListener('click', () => {
         if (isRecordingActive) stopRecordingProcess();
         else startRecordingProcess();
       });
 
-      // Subir archivos
+      // Subir
       btnUpload.addEventListener('click', () => {
-        if (isRecordingActive) { showToast('Detén la grabación activa primero.'); return; }
+        if (isRecordingActive) { showToast('Detén la grabación primero.'); return; }
         fileInput.click();
       });
 
-      // ═══ GENERAR APUNTES: abre el modal de contexto ═══
+      // Analizar → genera notas estilo Notion
       btnAnalyze.addEventListener('click', () => {
         if (!accumulatedTranscript.trim()) { showToast('⚠️ No hay transcripción disponible.'); return; }
-        openContextModal();
-      });
-
-      // Modal de contexto: cancelar
-      document.getElementById('ctx-cancel').addEventListener('click', () => {
-        contextModal.classList.remove('open');
-      });
-      contextModal.addEventListener('click', (e) => {
-        if (e.target.id === 'context-modal') contextModal.classList.remove('open');
-      });
-
-      // Modal de contexto: generar
-      document.getElementById('ctx-generate').addEventListener('click', () => {
-        const ctx = collectContextOptions();
-        if (!ctx.extract.length) {
-          showToast('⚠️ Selecciona al menos un elemento a extraer.');
-          return;
-        }
-        contextModal.classList.remove('open');
-        analyzeTextWithContext(accumulatedTranscript.trim(), ctx);
+        analyzeText(accumulatedTranscript.trim(), document.getElementById('notes-container'), currentMode);
       });
 
       btnClear.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de borrar toda la transcripción para empezar de cero?')) resetSession();
+        if (confirm('¿Borrar toda la sesión y empezar de cero?')) resetSession();
       });
 
+      // Subida de archivos
       fileInput.addEventListener('change', async () => {
         const files = Array.from(fileInput.files);
         fileInput.value = '';
-        if (files.length === 0) return;
-
-        const validExtensions = ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'wav', 'webm'];
-        for (const file of files) {
-          const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
-          if (!ext || !validExtensions.includes(ext)) {
-            showToast(`⚠️ El archivo "${file.name}" tiene un formato no soportado.`);
+        if (!files.length) return;
+        const validExt = ['flac','mp3','mp4','mpeg','mpga','m4a','ogg','wav','webm'];
+        for (const f of files) {
+          const ext = f.name.includes('.') ? f.name.split('.').pop().toLowerCase() : '';
+          if (!ext || !validExt.includes(ext)) {
+            showToast(`⚠️ Formato no soportado: ${f.name}`);
             return;
           }
         }
-
         try {
           await handleMultipleAudioFiles(files, document.getElementById('transcript-box'));
         } catch (err) {
-          showToast(`❌ Error inesperado: ${err.message}`);
+          showToast(`❌ Error: ${err.message}`);
           setStatus('error', 'Error al procesar');
           enableAllButtons();
         }
       });
 
       // Copiar transcripción
-      const btnCopyTranscript = document.getElementById('btn-copy-transcript');
-      if (btnCopyTranscript) {
-        btnCopyTranscript.addEventListener('click', () => {
-          const text = accumulatedTranscript.trim();
-          if (!text) { showToast('⚠️ No hay texto para copiar'); return; }
-          navigator.clipboard.writeText(text)
-            .then(() => showToast('✅ Transcripción copiada'))
-            .catch(() => showToast('⚠️ Error al copiar'));
-        });
-      }
+      document.getElementById('btn-copy-transcript').addEventListener('click', () => {
+        const text = accumulatedTranscript.trim();
+        if (!text) { showToast('⚠️ No hay texto para copiar'); return; }
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('✅ Transcripción copiada'))
+          .catch(() => showToast('⚠️ Error al copiar'));
+      });
 
+      // Modal resumen global
       document.getElementById('btn-close-modal').addEventListener('click', closeModal);
       document.getElementById('modal-overlay').addEventListener('click', (e) => {
         if (e.target.id === 'modal-overlay') closeModal();
@@ -1655,241 +1273,583 @@
 
       renderProjectsTab();
 
-      // Exportar/Importar
-      const btnExport = document.getElementById('btn-export-data');
-      if (btnExport) {
-        btnExport.addEventListener('click', () => {
-          const data = memoriaTemporal.obtener(LS_KEY_PROJECTS) || '[]';
-          const blob = new Blob([data], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `MeetingMind_Backup_${new Date().toISOString().split('T')[0]}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('✅ Copia de seguridad descargada.');
-        });
-      }
+      // Exportar / Importar
+      document.getElementById('btn-export-data').addEventListener('click', () => {
+        const data = memoriaTemporal.obtener(LS_KEY_PROJECTS) || '[]';
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MeetingMind_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('✅ Copia descargada.');
+      });
 
-      const btnImport = document.getElementById('btn-import-data');
       const importFile = document.getElementById('import-file');
-      if (btnImport && importFile) {
-        btnImport.addEventListener('click', () => importFile.click());
-        importFile.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            try {
-              const parsed = JSON.parse(ev.target.result);
-              if (!Array.isArray(parsed)) throw new Error("Formato inválido");
-              memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(parsed));
-              showToast('✅ Datos importados correctamente.');
-              renderProjectsTab();
-            } catch (err) {
-              showToast('⚠️ Archivo inválido.');
-            }
-          };
-          reader.readAsText(file);
-          e.target.value = '';
-        });
+      document.getElementById('btn-import-data').addEventListener('click', () => importFile.click());
+      importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!Array.isArray(parsed)) throw new Error('Formato inválido');
+            memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(parsed));
+            showToast('✅ Datos importados.');
+            renderProjectsTab();
+          } catch (err) {
+            showToast('⚠️ Archivo inválido.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       GRABACIÓN DE MICRÓFONO (MediaRecorder + chunks de 5 min)
+       ══════════════════════════════════════════════════════════════ */
+
+    async function startRecordingProcess() {
+      if (isRecordingActive) return;
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        isRecordingActive = true;
+        const btn = document.getElementById('btn-start-record');
+        btn.textContent = '⏹️ Detener Grabación';
+        btn.classList.add('recording');
+        setStatus('active', 'Grabando audio del micrófono...');
+        disableButtonsExcept(btn);
+        startMediaRecorderChunk();
+      } catch (err) {
+        if (err.name === 'NotAllowedError') showToast('⚠️ Permiso denegado.');
+        else if (err.name === 'NotFoundError') showToast('⚠️ No se encontró micrófono.');
+        else showToast(`⚠️ Error: ${err.message}`);
+        if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+        isRecordingActive = false;
+        resetRecordButton();
+        enableAllButtons();
       }
     }
 
-    // ═══════════════════ CHECKLIST: recolectar opciones ═══════════════════
-    function collectContextOptions() {
-      const typeEl = document.querySelector('input[name="ctx-type"]:checked');
-      const toneEl = document.querySelector('input[name="ctx-tone"]:checked');
-      const extract = Array.from(document.querySelectorAll('#ctx-extract-group input[type="checkbox"]:checked'))
-        .map(cb => cb.value);
-      const extra = (document.getElementById('ctx-extra').value || '').trim();
-
-      return {
-        type: typeEl ? typeEl.value : 'reunion',
-        tone: toneEl ? toneEl.value : 'profesional',
-        extract: extract,
-        extra: extra
-      };
-    }
-
-    function openContextModal() {
-      document.getElementById('context-modal').classList.add('open');
-    }
-
-    // ═══════════════════ PROMPT DINÁMICO (Notion AI style) ═══════════════════
-    function buildNotionPrompt(ctx, isChunked = false, partInfo = '') {
-      const typeLabels = {
-        reunion: 'Reunión de trabajo',
-        clase: 'Clase o conferencia académica',
-        entrevista: 'Entrevista',
-        llamada: 'Llamada informal',
-        estudio: 'Sesión de estudio',
-        otro: 'Conversación general'
-      };
-      const toneLabels = {
-        profesional: 'profesional, claro y accionable',
-        academico: 'académico y didáctico',
-        tecnico: 'técnico y preciso',
-        casual: 'cercano y conversacional'
-      };
-
-      const sectionMap = {
-        resumen: '## 📌 Resumen ejecutivo\nUn párrafo de 3-5 líneas que capture la esencia de lo discutido.',
-        decisiones: '## 🎯 Decisiones clave\nLista de decisiones tomadas, con el motivo cuando aplique. Usa viñetas simples.',
-        tareas: '## ✅ Elementos de acción\nLista de tareas concretas. **Formato obligatorio:** cada tarea como checkbox `- [ ] **Responsable**: descripción de la tarea`. Marca `- [x]` solo si en la conversación se indica explícitamente que ya está completada.',
-        preguntas: '## ❓ Preguntas abiertas\nPreguntas que quedaron sin respuesta o que requieren seguimiento.',
-        datos: '## 📊 Datos y métricas\nNúmeros, fechas, cifras, KPIs o cualquier dato cuantitativo mencionado.',
-        citas: '## 💬 Citas destacadas\nFrases textuales relevantes entre comillas, atribuidas al hablante cuando sea posible.',
-        detalles: '## 📝 Detalles y notas\nCualquier información adicional relevante que no encaje en las secciones anteriores.',
-        temas: '## 🔁 Temas de seguimiento\nTemas que deben retomarse en futuras conversaciones.'
-      };
-
-      const sectionsMd = ctx.extract
-        .map(k => sectionMap[k])
-        .filter(Boolean)
-        .join('\n\n');
-
-      const contextLine = `La conversación es de tipo: **${typeLabels[ctx.type] || 'Conversación'}**. El tono del apunte debe ser ${toneLabels[ctx.tone] || 'profesional'}.`;
-
-      const extraLine = ctx.extra
-        ? `\n\nInstrucciones adicionales del usuario (respétalas estrictamente): ${ctx.extra}`
-        : '';
-
-      const chunkLine = isChunked && partInfo
-        ? `\n\n⚠️ Esta es la ${partInfo}. Genera el mismo formato Markdown pero **sin el título H1 principal** (ese solo va en la primera parte). Usa H2 y H3 para las secciones de esta parte.`
-        : '';
-
-      return `Eres un asistente experto en tomar apuntes estilo Notion AI. Recibirás una transcripción${isChunked ? ' parcial' : ''} y debes transformarla en apuntes limpios, estructurados y útiles.
-
-${contextLine}${extraLine}${chunkLine}
-
-📋 REGLAS ESTRICTAS DE FORMATO:
-1. Devuelve **ÚNICAMENTE Markdown válido**. Nada de explicaciones, nada de preámbulos, nada de bloques de código envolviendo todo.
-2. Empieza con un título H1 (\`# ...\`) descriptivo y específico (evita títulos genéricos como "Apuntes").
-3. Debajo del H1, incluye una cita con un resumen de una sola frase: \`> Resumen en una frase.\`
-4. Usa **negritas** para términos, personas o conceptos clave.
-5. Usa \`-\` para viñetas y \`1.\` para listas numeradas.
-6. **Para Elementos de acción usa OBLIGATORIAMENTE checkboxes Markdown:** \`- [ ] tarea\` (pendiente) o \`- [x] tarea\` (completada). El formato interno debe ser \`**Responsable**: acción a realizar\`.
-7. Usa \`###\` para subtemas dentro de una sección grande si hace falta.
-8. NO uses tablas. NO uses HTML. Solo Markdown estándar compatible con Notion.
-9. Si una sección no tiene contenido, omítela en lugar de escribir "sin información".
-
-📐 ESTRUCTURA OBLIGATORIA (usa H2 para cada sección):
-
-${sectionsMd}
-
-A continuación, la transcripción:
----
-`;
-    }
-
-    // ═══════════════════ ANÁLISIS CON CONTEXTO ═══════════════════
-    async function analyzeTextWithContext(text, ctx) {
-      disableAllButtons();
-      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
-
-      // Dividir en bloques de 8000 palabras
-      const WORDS_PER_CHUNK = 8000;
-      const words = text.split(/\s+/);
+    function startMediaRecorderChunk() {
+      if (!isRecordingActive || !micStream) return;
+      currentRecorder = new MediaRecorder(micStream, { mimeType: 'audio/webm', audioBitsPerSecond: 16000 });
       const chunks = [];
-      for (let i = 0; i < words.length; i += WORDS_PER_CHUNK) {
-        chunks.push(words.slice(i, i + WORDS_PER_CHUNK).join(' '));
+      currentRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      currentRecorder.onstop = async () => {
+        if (!chunks.length) return;
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([blob], `record_${Date.now()}.webm`, { type: 'audio/webm' });
+        transcribeRecordedChunk(file);
+      };
+      currentRecorder.start();
+      recordingChunkInterval = setTimeout(() => {
+        if (isRecordingActive && currentRecorder && currentRecorder.state !== 'inactive') {
+          currentRecorder.stop();
+          startMediaRecorderChunk();
+        }
+      }, 300000);
+    }
+
+    async function transcribeRecordedChunk(file) {
+      const box = document.getElementById('transcript-box');
+      const id = 'temp_' + Date.now();
+      const ind = document.createElement('div');
+      ind.id = id;
+      ind.style.color = 'var(--gold)';
+      ind.style.margin = '10px 0';
+      ind.textContent = '⏳ Transcribiendo bloque de audio...';
+      box.appendChild(ind);
+      try {
+        const transcript = await transcribeWithGroqChunked(file, (msg) => {
+          ind.textContent = `⏳ ${msg}`;
+          setStatus('loading', msg);
+        });
+        if (transcript && transcript.trim()) {
+          accumulatedTranscript += (accumulatedTranscript.trim() ? '\n\n' : '') + transcript.trim();
+          box.textContent = accumulatedTranscript;
+          showAnalyzeUI();
+        }
+      } catch (err) {
+        showToast(`❌ Fallo al transcribir bloque: ${err.message}`);
+      } finally {
+        const el = document.getElementById(id);
+        if (el) el.remove();
       }
+    }
 
-      const notesContainer = document.getElementById('notes-container');
-      const isMultiChunk = chunks.length > 1;
+    function stopRecordingProcess() {
+      if (!isRecordingActive) return;
+      isRecordingActive = false;
+      clearTimeout(recordingChunkInterval);
+      if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      resetRecordButton();
+      setStatus('idle', 'Grabación finalizada.');
+      enableAllButtons();
+    }
 
-      // Generar un ID de nota único para persistir checkboxes
-      currentNoteKey = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    function resetRecordButton() {
+      const btn = document.getElementById('btn-start-record');
+      if (btn) {
+        btn.textContent = '🔴 Iniciar Grabación';
+        btn.classList.remove('recording');
+      }
+    }
 
-      // Mostrar placeholder con progreso
+    function showAnalyzeUI() {
+      document.getElementById('btn-analyze').style.display = 'flex';
+      document.getElementById('btn-clear').style.display = 'block';
+      document.getElementById('mode-selector').style.display = 'block';
+      document.getElementById('notion-options').style.display = 'flex';
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       TRANSCRIPCIÓN DE AUDIO (GROQ Whisper)
+       ══════════════════════════════════════════════════════════════ */
+
+    async function handleMultipleAudioFiles(files, box) {
+      disableAllButtons();
+      if (!accumulatedTranscript.trim()) box.textContent = '';
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setStatus('loading', `Procesando audio ${i + 1} de ${files.length}...`);
+        const ind = document.createElement('div');
+        ind.style.color = 'var(--gold)';
+        ind.style.margin = '10px 0';
+        ind.textContent = `⏳ Extrayendo texto del audio ${i + 1}/${files.length}...`;
+        box.appendChild(ind);
+        try {
+          const transcript = await transcribeWithGroqChunked(file, (msg) => {
+            ind.textContent = `⏳ ${msg} (Audio ${i + 1}/${files.length})`;
+            setStatus('loading', `${msg} (Audio ${i + 1}/${files.length})`);
+          });
+          if (transcript && transcript.trim()) {
+            if (accumulatedTranscript.trim()) accumulatedTranscript += '\n\n';
+            accumulatedTranscript += transcript.trim();
+            box.textContent = accumulatedTranscript;
+            showToast(`✅ Audio ${i + 1} completado.`);
+          }
+        } catch (err) {
+          showToast(`❌ Fallo en "${file.name}": ${err.message}`);
+        } finally {
+          ind.remove();
+        }
+      }
+      showAnalyzeUI();
+      setStatus('idle', 'Audios procesados. Genera las notas.');
+      enableAllButtons();
+    }
+
+    async function transcribeWithGroqChunked(file, onProgress) {
+      const CHUNK_SIZE = 10 * 1024 * 1024;
+      const total = file.size;
+      const chunks = [];
+      let start = 0, idx = 0;
+      while (start < total) {
+        const end = Math.min(start + CHUNK_SIZE, total);
+        chunks.push({ blob: file.slice(start, end), index: idx + 1, total: Math.ceil(total / CHUNK_SIZE) });
+        start = end;
+        idx++;
+      }
+      let full = '';
+      for (let i = 0; i < chunks.length; i++) {
+        if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length}...`);
+        const partFile = new File([chunks[i].blob], `part_${i + 1}.${file.name.split('.').pop() || 'webm'}`, { type: file.type || 'audio/webm' });
+        const t = await transcribeSingleChunk(partFile);
+        if (t && t.trim()) full += (full ? ' ' : '') + t.trim();
+        if (i < chunks.length - 1) {
+          if (onProgress) onProgress('Esperando 5s...');
+          await delay(5000);
+        }
+      }
+      return full;
+    }
+
+    async function transcribeSingleChunk(file) {
+      let lastError = null;
+      for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+        const apiKey = getNextGroqKey();
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('model', 'whisper-large-v3-turbo');
+        formData.append('response_format', 'json');
+        formData.append('language', 'es');
+        try {
+          const response = await fetchWithTimeout(GROQ_AUDIO_URL, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}` },
+            body: formData
+          }, 60000);
+          if (response.ok) {
+            const data = await response.json();
+            return data.text || '';
+          }
+          if (response.status === 429) {
+            const errData = await response.json().catch(() => ({}));
+            lastError = new Error(`[Rate Limit] ${errData?.error?.message || 'HTTP 429'}`);
+            await delay(2000 * (attempt + 1));
+            continue;
+          }
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+        } catch (err) {
+          if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
+            lastError = err;
+            await delay(1500 * (attempt + 1));
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw new Error(`Todas las API Keys fallaron. Último: ${lastError?.message || 'Desconocido'}`);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       NOTION AI: PROMPT + RENDERIZADO + CHECKBOXES
+       ══════════════════════════════════════════════════════════════ */
+
+    // ── Prompt EXACTO ──
+    function buildNotionPrompt(valorEstructura, valorContexto, valorEnfoque, textoTranscripcion) {
+      return `Eres el motor de IA de la aplicación "Meeting Mind". Eres un asistente experto en estructurar notas, con un estilo visual y organizativo idéntico a "Notion AI".
+
+DATOS DE ENTRADA:
+- Estructura deseada: ${valorEstructura}
+- Contexto del audio: ${valorContexto}
+- Enfoque principal: ${valorEnfoque}
+
+REGLAS ESTRICTAS:
+1. NO inventes información. Basa tu respuesta únicamente en el "Texto en crudo".
+2. Devuelve ÚNICAMENTE el texto en formato Markdown. Sin introducciones.
+
+FORMATO DE SALIDA ESPERADO (Usa este esquema exacto, omite secciones si no aplican):
+### 📝 Resumen Ejecutivo
+[Resumen conciso de 2-3 líneas]
+
+### 💡 Puntos Clave
+* [Punto clave 1]
+* [Punto clave 2]
+
+### 🎯 Decisiones y Acuerdos
+* [Decisión 1]
+
+### ✅ Elementos de Acción (Checklist)
+- [ ] [Tarea 1 con responsable/fecha si lo hay]
+- [ ] [Tarea 2]
+
+TEXTO EN CRUDO:
+"""
+${textoTranscripcion}
+"""`;
+    }
+
+    // ── Persistencia de checkboxes ──
+    function getCheckboxState() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function saveCheckboxState(s) {
+      try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(s)); } catch (e) {}
+    }
+    function toggleCheckboxState(key, checked) {
+      const s = getCheckboxState();
+      s[key] = checked;
+      saveCheckboxState(s);
+    }
+
+    // ── Renderizador Markdown → HTML con marked.js + post-procesado ──
+    function renderMarkdownToHTML(markdown, noteKey) {
+      if (!markdown || typeof markdown !== 'string') return '';
+      let clean = markdown.trim()
+        .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+
+      let html = '';
+      if (typeof marked !== 'undefined' && marked.parse) {
+        try {
+          marked.setOptions({ gfm: true, breaks: true, headerIds: false, mangle: false });
+          html = marked.parse(clean);
+        } catch (e) {
+          console.warn('marked falló, usando fallback:', e);
+          html = fallbackMarkdownRenderer(clean);
+        }
+      } else {
+        html = fallbackMarkdownRenderer(clean);
+      }
+      return postProcessCheckboxes(html, noteKey);
+    }
+
+    // ── Fallback renderer (si marked.js no carga en APK offline) ──
+    function fallbackMarkdownRenderer(md) {
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const inline = (t) => esc(t)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      const lines = md.split('\n');
+      const out = [];
+      let inList = false, inCheck = false, listType = '';
+      const closeLists = () => {
+        if (inList) { out.push(listType === 'ul' ? '</ul>' : '</ol>'); inList = false; }
+        if (inCheck) { out.push('</ul>'); inCheck = false; }
+      };
+
+      for (const raw of lines) {
+        const t = raw.trim();
+        if (!t) { closeLists(); continue; }
+
+        const cb = t.match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
+        if (cb) {
+          if (!inCheck) { closeLists(); out.push('<ul>'); inCheck = true; }
+          const checked = cb[1].toLowerCase() === 'x';
+          out.push(`<li><input type="checkbox"${checked ? ' checked' : ''}> ${inline(cb[2])}</li>`);
+          continue;
+        }
+
+        const h = t.match(/^(#{1,6})\s+(.+)$/);
+        if (h) {
+          closeLists();
+          out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
+          continue;
+        }
+
+        if (/^[-*+]\s+/.test(t)) {
+          if (!inList || listType !== 'ul') { closeLists(); out.push('<ul>'); inList = true; listType = 'ul'; }
+          out.push(`<li>${inline(t.replace(/^[-*+]\s+/, ''))}</li>`);
+          continue;
+        }
+
+        if (/^\d+[.)]\s+/.test(t)) {
+          if (!inList || listType !== 'ol') { closeLists(); out.push('<ol>'); inList = true; listType = 'ol'; }
+          out.push(`<li>${inline(t.replace(/^\d+[.)]\s+/, ''))}</li>`);
+          continue;
+        }
+
+        if (/^>\s?/.test(t)) {
+          closeLists();
+          out.push(`<blockquote>${inline(t.replace(/^>\s?/, ''))}</blockquote>`);
+          continue;
+        }
+
+        closeLists();
+        out.push(`<p>${inline(t)}</p>`);
+      }
+      closeLists();
+      return out.join('\n');
+    }
+
+    // ── Convertir <input disabled> de marked a checkboxes interactivos Notion ──
+    function postProcessCheckboxes(html, noteKey) {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+
+      const stored = getCheckboxState();
+      let idx = 0;
+
+      temp.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        const id = `cb_${noteKey}_${idx++}`;
+        cb.removeAttribute('disabled');
+        cb.classList.add('notion-checkbox');
+        cb.setAttribute('data-check-id', id);
+
+        const li = cb.closest('li');
+        if (li) {
+          li.classList.add('notion-check-item');
+
+          if (!li.querySelector('.notion-check-text')) {
+            const span = document.createElement('span');
+            span.className = 'notion-check-text';
+            let node = cb.nextSibling;
+            while (node) {
+              const next = node.nextSibling;
+              span.appendChild(node);
+              node = next;
+            }
+            li.innerHTML = '';
+            li.appendChild(cb);
+            li.appendChild(span);
+          }
+
+          const saved = stored[id];
+          const finalChecked = (typeof saved === 'boolean') ? saved : cb.checked;
+          cb.checked = finalChecked;
+          li.classList.toggle('notion-checked', finalChecked);
+        }
+      });
+
+      return temp.innerHTML;
+    }
+
+    // ── Adjuntar listeners de checkbox ──
+    function attachNotionCheckboxListeners(container) {
+      if (!container) return;
+      container.querySelectorAll('input.notion-checkbox').forEach((cb) => {
+        if (cb.dataset.listenerAttached === '1') return;
+        cb.dataset.listenerAttached = '1';
+        cb.addEventListener('change', () => {
+          const id = cb.getAttribute('data-check-id');
+          toggleCheckboxState(id, cb.checked);
+          const li = cb.closest('li.notion-check-item');
+          if (li) li.classList.toggle('notion-checked', cb.checked);
+        });
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       GENERACIÓN DE NOTAS (Notion style)
+       ══════════════════════════════════════════════════════════════ */
+
+    async function analyzeText(text, notesContainer, mode) {
+      // ── 1. Capturar valores ──
+      const valorEstructura = mode || currentMode || 'Ejecutivo';
+      const ctxEl = document.getElementById('ctx-select');
+      const focusEl = document.getElementById('focus-select');
+      const valorContexto = ctxEl ? ctxEl.value : 'Reunión Técnica';
+      const valorEnfoque = focusEl ? focusEl.value : 'Resumen y Puntos Clave';
+
+      console.log('[Notion] Valores →', { valorEstructura, valorContexto, valorEnfoque });
+
+      // ── 2. Construir el prompt ──
+      const promptNotion = buildNotionPrompt(valorEstructura, valorContexto, valorEnfoque, text);
+
+      // ── 3. UI ──
+      disableAllButtons();
       notesContainer.innerHTML = `
         <div class="state-msg">
           <span class="big">✨</span>
-          <span id="analyze-progress">Preparando análisis con IA…</span>
+          <span id="notion-progress">Generando notas estilo Notion…</span>
         </div>
       `;
+      setStatus('loading', 'Generando notas con IA…');
 
-      let fullMarkdown = '';
+      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
 
       try {
-        for (let i = 0; i < chunks.length; i++) {
-          const progressEl = document.getElementById('analyze-progress');
-          const partInfo = isMultiChunk ? `parte ${i + 1} de ${chunks.length}` : '';
-          if (progressEl) {
-            progressEl.textContent = `Analizando ${partInfo || 'texto'}…`;
-          }
-          setStatus('loading', `Generando apuntes: ${partInfo || 'procesando'}…`);
+        // ── 4. Llamar a Groq ──
+        const payload = {
+          model: currentModel,
+          messages: [
+            { role: 'system', content: promptNotion },
+            { role: 'user', content: 'Genera las notas ahora siguiendo estrictamente el formato Markdown indicado.' }
+          ],
+          temperature: 0.3,
+          max_tokens: 4096
+        };
 
-          const systemPrompt = buildNotionPrompt(ctx, isMultiChunk, partInfo);
-          const userContent = (isMultiChunk ? `PARTE ${i + 1}/${chunks.length}:\n\n` : '') + chunks[i];
+        const progressEl = document.getElementById('notion-progress');
+        if (progressEl) progressEl.textContent = 'Procesando respuesta del modelo…';
 
-          const payload = {
-            model: currentModel,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userContent }
-            ],
-            temperature: 0.3,
-            max_tokens: 4096
-          };
+        const rawMarkdown = await callGroqChat(payload);
 
-          let md = '';
-          try {
-            const result = await callGroqChat(payload);
-            md = cleanMarkdownResponse(result);
-          } catch (chunkErr) {
-            throw new Error(`Error en parte ${i + 1}: ${chunkErr.message}`);
-          }
+        const cleanMarkdown = rawMarkdown.trim()
+          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+          .replace(/\n?```\s*$/i, '')
+          .trim();
 
-          fullMarkdown += (fullMarkdown ? '\n\n---\n\n' : '') + md;
+        const titleMatch = cleanMarkdown.match(/^#\s+(.+)$/m)
+          || cleanMarkdown.match(/^###\s+📝\s+Resumen Ejecutivo/m);
+        const docTitle = titleMatch
+          ? (titleMatch[1] || 'Apuntes de la sesión').replace(/[*_`]/g, '').trim()
+          : 'Apuntes de la sesión';
 
-          if (i < chunks.length - 1) {
-            setStatus('loading', `Parte ${i + 1}/${chunks.length} lista. Esperando 5s…`);
-            if (progressEl) progressEl.textContent = `Parte ${i + 1} lista. Preparando siguiente…`;
-            await delay(5000);
-          }
-        }
+        // ── 5. Renderizar ──
+        renderNotionNotes(cleanMarkdown, notesContainer, docTitle);
 
-        currentMarkdown = fullMarkdown;
-        currentContext = ctx;
-        renderNotionNotes(fullMarkdown, notesContainer, ctx);
-        setStatus('active', 'Apuntes generados');
-        showToast('✅ Apuntes estilo Notion listos');
+        setStatus('active', '✨ Notas Notion generadas');
+        showToast('✅ Notas estilo Notion listas');
         document.querySelector('[data-tab="notas"]')?.click();
+
       } catch (err) {
-        showToast(`❌ Error: ${err.message}`);
-        setStatus('error', 'Error al generar apuntes');
-        notesContainer.innerHTML = `<div class="state-msg error-msg"><span class="big">⚠️</span><strong>Error:</strong><span>${escHtml(err.message)}</span></div>`;
+        console.error('Error generando notas:', err);
+        setStatus('error', 'Error al generar notas');
+        notesContainer.innerHTML = `
+          <div class="state-msg error-msg">
+            <span class="big">⚠️</span>
+            <strong>Error:</strong>
+            <span>${escHtml(err.message)}</span>
+          </div>
+        `;
+        showToast(`❌ ${err.message}`);
       } finally {
         enableAllButtons();
       }
     }
 
-    // Limpiar la respuesta del modelo (quitar fences de código envolventes, espacios)
-    function cleanMarkdownResponse(raw) {
-      if (!raw || typeof raw !== 'string') return '';
-      let clean = raw.trim();
-      // Quitar ```markdown ... ``` si envolvió toda la respuesta
-      clean = clean.replace(/^```(?:markdown|md)?\s*\n?/i, '').replace(/\n?```\s*$/i, '');
-      return clean.trim();
+    // ── Render principal de la pestaña "Notas Inteligentes" ──
+    function renderNotionNotes(markdown, container, docTitle) {
+      currentNoteKey = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      currentNotionMarkdown = markdown;
+
+      const html = renderMarkdownToHTML(markdown, currentNoteKey);
+
+      const projects = getProjects();
+      const projectOptionsHtml = projects.length
+        ? projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.nombre)}</option>`).join('')
+        : '<option value="">Sin proyectos aún</option>';
+
+      container.innerHTML = `
+        <div class="notes-header">
+          <div class="notes-header-left">
+            <select id="save-project-select" class="select-inline">${projectOptionsHtml}</select>
+            <button id="btn-save-to-project" class="btn-copy-notion">💾 Guardar</button>
+          </div>
+          <div class="notes-header-right">
+            <button id="btn-copy-notion" class="btn-copy-notion">📋 Copiar MD</button>
+            <button id="btn-download-md" class="btn-copy-notion">⬇️ .md</button>
+          </div>
+        </div>
+        <div class="notion-content" id="notion-render-target">
+          ${html}
+        </div>
+      `;
+
+      attachNotionCheckboxListeners(document.getElementById('notion-render-target'));
+
+      document.getElementById('btn-copy-notion').addEventListener('click', () => {
+        navigator.clipboard.writeText(currentNotionMarkdown)
+          .then(() => showToast('✅ Markdown copiado'))
+          .catch(() => showToast('⚠️ Error al copiar'));
+      });
+
+      document.getElementById('btn-download-md').addEventListener('click', () => {
+        const blob = new Blob([currentNotionMarkdown], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(docTitle || 'apuntes').replace(/[^\w\s\-áéíóúñ]/gi, '').slice(0, 60)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ Archivo .md descargado');
+      });
+
+      const btnSave = document.getElementById('btn-save-to-project');
+      if (btnSave) btnSave.addEventListener('click', () => {
+        const sel = document.getElementById('save-project-select');
+        const pid = sel ? sel.value : '';
+        if (!pid) { showToast('⚠️ Crea o selecciona un proyecto primero.'); return; }
+        saveNotionNoteToProject(pid, docTitle || 'Apuntes');
+      });
     }
 
+    // ── Llamada al LLM con rotación de claves y modelos ──
     async function callGroqChat(payload) {
       const dynamicModels = await fetchAvailableModels();
       const modelsToTry = [...new Set([payload.model, ...dynamicModels])].filter(Boolean);
 
       let lastError = null;
-      const maxTotalAttempts = modelsToTry.length * GROQ_KEYS.length;
+      const maxAttempts = modelsToTry.length * GROQ_KEYS.length;
       let attemptCount = 0;
 
       for (const model of modelsToTry) {
         const currentPayload = { ...payload, model };
-
-        for (let keyAttempt = 0; keyAttempt < GROQ_KEYS.length; keyAttempt++) {
-          if (attemptCount >= maxTotalAttempts) break;
+        for (let ka = 0; ka < GROQ_KEYS.length; ka++) {
+          if (attemptCount >= maxAttempts) break;
           attemptCount++;
-
           const apiKey = getNextGroqKey();
           try {
             const response = await fetchWithTimeout(GROQ_CHAT_URL, {
@@ -1916,322 +1876,41 @@ A continuación, la transcripción:
 
             if (response.status === 429) {
               lastError = new Error(`[Rate Limit] ${errMsg}`);
-              await delay(2000 * (keyAttempt + 1));
+              await delay(2000 * (ka + 1));
               continue;
             }
-
             lastError = new Error(errMsg);
             break;
           } catch (err) {
             lastError = err;
             if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-              await delay(1500 * (keyAttempt + 1));
+              await delay(1500 * (ka + 1));
               continue;
             }
             break;
           }
         }
       }
-
-      throw new Error(`Todos los modelos y claves Groq fallaron. Último error: ${lastError?.message || 'Desconocido'}`);
+      throw new Error(`Todos los modelos y claves fallaron. Último: ${lastError?.message || 'Desconocido'}`);
     }
 
-    // ═══════════════════ RENDERIZADO ESTILO NOTION ═══════════════════
-    function renderNotionNotes(markdown, container, ctx) {
-      const html = renderMarkdown(markdown, currentNoteKey);
+    /* ══════════════════════════════════════════════════════════════
+       RESET Y CONTROL DE BOTONES
+       ══════════════════════════════════════════════════════════════ */
 
-      const projects = getProjects();
-      const projectOptionsHtml = projects.length ?
-        projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.nombre)}</option>`).join('') :
-        '<option value="">Sin proyectos aún</option>';
-
-      // Extraer título del H1 del markdown (para mostrarlo en el select de guardar)
-      const titleMatch = markdown.match(/^#\s+(.+)$/m);
-      const docTitle = titleMatch ? titleMatch[1].replace(/[*_`]/g, '').trim() : 'Apuntes de la sesión';
-
-      container.innerHTML = `
-        <div class="notes-header">
-          <div class="notes-header-left">
-            <select id="save-project-select" class="select-inline">${projectOptionsHtml}</select>
-            <button id="btn-save-to-project" class="btn-copy-notion">💾 Guardar</button>
-          </div>
-          <div class="notes-header-right">
-            <button id="btn-copy-notion" class="btn-copy-notion">📋 Copiar MD</button>
-            <button id="btn-download-md" class="btn-copy-notion">⬇️ .md</button>
-            <button id="btn-reanalyze" class="btn-copy-notion">🔄 Re-analizar</button>
-          </div>
-        </div>
-        <div class="notion-content" id="notion-render-target">
-          ${html}
-        </div>
-      `;
-
-      // Aplicar listeners a checkboxes interactivos
-      attachCheckboxListeners(document.getElementById('notion-render-target'));
-
-      // Copiar como Markdown
-      document.getElementById('btn-copy-notion').addEventListener('click', () => {
-        navigator.clipboard.writeText(currentMarkdown)
-          .then(() => showToast('✅ Markdown copiado'))
-          .catch(() => showToast('⚠️ Error al copiar'));
-      });
-
-      // Descargar .md
-      document.getElementById('btn-download-md').addEventListener('click', () => {
-        const blob = new Blob([currentMarkdown], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${docTitle.replace(/[^\w\s\-áéíóúñ]/gi, '').slice(0, 60) || 'apuntes'}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('⬇️ Archivo .md descargado');
-      });
-
-      // Re-analizar (reabre el modal de contexto)
-      document.getElementById('btn-reanalyze').addEventListener('click', () => {
-        if (!accumulatedTranscript.trim()) { showToast('⚠️ No hay transcripción disponible.'); return; }
-        openContextModal();
-      });
-
-      // Guardar en proyecto
-      const btnSave = document.getElementById('btn-save-to-project');
-      if (btnSave) btnSave.addEventListener('click', () => {
-        const sel = document.getElementById('save-project-select');
-        const pid = sel ? sel.value : '';
-        if (!pid) { showToast('⚠️ Crea o selecciona un proyecto primero.'); return; }
-        saveNoteToProject(pid, docTitle);
-      });
-    }
-
-    // ═══════════════════ GRABACIÓN DE MICRÓFONO ═══════════════════
-    async function startRecordingProcess() {
-      if (isRecordingActive) return;
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        isRecordingActive = true;
-        const btnStartRecord = document.getElementById('btn-start-record');
-        btnStartRecord.textContent = '⏹️ Detener Grabación';
-        btnStartRecord.classList.add('recording');
-        setStatus('active', 'Grabando audio del micrófono...');
-        disableButtonsExcept(btnStartRecord);
-        startMediaRecorderChunk();
-      } catch (err) {
-        console.error('Error al iniciar grabación:', err);
-        if (err.name === 'NotAllowedError') showToast('⚠️ Permiso denegado.');
-        else if (err.name === 'NotFoundError') showToast('⚠️ No se encontró micrófono.');
-        else showToast(`⚠️ Error: ${err.message}`);
-        if (micStream) {
-          micStream.getTracks().forEach(t => t.stop());
-          micStream = null;
-        }
-        isRecordingActive = false;
-        resetRecordButton();
-        enableAllButtons();
-      }
-    }
-
-    function startMediaRecorderChunk() {
-      if (!isRecordingActive || !micStream) return;
-      const recorderOptions = { mimeType: 'audio/webm', audioBitsPerSecond: 16000 };
-      currentRecorder = new MediaRecorder(micStream, recorderOptions);
-      const chunks = [];
-
-      currentRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-      currentRecorder.onstop = async () => {
-        if (chunks.length === 0) return;
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const file = new File([blob], `record_${Date.now()}.webm`, { type: 'audio/webm' });
-        transcribeRecordedChunk(file);
-      };
-      currentRecorder.start();
-
-      recordingChunkInterval = setTimeout(() => {
-        if (isRecordingActive && currentRecorder && currentRecorder.state !== 'inactive') {
-          currentRecorder.stop();
-          startMediaRecorderChunk();
-        }
-      }, 300000);
-    }
-
-    async function transcribeRecordedChunk(file) {
-      const transcriptBox = document.getElementById('transcript-box');
-      const tempId = 'temp_' + Date.now();
-      const tempIndicator = document.createElement('div');
-      tempIndicator.id = tempId;
-      tempIndicator.style.color = 'var(--gold)';
-      tempIndicator.style.margin = '10px 0';
-      tempIndicator.textContent = '⏳ Transcribiendo bloque de audio...';
-      transcriptBox.appendChild(tempIndicator);
-
-      try {
-        const transcript = await transcribeWithGroqChunked(file, (msg) => {
-          tempIndicator.textContent = `⏳ ${msg}`;
-          setStatus('loading', msg);
-        });
-        if (transcript && transcript.trim()) {
-          accumulatedTranscript += (accumulatedTranscript.trim() ? '\n\n' : '') + transcript.trim();
-          transcriptBox.textContent = accumulatedTranscript;
-          document.getElementById('btn-analyze').style.display = 'flex';
-          document.getElementById('btn-clear').style.display = 'block';
-        }
-      } catch (err) {
-        showToast(`❌ Fallo al transcribir bloque: ${err.message}`);
-      } finally {
-        const ind = document.getElementById(tempId);
-        if (ind) ind.remove();
-      }
-    }
-
-    function stopRecordingProcess() {
-      if (!isRecordingActive) return;
-      isRecordingActive = false;
-      clearTimeout(recordingChunkInterval);
-      if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
-      if (micStream) {
-        micStream.getTracks().forEach(t => t.stop());
-        micStream = null;
-      }
-      resetRecordButton();
-      setStatus('idle', 'Grabación finalizada. Genera los apuntes.');
-      enableAllButtons();
-    }
-
-    function resetRecordButton() {
-      const btnStartRecord = document.getElementById('btn-start-record');
-      if (btnStartRecord) {
-        btnStartRecord.textContent = '🔴 Iniciar Grabación';
-        btnStartRecord.classList.remove('recording');
-      }
-    }
-
-    // ═══════════════════ TRANSCRIPCIÓN DE AUDIO (GROQ) ═══════════════════
-    async function transcribeWithGroqChunked(file, onProgress) {
-      const CHUNK_SIZE = 10 * 1024 * 1024;
-      const totalSize = file.size;
-      const chunks = [];
-      let start = 0;
-      let index = 0;
-      while (start < totalSize) {
-        const end = Math.min(start + CHUNK_SIZE, totalSize);
-        chunks.push({ blob: file.slice(start, end), index: index + 1, total: Math.ceil(totalSize / CHUNK_SIZE) });
-        start = end;
-        index++;
-      }
-
-      let fullTranscript = '';
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length}...`);
-        const partFile = new File([chunk.blob], `part_${i + 1}.${file.name.split('.').pop() || 'webm'}`, { type: file.type || 'audio/webm' });
-        const transcript = await transcribeSingleChunk(partFile);
-        if (transcript && transcript.trim()) {
-          fullTranscript += (fullTranscript ? ' ' : '') + transcript.trim();
-        }
-        if (i < chunks.length - 1) {
-          if (onProgress) onProgress(`Esperando 5s...`);
-          await delay(5000);
-        }
-      }
-      return fullTranscript;
-    }
-
-    async function transcribeSingleChunk(file) {
-      let lastError = null;
-      for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
-        const apiKey = getNextGroqKey();
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('model', 'whisper-large-v3-turbo');
-        formData.append('response_format', 'json');
-        formData.append('language', 'es');
-
-        try {
-          const response = await fetchWithTimeout(GROQ_AUDIO_URL, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}` },
-            body: formData
-          }, 60000);
-
-          if (response.ok) {
-            const data = await response.json();
-            return data.text || '';
-          }
-
-          if (response.status === 429) {
-            const errData = await response.json().catch(() => ({}));
-            lastError = new Error(`[Rate Limit] ${errData?.error?.message || 'HTTP 429'}`);
-            await delay(2000 * (attempt + 1));
-            continue;
-          }
-
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
-        } catch (err) {
-          if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-            lastError = err;
-            await delay(1500 * (attempt + 1));
-            continue;
-          }
-          throw err;
-        }
-      }
-      throw new Error(`Todas las API Keys fallaron. Último error: ${lastError?.message || 'Desconocido'}`);
-    }
-
-    // ═══════════════════ MANEJO DE ARCHIVOS SUBIDOS ═══════════════════
-    async function handleMultipleAudioFiles(files, transcriptBox) {
-      disableAllButtons();
-      if (!accumulatedTranscript.trim()) transcriptBox.textContent = '';
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        setStatus('loading', `Procesando audio ${i + 1} de ${files.length}...`);
-
-        const tempIndicator = document.createElement('div');
-        tempIndicator.style.color = 'var(--gold)';
-        tempIndicator.style.margin = '10px 0';
-        tempIndicator.textContent = `⏳ Extrayendo texto del audio ${i + 1}/${files.length}...`;
-        transcriptBox.appendChild(tempIndicator);
-
-        try {
-          const transcript = await transcribeWithGroqChunked(file, (msg) => {
-            tempIndicator.textContent = `⏳ ${msg} (Audio ${i + 1}/${files.length})`;
-            setStatus('loading', `${msg} (Audio ${i + 1}/${files.length})`);
-          });
-          if (transcript && transcript.trim()) {
-            if (accumulatedTranscript.trim()) accumulatedTranscript += '\n\n';
-            accumulatedTranscript += transcript.trim();
-            transcriptBox.textContent = accumulatedTranscript;
-            showToast(`✅ Audio ${i + 1} completado.`);
-          }
-        } catch (err) {
-          showToast(`❌ Fallo en audio "${file.name}": ${err.message}`);
-        } finally {
-          tempIndicator.remove();
-        }
-      }
-
-      document.getElementById('btn-analyze').style.display = 'flex';
-      document.getElementById('btn-clear').style.display = 'block';
-      setStatus('idle', 'Todos los audios procesados. Genera los apuntes.');
-      enableAllButtons();
-    }
-
-    // ═══════════════════ RESET ═══════════════════
     function resetSession() {
       accumulatedTranscript = '';
-      currentMarkdown = '';
-      currentContext = null;
+      currentNotionMarkdown = '';
       currentNoteKey = '';
       document.getElementById('transcript-box').innerHTML = '<span style="color:var(--muted)">La transcripción aparecerá aquí...</span>';
-      document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Sube tus audios primero y luego haz clic en "Generar Apuntes con IA".</span></div>';
+      document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Sube tus audios primero y luego pulsa "Generar Notas Inteligentes".</span></div>';
       document.getElementById('btn-analyze').style.display = 'none';
       document.getElementById('btn-clear').style.display = 'none';
+      document.getElementById('mode-selector').style.display = 'none';
+      document.getElementById('notion-options').style.display = 'none';
       setStatus('idle', 'Listo. Sube o graba un audio.');
     }
 
-    // ═══════════════════ CONTROL DE BOTONES ═══════════════════
     function disableButtonsExcept(activeBtn) {
       ['btn-start-record', 'btn-upload', 'btn-analyze'].forEach(id => {
         const b = document.getElementById(id);
@@ -2245,10 +1924,10 @@ A continuación, la transcripción:
       });
     }
     function enableAllButtons() {
-      const btnStartRecord = document.getElementById('btn-start-record');
+      const btnStart = document.getElementById('btn-start-record');
       const btnUpload = document.getElementById('btn-upload');
       const btnAnalyze = document.getElementById('btn-analyze');
-      if (btnStartRecord) btnStartRecord.disabled = false;
+      if (btnStart) btnStart.disabled = false;
       if (btnUpload) btnUpload.disabled = false;
       if (btnAnalyze) {
         btnAnalyze.disabled = false;
@@ -2256,31 +1935,37 @@ A continuación, la transcripción:
       }
     }
 
-    // ═══════════════════ PROYECTOS ═══════════════════
+    /* ══════════════════════════════════════════════════════════════
+       PROYECTOS
+       ══════════════════════════════════════════════════════════════ */
+
     function getProjects() {
       try {
         const raw = memoriaTemporal.obtener(LS_KEY_PROJECTS);
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
+        const p = raw ? JSON.parse(raw) : [];
+        return Array.isArray(p) ? p : [];
       } catch (e) { return []; }
     }
-    function saveProjects(projects) { memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(projects)); }
+    function saveProjects(p) { memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(p)); }
 
     function createProject(nombre) {
       const projects = getProjects();
-      const newProject = { id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), nombre, fecha: new Date().toISOString(), notas: [] };
-      projects.unshift(newProject);
+      const nuevo = {
+        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        nombre, fecha: new Date().toISOString(), notas: []
+      };
+      projects.unshift(nuevo);
       saveProjects(projects);
-      return newProject;
+      return nuevo;
     }
-    function deleteProject(projectId) {
-      let projects = getProjects();
-      projects = projects.filter(p => p.id !== projectId);
-      saveProjects(projects);
+    function deleteProject(id) {
+      let p = getProjects();
+      p = p.filter(x => x.id !== id);
+      saveProjects(p);
     }
 
-    function saveNoteToProject(projectId, title) {
-      if (!currentMarkdown) { showToast('⚠️ No hay apuntes generados para guardar.'); return; }
+    function saveNotionNoteToProject(projectId, title) {
+      if (!currentNotionMarkdown) { showToast('⚠️ No hay notas generadas.'); return; }
       const projects = getProjects();
       const project = projects.find(p => p.id === projectId);
       if (!project) { showToast('⚠️ Proyecto no encontrado.'); return; }
@@ -2288,9 +1973,8 @@ A continuación, la transcripción:
       project.notas.push({
         id: 'nota_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         fecha: new Date().toISOString(),
-        title: title || 'Nota sin título',
-        markdown: currentMarkdown,
-        context: currentContext,
+        title: title,
+        markdown: currentNotionMarkdown,
         noteKey: currentNoteKey
       });
       saveProjects(projects);
@@ -2300,7 +1984,8 @@ A continuación, la transcripción:
     function formatFecha(iso) {
       try {
         const d = new Date(iso);
-        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+          + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
       } catch (e) { return ''; }
     }
 
@@ -2310,37 +1995,39 @@ A continuación, la transcripción:
       if (currentOpenProjectId) { renderProjectDetail(currentOpenProjectId, container); return; }
 
       const projects = getProjects();
-      const gridHtml = projects.length ? `<div class="proyectos-grid">${projects.map(p => `
+      const grid = projects.length ? `<div class="proyectos-grid">${projects.map(p => `
         <div class="proyecto-card" data-id="${escHtml(p.id)}">
           <span class="p-icon">📁</span>
           <span class="p-name">${escHtml(p.nombre)}</span>
           <span class="p-meta">${(p.notas || []).length} nota(s) · ${formatFecha(p.fecha)}</span>
-        </div>`).join('')}</div>` :
-        '<div class="state-msg"><span class="big">📁</span><span>Aún no tienes proyectos. Crea uno para empezar a guardar tus notas.</span></div>';
+        </div>`).join('')}</div>`
+        : '<div class="state-msg"><span class="big">📁</span><span>Aún no tienes proyectos. Crea uno para empezar.</span></div>';
 
       container.innerHTML = `
         <div class="proyectos-create-row">
           <input type="text" id="new-project-name" placeholder="Nombre del nuevo proyecto" />
           <button id="btn-create-project">➕ Crear</button>
         </div>
-        ${gridHtml}
+        ${grid}
       `;
 
       document.getElementById('btn-create-project').addEventListener('click', () => {
         const input = document.getElementById('new-project-name');
         const name = input.value.trim();
-        if (!name) { showToast('⚠️ Escribe un nombre para el proyecto.'); return; }
+        if (!name) { showToast('⚠️ Escribe un nombre.'); return; }
         createProject(name);
         showToast(`✅ Proyecto "${name}" creado`);
         renderProjectsTab();
       });
-
       document.getElementById('new-project-name').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') document.getElementById('btn-create-project').click();
       });
 
       container.querySelectorAll('.proyecto-card').forEach(card => {
-        card.addEventListener('click', () => { currentOpenProjectId = card.dataset.id; renderProjectsTab(); });
+        card.addEventListener('click', () => {
+          currentOpenProjectId = card.dataset.id;
+          renderProjectsTab();
+        });
       });
     }
 
@@ -2354,7 +2041,9 @@ A continuación, la transcripción:
         const noteKey = n.noteKey || n.id;
         const md = n.markdown || '';
         const title = n.title || 'Nota sin título';
-        const rendered = md ? renderMarkdown(md, noteKey) : '<span style="color:var(--muted)">Nota antigua sin formato markdown.</span>';
+        const rendered = md
+          ? renderMarkdownToHTML(md, noteKey)
+          : '<span style="color:var(--muted)">Nota sin formato.</span>';
 
         return `
           <details class="nota-guardada">
@@ -2363,13 +2052,14 @@ A continuación, la transcripción:
               <span class="fecha-tag">${formatFecha(n.fecha)}</span>
             </summary>
             <div class="nota-body">
-              <div class="notion-content notion-content-embedded" data-note-key="${escHtml(noteKey)}">
+              <div class="notion-content" data-note-key="${escHtml(noteKey)}">
                 ${rendered}
               </div>
             </div>
           </details>
         `;
-      }).join('') : '<div class="state-msg"><span class="big">📝</span><span>Este proyecto aún no tiene notas guardadas.</span></div>';
+      }).join('')
+        : '<div class="state-msg"><span class="big">📝</span><span>Sin notas guardadas aún.</span></div>';
 
       container.innerHTML = `
         <div class="proyecto-detail-header">
@@ -2381,12 +2071,14 @@ A continuación, la transcripción:
         <div id="notas-guardadas-list">${notasHtml}</div>
       `;
 
-      // Listener de checkboxes en cada nota embebida
-      container.querySelectorAll('.notion-content-embedded').forEach(el => {
-        attachCheckboxListeners(el);
+      container.querySelectorAll('.notion-content').forEach(el => {
+        attachNotionCheckboxListeners(el);
       });
 
-      document.getElementById('btn-back-projects').addEventListener('click', () => { currentOpenProjectId = null; renderProjectsTab(); });
+      document.getElementById('btn-back-projects').addEventListener('click', () => {
+        currentOpenProjectId = null;
+        renderProjectsTab();
+      });
       document.getElementById('btn-delete-project').addEventListener('click', () => {
         if (confirm(`¿Eliminar el proyecto "${project.nombre}" y todas sus notas?`)) {
           deleteProject(project.id);
@@ -2403,38 +2095,40 @@ A continuación, la transcripción:
       const notas = Array.isArray(project.notas) ? project.notas : [];
       if (!notas.length) { showToast('⚠️ No hay notas para resumir.'); return; }
 
-      const combinedText = notas.map((n) => {
-        return `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`;
-      }).join('\n\n');
+      const combined = notas.map(n =>
+        `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`
+      ).join('\n\n');
 
-      openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen global con Groq, por favor espera…');
-      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
+      openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen global con Groq…');
+      const model = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
 
-      const systemPrompt = `Eres un asistente experto. Recibirás varias notas en formato Markdown de distintas sesiones de un mismo proyecto. Genera un "Resumen Global" en Markdown bien estructurado.
-
+      const systemPrompt = `Eres un asistente experto. Recibirás varias notas Markdown de distintas sesiones de un mismo proyecto. Genera un "Resumen Global" en Markdown bien estructurado.
 REGLAS:
-- Usa un H1 con el título del resumen global.
-- Incluye: un párrafo introductorio, secciones H2 de temas recurrentes, patrones, decisiones clave y elementos de acción consolidados (usa checkboxes Markdown \`- [ ] tarea\`).
+- Usa H1 para el título, H2 para secciones, H3 para subtemas.
+- Incluye secciones: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (usa checkboxes Markdown \`- [ ] tarea\`).
 - No inventes información. Solo sintetiza lo que está en las notas.
 - Devuelve ÚNICAMENTE Markdown, sin explicaciones.`;
 
       try {
         const payload = {
-          model: currentModel,
+          model,
           messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: combinedText }
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: combined }
           ],
           temperature: 0.3,
           max_tokens: 4096
         };
         const result = await callGroqChat(payload);
-        const md = cleanMarkdownResponse(result);
-        const html = renderMarkdown(md, 'global_' + Date.now());
-        updateModalContentHTML(html);
-        attachCheckboxListeners(document.getElementById('modal-content'));
+        const md = result.trim()
+          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+          .replace(/\n?```\s*$/i, '')
+          .trim();
+        const html = renderMarkdownToHTML(md, 'global_' + Date.now());
+        document.getElementById('modal-content').innerHTML = `<div class="notion-content">${html}</div>`;
+        attachNotionCheckboxListeners(document.getElementById('modal-content'));
       } catch (err) {
-        updateModalContent(`⚠️ Error al generar el resumen: ${err.message}`);
+        document.getElementById('modal-content').textContent = `⚠️ Error: ${err.message}`;
       }
     }
 
@@ -2443,9 +2137,9 @@ REGLAS:
       document.getElementById('modal-content').textContent = content;
       document.getElementById('modal-overlay').classList.add('open');
     }
-    function updateModalContent(content) { document.getElementById('modal-content').textContent = content; }
-    function updateModalContentHTML(html) { document.getElementById('modal-content').innerHTML = html; }
-    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
   </script>
 </body>
 </html>
