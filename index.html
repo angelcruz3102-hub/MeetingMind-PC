@@ -722,10 +722,7 @@
     }
     .btn-close-modal:active { border-color: var(--accent); color: var(--accent); }
 
-    /* ══════════ PROMPT MODAL (flujo Notion AI) ══════════ */
-    .prompt-modal-box {
-      max-width: 560px;
-    }
+    .prompt-modal-box { max-width: 560px; }
     .prompt-step {
       margin-bottom: 20px;
       animation: fadeSlide 0.25s ease;
@@ -934,6 +931,99 @@
       pointer-events: none;
     }
 
+    /* ══════════ DIAGNÓSTICO + ERRORES VISIBLES ══════════ */
+    .diag-result {
+      font-size: 0.78rem;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .diag-result.ok {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    .diag-result.fail {
+      background: rgba(255, 92, 92, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .transcript-progress {
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin: 10px 0;
+      color: var(--gold);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-word;
+    }
+    .transcript-progress .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(245, 166, 35, 0.3);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .transcript-error {
+      background: rgba(255, 92, 92, 0.1);
+      border: 1px solid var(--error);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin: 10px 0;
+      color: var(--error);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .transcript-error .err-title {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .transcript-error .err-detail {
+      font-family: monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .transcript-cancel-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 2px solid var(--error);
+      color: var(--error);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      min-height: 40px;
+      font-family: var(--font);
+    }
+    .transcript-cancel-btn:active { background: rgba(255, 92, 92, 0.15); }
+
     @media (max-width: 480px) {
       body { padding: 12px 8px calc(30px + var(--safe-bottom)); }
       .logo { font-size: 1.2rem; }
@@ -974,6 +1064,16 @@
         <button id="btn-export-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📤 Exportar Datos</button>
         <button id="btn-import-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📥 Importar Datos</button>
         <input type="file" id="import-file" accept=".json,application/json" />
+      </div>
+    </div>
+
+    <div class="key-divider">
+      <label>🔬 Diagnóstico de conexión</label>
+      <div style="margin-top: 10px;">
+        <button id="btn-test-apis" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px; width: 100%;">
+          🔬 Probar las 5 API Keys con Groq
+        </button>
+        <div id="diag-result" style="display:none;"></div>
       </div>
     </div>
   </div>
@@ -1030,7 +1130,6 @@
 
   <div id="toast"></div>
 
-  <!-- ══════════ MODAL: Configurar Notas con IA (Notion AI style) ══════════ -->
   <div class="modal-overlay" id="prompt-modal">
     <div class="modal-box prompt-modal-box">
       <h3>✨ Configurar Notas con IA</h3>
@@ -1080,7 +1179,6 @@
     </div>
   </div>
 
-  <!-- Modal resumen global -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-box">
       <h3 id="modal-title">🧠 Resumen Global</h3>
@@ -1114,7 +1212,6 @@
     const LS_KEY_MODE = 'meetingmind_analysis_mode';
     const LS_KEY_CHECKBOX = 'meetingmind_notion_checkboxes';
 
-    // ═══════════════════ DATOS DINÁMICOS PARA EL MODAL ═══════════════════
     const PROMPT_CATEGORIES = {
       academico: {
         label: 'Académico',
@@ -1177,12 +1274,23 @@
       }
     };
 
-    // ═══════════════════ UTILIDADES ═══════════════════
     function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    let globalTranscriptionController = null;
 
     async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const extSignal = options.externalSignal;
+      if (extSignal) {
+        if (extSignal.aborted) {
+          clearTimeout(timeoutId);
+          throw new Error('Operación cancelada por el usuario.');
+        }
+        extSignal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
+
       try {
         return await fetch(url, {
           ...options,
@@ -1191,7 +1299,10 @@
           credentials: 'omit'
         });
       } catch (err) {
-        if (err.name === 'AbortError') throw new Error('La petición excedió el tiempo límite (timeout).');
+        if (err.name === 'AbortError') {
+          if (extSignal && extSignal.aborted) throw new Error('Operación cancelada por el usuario.');
+          throw new Error('La petición excedió el tiempo límite (timeout).');
+        }
         throw new Error(`Error de red: ${err.message || 'Error desconocido'}`);
       } finally {
         clearTimeout(timeoutId);
@@ -1223,7 +1334,6 @@
       txt.textContent = text;
     }
 
-    // ═══════════════════ CONSULTA DINÁMICA DE MODELOS ═══════════════════
     let cachedAvailableModels = null;
     async function fetchAvailableModels(forceRefresh = false) {
       if (cachedAvailableModels && !forceRefresh) return cachedAvailableModels;
@@ -1260,14 +1370,12 @@
       }
     }
 
-    // ═══════════════════ MEMORIA TEMPORAL ═══════════════════
     const memoriaTemporal = {
       datos: {},
       guardar(c, v) { try { localStorage.setItem(c, v); } catch (e) { this.datos[c] = v; } },
       obtener(c) { try { return localStorage.getItem(c); } catch (e) { return this.datos[c] || null; } }
     };
 
-    // ═══════════════════ ESTADO GLOBAL ═══════════════════
     let accumulatedTranscript = '';
     let currentNotionMarkdown = '';
     let currentNoteKey = '';
@@ -1279,14 +1387,12 @@
     let isRecordingActive = false;
     let recordingChunkInterval = null;
 
-    // Estado del modal
     let promptModalState = {
       categoria: null,
       contexto: [],
       enfoque: []
     };
 
-    // ═══════════════════ INIT ═══════════════════
     window.addEventListener('DOMContentLoaded', () => {
       try { initUI(); } catch (err) { alert('Error al inicializar: ' + err.message); }
     });
@@ -1303,7 +1409,6 @@
       const tabs = document.querySelectorAll('.tab');
       const tabPanes = document.querySelectorAll('.tab-pane');
 
-      // Modelos
       fetchAvailableModels().then(models => {
         if (models.length > 0) {
           modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
@@ -1323,7 +1428,6 @@
 
       btnConfig.addEventListener('click', () => configPanel.classList.toggle('open'));
 
-      // Tabs
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           tabs.forEach(t => t.classList.remove('active'));
@@ -1337,19 +1441,16 @@
         });
       });
 
-      // Grabar
       btnStartRecord.addEventListener('click', () => {
         if (isRecordingActive) stopRecordingProcess();
         else startRecordingProcess();
       });
 
-      // Subir
       btnUpload.addEventListener('click', () => {
         if (isRecordingActive) { showToast('Detén la grabación primero.'); return; }
         fileInput.click();
       });
 
-      // Analizar → ABRE EL MODAL (no genera aún)
       btnAnalyze.addEventListener('click', () => {
         if (!accumulatedTranscript.trim()) { showToast('⚠️ No hay transcripción disponible.'); return; }
         openPromptModal();
@@ -1359,7 +1460,6 @@
         if (confirm('¿Borrar toda la sesión y empezar de cero?')) resetSession();
       });
 
-      // Subida de archivos
       fileInput.addEventListener('change', async () => {
         const files = Array.from(fileInput.files);
         fileInput.value = '';
@@ -1381,7 +1481,6 @@
         }
       });
 
-      // Copiar transcripción
       document.getElementById('btn-copy-transcript').addEventListener('click', () => {
         const text = accumulatedTranscript.trim();
         if (!text) { showToast('⚠️ No hay texto para copiar'); return; }
@@ -1390,18 +1489,15 @@
           .catch(() => showToast('⚠️ Error al copiar'));
       });
 
-      // Modal resumen global
       document.getElementById('btn-close-modal').addEventListener('click', closeModal);
       document.getElementById('modal-overlay').addEventListener('click', (e) => {
         if (e.target.id === 'modal-overlay') closeModal();
       });
 
-      // ═══ Modal de configuración de prompt (Notion AI) ═══
       initPromptModalListeners();
 
       renderProjectsTab();
 
-      // Exportar / Importar
       document.getElementById('btn-export-data').addEventListener('click', () => {
         const data = memoriaTemporal.obtener(LS_KEY_PROJECTS) || '[]';
         const blob = new Blob([data], { type: 'application/json' });
@@ -1434,11 +1530,59 @@
         reader.readAsText(file);
         e.target.value = '';
       });
-    }
 
-    /* ══════════════════════════════════════════════════════════════
-       MODAL DE CONFIGURACIÓN DE PROMPT (Notion AI)
-       ══════════════════════════════════════════════════════════════ */
+      const btnTestApis = document.getElementById('btn-test-apis');
+      if (btnTestApis) {
+        btnTestApis.addEventListener('click', async () => {
+          const resultEl = document.getElementById('diag-result');
+          resultEl.style.display = 'block';
+          resultEl.className = 'diag-result';
+          resultEl.textContent = '🔬 Probando las 5 API Keys contra Groq...\n\n';
+
+          let okCount = 0;
+          const lines = [];
+
+          for (let i = 0; i < GROQ_KEYS.length; i++) {
+            const key = GROQ_KEYS[i];
+            const preview = key.slice(0, 12) + '…' + key.slice(-4);
+            lines.push(`[${i + 1}/5] Probando ${preview}...`);
+            resultEl.textContent = lines.join('\n');
+
+            try {
+              const res = await fetchWithTimeout(GROQ_MODELS_URL, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${key}` }
+              }, 15000);
+
+              if (res.ok) {
+                const data = await res.json();
+                const count = (data.data || []).length;
+                lines[lines.length - 1] = `✅ [${i + 1}/5] ${preview} → OK (${count} modelos)`;
+                okCount++;
+              } else if (res.status === 401 || res.status === 403) {
+                lines[lines.length - 1] = `❌ [${i + 1}/5] ${preview} → REVOCADA/INVÁLIDA (${res.status})`;
+              } else if (res.status === 429) {
+                lines[lines.length - 1] = `⚠️ [${i + 1}/5] ${preview} → Rate limit (429)`;
+              } else {
+                lines[lines.length - 1] = `⚠️ [${i + 1}/5] ${preview} → HTTP ${res.status}`;
+              }
+            } catch (err) {
+              lines[lines.length - 1] = `❌ [${i + 1}/5] ${preview} → ${err.message}`;
+            }
+            resultEl.textContent = lines.join('\n');
+          }
+
+          const summary = `\n\n📊 Resultado: ${okCount}/5 keys funcionan.`;
+          resultEl.textContent = lines.join('\n') + summary;
+          resultEl.className = 'diag-result ' + (okCount === 5 ? 'ok' : 'fail');
+
+          if (okCount === 0) {
+            lines.push('\n\n🚨 TODAS las keys están muertas. Ve a https://console.groq.com/keys y genera nuevas.');
+            resultEl.textContent = lines.join('\n');
+          }
+        });
+      }
+    }
 
     function initPromptModalListeners() {
       const modal = document.getElementById('prompt-modal');
@@ -1548,10 +1692,6 @@
       btn.disabled = !ok;
     }
 
-    /* ══════════════════════════════════════════════════════════════
-       GRABACIÓN DE MICRÓFONO (MediaRecorder + chunks de 5 min)
-       ══════════════════════════════════════════════════════════════ */
-
     async function startRecordingProcess() {
       if (isRecordingActive) return;
       try {
@@ -1599,13 +1739,13 @@
       const id = 'temp_' + Date.now();
       const ind = document.createElement('div');
       ind.id = id;
-      ind.style.color = 'var(--gold)';
-      ind.style.margin = '10px 0';
-      ind.textContent = '⏳ Transcribiendo bloque de audio...';
+      ind.className = 'transcript-progress';
+      ind.innerHTML = '<span class="spinner"></span><span class="progress-text">Transcribiendo bloque de audio...</span>';
       box.appendChild(ind);
       try {
         const transcript = await transcribeWithGroqChunked(file, (msg) => {
-          ind.textContent = `⏳ ${msg}`;
+          const t = ind.querySelector('.progress-text');
+          if (t) t.textContent = msg;
           setStatus('loading', msg);
         });
         if (transcript && transcript.trim()) {
@@ -1614,7 +1754,11 @@
           showAnalyzeUI();
         }
       } catch (err) {
-        showToast(`❌ Fallo al transcribir bloque: ${err.message}`);
+        const errDiv = document.createElement('div');
+        errDiv.className = 'transcript-error';
+        errDiv.innerHTML = `<span class="err-title">❌ Fallo al transcribir bloque</span>${escHtml(err.message)}`;
+        box.appendChild(errDiv);
+        showToast(`❌ Fallo al transcribir bloque: ${err.message.slice(0, 80)}`);
       } finally {
         const el = document.getElementById(id);
         if (el) el.remove();
@@ -1645,46 +1789,105 @@
       document.getElementById('btn-clear').style.display = 'block';
     }
 
-    /* ══════════════════════════════════════════════════════════════
-       TRANSCRIPCIÓN DE AUDIO (GROQ Whisper)
-       ══════════════════════════════════════════════════════════════ */
-
     async function handleMultipleAudioFiles(files, box) {
       disableAllButtons();
       if (!accumulatedTranscript.trim()) box.textContent = '';
+
+      globalTranscriptionController = new AbortController();
+      const signal = globalTranscriptionController.signal;
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'transcript-cancel-btn';
+      cancelBtn.innerHTML = '✕ Cancelar transcripción';
+      cancelBtn.addEventListener('click', () => {
+        if (globalTranscriptionController) globalTranscriptionController.abort();
+        showToast('⏹️ Cancelando...');
+      });
+
       for (let i = 0; i < files.length; i++) {
+        if (signal.aborted) break;
+
         const file = files[i];
-        setStatus('loading', `Procesando audio ${i + 1} de ${files.length}...`);
-        const ind = document.createElement('div');
-        ind.style.color = 'var(--gold)';
-        ind.style.margin = '10px 0';
-        ind.textContent = `⏳ Extrayendo texto del audio ${i + 1}/${files.length}...`;
-        box.appendChild(ind);
+        const fileMB = (file.size / (1024 * 1024)).toFixed(2);
+        setStatus('loading', `Procesando audio ${i + 1}/${files.length} (${fileMB} MB)...`);
+
+        const progressEl = document.createElement('div');
+        progressEl.className = 'transcript-progress';
+        progressEl.innerHTML = `<span class="spinner"></span><span class="progress-text">Preparando audio ${i + 1}/${files.length}...</span>`;
+        box.appendChild(progressEl);
+        if (!box.contains(cancelBtn)) box.appendChild(cancelBtn);
+
+        const startTime = Date.now();
+        const timerInt = setInterval(() => {
+          const secs = Math.floor((Date.now() - startTime) / 1000);
+          const textEl = progressEl.querySelector('.progress-text');
+          if (textEl) {
+            const base = textEl.dataset.base || textEl.textContent;
+            textEl.dataset.base = base;
+            textEl.textContent = `${base} [${secs}s]`;
+          }
+        }, 1000);
+
         try {
           const transcript = await transcribeWithGroqChunked(file, (msg) => {
-            ind.textContent = `⏳ ${msg} (Audio ${i + 1}/${files.length})`;
+            const textEl = progressEl.querySelector('.progress-text');
+            if (textEl) {
+              textEl.textContent = msg;
+              textEl.dataset.base = msg;
+            }
             setStatus('loading', `${msg} (Audio ${i + 1}/${files.length})`);
           });
+
           if (transcript && transcript.trim()) {
             if (accumulatedTranscript.trim()) accumulatedTranscript += '\n\n';
             accumulatedTranscript += transcript.trim();
             box.textContent = accumulatedTranscript;
+            if (!box.contains(cancelBtn)) box.appendChild(cancelBtn);
             showToast(`✅ Audio ${i + 1} completado.`);
+          } else {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'transcript-error';
+            emptyEl.innerHTML = `<span class="err-title">⚠️ Audio ${i + 1} sin texto detectable</span>El archivo puede estar silencioso, corrupto o en un formato no soportado.`;
+            box.appendChild(emptyEl);
           }
         } catch (err) {
-          showToast(`❌ Fallo en "${file.name}": ${err.message}`);
+          const errDiv = document.createElement('div');
+          errDiv.className = 'transcript-error';
+          const isCancel = err.message.includes('Cancelado');
+          errDiv.innerHTML = `
+            <span class="err-title">${isCancel ? '⏹️ Cancelado' : '❌ Error al procesar "' + escHtml(file.name) + '"'}</span>
+            ${escHtml(err.message)}
+            <div class="err-detail">${escHtml(err.stack || '(sin stack trace)')}</div>
+          `;
+          box.appendChild(errDiv);
+          if (isCancel) {
+            showToast('⏹️ Transcripción cancelada.');
+          } else {
+            showToast(`❌ Fallo: ${err.message.slice(0, 80)}`);
+          }
+          if (isCancel) break;
         } finally {
-          ind.remove();
+          clearInterval(timerInt);
+          progressEl.remove();
         }
       }
-      showAnalyzeUI();
-      setStatus('idle', 'Audios procesados. Genera las notas.');
+
+      cancelBtn.remove();
+      globalTranscriptionController = null;
+
+      if (accumulatedTranscript.trim()) {
+        showAnalyzeUI();
+        setStatus('idle', 'Audios procesados. Genera las notas.');
+      } else {
+        setStatus('error', 'No se pudo extraer texto del audio.');
+      }
       enableAllButtons();
     }
 
     async function transcribeWithGroqChunked(file, onProgress) {
       const CHUNK_SIZE = 10 * 1024 * 1024;
       const total = file.size;
+      const totalMB = (total / (1024 * 1024)).toFixed(2);
       const chunks = [];
       let start = 0, idx = 0;
       while (start < total) {
@@ -1693,14 +1896,29 @@
         start = end;
         idx++;
       }
+
+      console.log(`[Chunked] ${totalMB} MB → ${chunks.length} parte(s)`);
+
       let full = '';
       for (let i = 0; i < chunks.length; i++) {
-        if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length}...`);
-        const partFile = new File([chunks[i].blob], `part_${i + 1}.${file.name.split('.').pop() || 'webm'}`, { type: file.type || 'audio/webm' });
+        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
+          throw new Error('Cancelado por el usuario.');
+        }
+
+        const chunkMB = (chunks[i].blob.size / (1024 * 1024)).toFixed(2);
+        if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length} (${chunkMB} MB)...`);
+
+        const partFile = new File(
+          [chunks[i].blob],
+          `part_${i + 1}.${file.name.split('.').pop() || 'webm'}`,
+          { type: file.type || 'audio/webm' }
+        );
+
         const t = await transcribeSingleChunk(partFile);
         if (t && t.trim()) full += (full ? ' ' : '') + t.trim();
+
         if (i < chunks.length - 1) {
-          if (onProgress) onProgress('Esperando 5s...');
+          if (onProgress) onProgress(`Parte ${i + 1} OK. Esperando 5s antes de la siguiente...`);
           await delay(5000);
         }
       }
@@ -1709,57 +1927,85 @@
 
     async function transcribeSingleChunk(file) {
       let lastError = null;
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
       for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
+          throw new Error('Cancelado por el usuario.');
+        }
+
         const apiKey = getNextGroqKey();
+        const keyPreview = apiKey.slice(0, 12) + '…' + apiKey.slice(-4);
+        console.log(`[Whisper] Intento ${attempt + 1}/${GROQ_KEYS.length} | Key ${keyPreview} | File ${fileSizeMB} MB`);
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('model', 'whisper-large-v3-turbo');
         formData.append('response_format', 'json');
         formData.append('language', 'es');
+
         try {
           const response = await fetchWithTimeout(GROQ_AUDIO_URL, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey}` },
-            body: formData
-          }, 60000);
+            body: formData,
+            externalSignal: globalTranscriptionController ? globalTranscriptionController.signal : null
+          }, 45000);
+
           if (response.ok) {
             const data = await response.json();
+            console.log(`[Whisper] ✅ Éxito con key ${keyPreview}. Texto: ${(data.text || '').length} chars`);
             return data.text || '';
           }
-          if (response.status === 429) {
-            const errData = await response.json().catch(() => ({}));
-            lastError = new Error(`[Rate Limit] ${errData?.error?.message || 'HTTP 429'}`);
-            await delay(2000 * (attempt + 1));
+
+          const errData = await response.json().catch(() => ({}));
+          const errMsg = errData?.error?.message || `HTTP ${response.status}`;
+          console.error(`[Whisper] ❌ Error ${response.status} con key ${keyPreview}: ${errMsg}`);
+
+          if (response.status === 401 || response.status === 403) {
+            lastError = new Error(`API Key inválida o revocada (${response.status}). Genera nuevas keys en console.groq.com/keys`);
             continue;
           }
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+
+          if (response.status === 429) {
+            lastError = new Error(`Rate Limit alcanzado (429): ${errMsg}`);
+            await delay(3000);
+            continue;
+          }
+
+          if (response.status >= 500) {
+            lastError = new Error(`Error del servidor Groq (${response.status}): ${errMsg}`);
+            await delay(2000);
+            continue;
+          }
+
+          throw new Error(`HTTP ${response.status}: ${errMsg}`);
+
         } catch (err) {
+          console.error(`[Whisper] Excepción con key ${keyPreview}:`, err.message);
+          lastError = err;
+
+          if (err.message.includes('cancelada')) throw err;
+
           if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-            lastError = err;
-            await delay(1500 * (attempt + 1));
+            await delay(1500);
             continue;
           }
           throw err;
         }
       }
-      throw new Error(`Todas las API Keys fallaron. Último: ${lastError?.message || 'Desconocido'}`);
+      throw new Error(`Todas las ${GROQ_KEYS.length} API Keys fallaron. Último: ${lastError?.message || 'Desconocido'}`);
     }
-
-    /* ══════════════════════════════════════════════════════════════
-       NOTION AI: PROMPT + RENDERIZADO + CHECKBOXES
-       ══════════════════════════════════════════════════════════════ */
 
     function buildNotionPrompt(options, textoTranscripcion) {
       const categoriaKey = options.categoria || 'ejecutivo';
       const categoriaData = PROMPT_CATEGORIES[categoriaKey] || PROMPT_CATEGORIES.ejecutivo;
-      const esAcademico = categoriaKey === 'academico';
 
       const contextoStr = options.contexto.join(', ');
       const enfoqueStr = options.enfoque.join(', ');
 
       let esquema;
-      if (esAcademico) {
+      if (categoriaKey === 'academico') {
         esquema = `### 🎓 Tema de la Clase
 [Resumen del tema expuesto]
 
@@ -1980,10 +2226,6 @@ ${textoTranscripcion}
       });
     }
 
-    /* ══════════════════════════════════════════════════════════════
-       GENERACIÓN DE NOTAS (Notion style)
-       ══════════════════════════════════════════════════════════════ */
-
     async function analyzeText(text, notesContainer, options) {
       const promptNotion = buildNotionPrompt(options, text);
 
@@ -2168,10 +2410,6 @@ ${textoTranscripcion}
       throw new Error(`Todos los modelos y claves fallaron. Último: ${lastError?.message || 'Desconocido'}`);
     }
 
-    /* ══════════════════════════════════════════════════════════════
-       RESET Y CONTROL DE BOTONES
-       ══════════════════════════════════════════════════════════════ */
-
     function resetSession() {
       accumulatedTranscript = '';
       currentNotionMarkdown = '';
@@ -2206,10 +2444,6 @@ ${textoTranscripcion}
         if (accumulatedTranscript.trim()) btnAnalyze.style.display = 'flex';
       }
     }
-
-    /* ══════════════════════════════════════════════════════════════
-       PROYECTOS
-       ══════════════════════════════════════════════════════════════ */
 
     function getProjects() {
       try {
