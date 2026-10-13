@@ -11,1017 +11,227 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     :root {
-      --accent: #FF7A00;
-      --accent-h: #FF9533;
-      --gold: #f5a623;
-      --error: #ff5c5c;
-      --success: #4caf50;
-      --radius: 14px;
-      --radius-sm: 10px;
+      --accent: #FF7A00; --accent-h: #FF9533; --gold: #f5a623; --error: #ff5c5c; --success: #4caf50;
+      --radius: 14px; --radius-sm: 10px;
       --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      --bg: #0B132B;
-      --surface: #1C2541;
-      --border: #3A506B;
-      --text: #F0F4F8;
-      --muted: #8AA2B7;
+      --bg: #0B132B; --surface: #1C2541; --border: #3A506B;
+      --text: #F0F4F8; --muted: #8AA2B7;
       --max-width: 1100px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    html, body { height: 100%; overscroll-behavior: none; }
+    html { height: 100%; }
+    body { overscroll-behavior: none; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: var(--bg); color: var(--text); font-family: var(--font);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
       padding: 20px 14px calc(40px + var(--safe-bottom));
-      -webkit-user-select: none;
-      user-select: none;
-      touch-action: manipulation;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      -webkit-user-select: none; user-select: none;
+      touch-action: pan-y;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
 
-    #transcript-box, .notion-content, .modal-content, .nota-body {
-      -webkit-user-select: text;
-      user-select: text;
-    }
+    #transcript-box, .notion-content, .modal-content, .nota-body { -webkit-user-select: text; user-select: text; }
 
-    header {
-      width: 100%;
-      max-width: var(--max-width);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
+    header { width: 100%; max-width: var(--max-width); display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
     .logo-icon { font-size: 1.6rem; }
-    .badge {
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.62rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 99px;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-    #btn-config {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      color: var(--muted);
-      padding: 10px 18px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-      min-height: 44px;
-      touch-action: manipulation;
-    }
+    .badge { background: var(--accent); color: #fff; font-size: 0.62rem; font-weight: 700; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.07em; text-transform: uppercase; }
+    #btn-config { background: var(--surface); border: 2px solid var(--border); color: var(--muted); padding: 10px 18px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.25s ease; min-height: 44px; touch-action: manipulation; }
     #btn-config:active { transform: scale(0.96); }
 
-    #config-panel {
-      width: 100%;
-      max-width: var(--max-width);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 20px;
-      display: none;
-      animation: fadeSlide 0.25s ease;
-    }
+    #config-panel { width: 100%; max-width: var(--max-width); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 20px; display: none; animation: fadeSlide 0.25s ease; }
     #config-panel.open { display: block; }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    #config-panel label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-    }
-    #config-panel select {
-      width: 100%;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 11px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      outline: none;
-      font-family: var(--font);
-      cursor: pointer;
-      min-height: 44px;
-    }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    #config-panel label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.03em; }
+    #config-panel select { width: 100%; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; font-family: var(--font); cursor: pointer; min-height: 44px; }
     #config-panel select:focus { border-color: var(--accent); }
-    .key-divider {
-      border-top: 1px solid var(--border);
-      margin-top: 16px;
-      padding-top: 16px;
-    }
+    .key-divider { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
 
-    .card {
-      width: 100%;
-      max-width: var(--max-width);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
+    #groq-keys-input { width: 100%; min-height: 110px; background: var(--bg); color: var(--text); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; -webkit-user-select: text; user-select: text; }
+    #groq-keys-input:focus { border-color: var(--accent); }
 
-    .actions {
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-    .actions-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-      color: var(--muted);
-      font-weight: 600;
-    }
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 13px 20px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      min-height: 48px;
-      touch-action: manipulation;
-    }
+    #gemini-key-input { width: 100%; background: var(--bg); color: var(--text); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 0.82rem; outline: none; -webkit-user-select: text; user-select: text; min-height: 44px; }
+    #gemini-key-input:focus { border-color: var(--accent); }
+
+    #keys-save-status, #gemini-key-status { font-size: 0.75rem; margin-top: 8px; color: var(--muted); min-height: 1em; }
+    .keys-btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .keys-btn-row .btn-secondary { flex: 1; min-width: 130px; font-size: 0.8rem; padding: 10px 14px; min-height: 44px; }
+
+    .card { width: 100%; max-width: var(--max-width); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); }
+
+    .actions { padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .actions-label { font-size: 0.7rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 20px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; white-space: nowrap; min-height: 48px; touch-action: manipulation; }
     .btn:active { transform: scale(0.96); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.25);
-    }
-    .btn-primary.recording {
-      background: var(--error);
-      animation: pulse 1.4s ease-in-out infinite;
-      box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4);
-    }
-    .btn-secondary {
-      background: var(--bg);
-      color: var(--text);
-      border: 2px solid var(--border);
-    }
-    .btn-secondary:active {
-      border-color: var(--accent);
-      background: rgba(255, 122, 0, 0.05);
-    }
-    .btn-danger {
-      background: transparent;
-      color: var(--error);
-      border: 2px solid var(--error);
-    }
-    #btn-analyze {
-      width: 100%;
-      padding: 16px;
-      font-size: 1rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent), #E0551F);
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.32);
-      letter-spacing: 0.04em;
-      min-height: 52px;
-    }
-    #btn-start-record {
-      width: 100%;
-      padding: 16px;
-      font-size: 1rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent), #E0551F);
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.32);
-      letter-spacing: 0.04em;
-      min-height: 52px;
-    }
-    #btn-start-record.recording {
-      background: var(--error);
-      animation: pulse 1.4s ease-in-out infinite;
-      box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4);
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.55); }
-      50% { box-shadow: 0 0 0 10px rgba(255, 92, 92, 0); }
-    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(255, 122, 0, 0.25); }
+    .btn-primary.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+    .btn-secondary:active { border-color: var(--accent); background: rgba(255, 122, 0, 0.05); }
+    .btn-danger { background: transparent; color: var(--error); border: 2px solid var(--error); }
+    #btn-start-record { width: 100%; padding: 16px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #E0551F); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.32); letter-spacing: 0.04em; min-height: 52px; }
+    #btn-start-record.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4); }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.55); } 50% { box-shadow: 0 0 0 10px rgba(255, 92, 92, 0); } }
 
-    #status-dot {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.78rem;
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      margin-top: 8px;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #status-dot .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-      transition: background 0.3s;
-    }
+    #status-dot { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); padding: 6px 14px; border-radius: 99px; border: 1px solid var(--border); margin-top: 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #status-dot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
     #status-dot.active .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
     #status-dot.loading .dot { background: var(--gold); animation: blink 0.8s step-start infinite; }
     #status-dot.error .dot { background: var(--error); box-shadow: 0 0 8px var(--error); }
     @keyframes blink { 50% { opacity: 0; } }
 
-    .tabs {
-      display: flex;
-      border-top: 1px solid var(--border);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .tab {
-      flex: 1;
-      min-width: 100px;
-      padding: 14px 10px;
-      text-align: center;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: all 0.25s ease;
-      background: none;
-      border-top: none;
-      border-left: none;
-      border-right: none;
-      white-space: nowrap;
-      touch-action: manipulation;
-    }
+    #wake-lock-notice { display: none; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--gold); padding: 5px 12px; border-radius: 99px; border: 1px solid rgba(245, 166, 35, 0.4); background: rgba(245, 166, 35, 0.08); margin-top: 6px; animation: fadeIn 0.3s ease; }
+    #wake-lock-notice.show { display: inline-flex; }
+
+    .tabs { display: flex; border-top: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { flex: 1; min-width: 100px; padding: 14px 10px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.25s ease; background: none; border-top: none; border-left: none; border-right: none; white-space: nowrap; touch-action: manipulation; }
     .tab:active { background: rgba(255, 122, 0, 0.04); }
-    .tab.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-      background: rgba(255, 122, 0, 0.06);
-    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(255, 122, 0, 0.06); }
 
     .tab-pane { display: none; padding: 16px; min-height: 180px; }
     .tab-pane.active { display: block; animation: fadeSlide 0.2s ease; }
 
-    #transcript-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      min-height: 120px;
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: var(--text);
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 50vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    #transcript-progress-area { min-height: 0; margin-bottom: 10px; }
+    #transcript-progress-area:empty { display: none; }
 
-    .notes-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .notes-header-left,
-    .notes-header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    #transcript-box { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; min-height: 200px; font-size: 0.9rem; line-height: 1.7; color: var(--text); font-family: var(--font); resize: vertical; outline: none; -webkit-user-select: text; user-select: text; box-sizing: border-box; }
+    #transcript-box:focus { border-color: var(--accent); }
+    #transcript-box::placeholder { color: var(--muted); font-style: italic; }
+
+    .notes-header { display: flex; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .notes-header-left, .notes-header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .notes-header-left { flex: 1; }
-    .btn-copy-notion {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.22s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 44px;
-      touch-action: manipulation;
-    }
-    .btn-copy-notion:active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(255, 122, 0, 0.05);
-    }
-    .select-inline {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      font-family: var(--font);
-      outline: none;
-      max-width: 180px;
-      cursor: pointer;
-      min-height: 44px;
-    }
+    .btn-copy-notion { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 6px; min-height: 44px; touch-action: manipulation; }
+    .btn-copy-notion:active { border-color: var(--accent); color: var(--accent); background: rgba(255, 122, 0, 0.05); }
+    .select-inline { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.82rem; font-family: var(--font); outline: none; max-width: 180px; cursor: pointer; min-height: 44px; }
     .select-inline:focus { border-color: var(--accent); }
 
-    .notion-content {
-      background: #ffffff;
-      color: #37352f;
-      border-radius: var(--radius);
-      padding: 28px 22px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Helvetica, Arial, sans-serif;
-      font-size: 15px;
-      line-height: 1.65;
-      letter-spacing: -0.003em;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      -webkit-user-select: text;
-      user-select: text;
-    }
+    .notion-content { background: #ffffff; color: #37352f; border-radius: var(--radius); padding: 28px 22px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.65; letter-spacing: -0.003em; word-break: break-word; overflow-wrap: break-word; -webkit-user-select: text; user-select: text; }
     .notion-content > *:first-child { margin-top: 0 !important; }
     .notion-content > *:last-child { margin-bottom: 0 !important; }
-
-    .notion-content h1 {
-      font-size: 1.9em;
-      font-weight: 700;
-      margin: 0.3em 0 0.4em;
-      letter-spacing: -0.02em;
-      color: #37352f;
-    }
-    .notion-content h2 {
-      font-size: 1.4em;
-      font-weight: 600;
-      margin: 1.4em 0 0.5em;
-      color: #37352f;
-    }
-    .notion-content h3 {
-      font-size: 1.15em;
-      font-weight: 600;
-      margin: 1.2em 0 0.4em;
-      color: #37352f;
-    }
-    .notion-content h4 {
-      font-size: 1em;
-      font-weight: 600;
-      margin: 1em 0 0.3em;
-      color: #787774;
-    }
+    .notion-content h1 { font-size: 1.9em; font-weight: 700; margin: 0.3em 0 0.4em; letter-spacing: -0.02em; color: #37352f; }
+    .notion-content h2 { font-size: 1.4em; font-weight: 600; margin: 1.4em 0 0.5em; color: #37352f; }
+    .notion-content h3 { font-size: 1.15em; font-weight: 600; margin: 1.2em 0 0.4em; color: #37352f; }
+    .notion-content h4 { font-size: 1em; font-weight: 600; margin: 1em 0 0.3em; color: #787774; }
     .notion-content p { margin: 0.6em 0; color: #37352f; }
-    .notion-content ul,
-    .notion-content ol {
-      margin: 0.5em 0 0.7em;
-      padding-left: 1.6em;
-    }
-    .notion-content li {
-      margin: 0.25em 0;
-      padding-left: 0.15em;
-    }
+    .notion-content ul, .notion-content ol { margin: 0.5em 0 0.7em; padding-left: 1.6em; }
+    .notion-content li { margin: 0.25em 0; padding-left: 0.15em; }
     .notion-content li::marker { color: #b7b6b4; }
     .notion-content strong { font-weight: 600; }
     .notion-content em { font-style: italic; }
-    .notion-content a {
-      color: inherit;
-      text-decoration: underline;
-      text-decoration-color: rgba(55, 53, 47, 0.4);
-      text-underline-offset: 2px;
-    }
-    .notion-content code {
-      background: rgba(135, 131, 120, 0.15);
-      color: #eb5757;
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.85em;
-    }
-    .notion-content pre {
-      background: #f7f6f3;
-      color: #37352f;
-      border-radius: 4px;
-      padding: 14px 16px;
-      margin: 0.8em 0;
-      overflow-x: auto;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      font-size: 0.85em;
-      line-height: 1.5;
-      -webkit-overflow-scrolling: touch;
-    }
-    .notion-content pre code {
-      background: none;
-      color: inherit;
-      padding: 0;
-      font-size: inherit;
-    }
-    .notion-content blockquote {
-      margin: 0.8em 0;
-      padding: 2px 0 2px 14px;
-      border-left: 3px solid #37352f;
-      color: #37352f;
-    }
-    .notion-content hr {
-      border: none;
-      border-top: 1px solid #e9e9e7;
-      margin: 1.4em 0;
-    }
+    .notion-content a { color: inherit; text-decoration: underline; text-decoration-color: rgba(55, 53, 47, 0.4); text-underline-offset: 2px; }
+    .notion-content code { background: rgba(135, 131, 120, 0.15); color: #eb5757; padding: 0.2em 0.4em; border-radius: 3px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85em; }
+    .notion-content pre { background: #f7f6f3; color: #37352f; border-radius: 4px; padding: 14px 16px; margin: 0.8em 0; overflow-x: auto; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85em; line-height: 1.5; -webkit-overflow-scrolling: touch; }
+    .notion-content pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+    .notion-content blockquote { margin: 0.8em 0; padding: 2px 0 2px 14px; border-left: 3px solid #37352f; color: #37352f; }
+    .notion-content hr { border: none; border-top: 1px solid #e9e9e7; margin: 1.4em 0; }
 
     .notion-content ul.notion-checklist,
-    .notion-content ul:has(> li > input[type="checkbox"]) {
-      list-style: none;
-      padding-left: 0;
-      margin: 0.5em 0 0.7em;
-    }
-    .notion-content li.notion-check-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 3px 0;
-      margin: 0.15em 0;
-      list-style: none;
-    }
-    .notion-content input.notion-checkbox {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid #b3b3b1;
-      border-radius: 3px;
-      margin: 3px 0 0;
-      cursor: pointer;
-      flex-shrink: 0;
-      position: relative;
-      background: transparent;
-      transition: background 0.12s, border-color 0.12s;
-      outline: none;
-    }
+    .notion-content ul:has(> li > input[type="checkbox"]) { list-style: none; padding-left: 0; margin: 0.5em 0 0.7em; }
+    .notion-content li.notion-check-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 0; margin: 0.15em 0; list-style: none; }
+    .notion-content input.notion-checkbox { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border: 1.5px solid #b3b3b1; border-radius: 3px; margin: 3px 0 0; cursor: pointer; flex-shrink: 0; position: relative; background: transparent; transition: background 0.12s, border-color 0.12s; outline: none; }
     .notion-content input.notion-checkbox:active { transform: scale(0.9); }
-    .notion-content input.notion-checkbox:checked {
-      background: #2383e2;
-      border-color: #2383e2;
-    }
-    .notion-content input.notion-checkbox:checked::after {
-      content: '';
-      position: absolute;
-      left: 4px;
-      top: 1px;
-      width: 4px;
-      height: 8px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
-    }
-    .notion-content li.notion-check-item .notion-check-text {
-      flex: 1;
-      transition: color 0.15s;
-    }
-    .notion-content li.notion-check-item.notion-checked .notion-check-text {
-      color: #9b9a97;
-      text-decoration: line-through;
-      text-decoration-color: #c4c4c2;
-    }
+    .notion-content input.notion-checkbox:checked { background: #2383e2; border-color: #2383e2; }
+    .notion-content input.notion-checkbox:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .notion-content li.notion-check-item .notion-check-text { flex: 1; transition: color 0.15s; }
+    .notion-content li.notion-check-item.notion-checked .notion-check-text { color: #9b9a97; text-decoration: line-through; text-decoration-color: #c4c4c2; }
 
-    .proyectos-create-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .proyectos-create-row input {
-      flex: 1;
-      min-width: 150px;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 11px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      outline: none;
-      min-height: 44px;
-    }
+    .proyectos-create-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .proyectos-create-row input { flex: 1; min-width: 150px; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; min-height: 44px; }
     .proyectos-create-row input:focus { border-color: var(--accent); }
-    .proyectos-create-row button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 11px 18px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      min-height: 44px;
-    }
+    .proyectos-create-row button { background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; min-height: 44px; }
     .proyectos-create-row button:active { background: var(--accent-h); }
 
-    .proyectos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 12px;
-    }
-    .proyecto-card {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 100px;
-    }
+    .proyectos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .proyecto-card { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 16px; cursor: pointer; transition: all 0.25s ease; display: flex; flex-direction: column; gap: 6px; min-height: 100px; }
     .proyecto-card:active { transform: scale(0.96); }
     .proyecto-card .p-icon { font-size: 1.6rem; }
     .proyecto-card .p-name { font-size: 0.9rem; font-weight: 600; word-break: break-word; }
     .proyecto-card .p-meta { font-size: 0.72rem; color: var(--muted); }
 
-    .proyecto-detail-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .btn-back {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 9px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.82rem;
-      cursor: pointer;
-      min-height: 44px;
-    }
+    .proyecto-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .btn-back { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 9px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer; min-height: 44px; }
     .btn-back:active { border-color: var(--accent); background: rgba(255, 122, 0, 0.04); }
     .proyecto-detail-header h2 { font-size: 1.05rem; flex: 1; word-break: break-word; }
-    .btn-delete-proyecto {
-      background: transparent;
-      border: 2px solid var(--error);
-      color: var(--error);
-      padding: 9px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      cursor: pointer;
-      min-height: 44px;
-    }
+    .btn-delete-proyecto { background: transparent; border: 2px solid var(--error); color: var(--error); padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; cursor: pointer; min-height: 44px; }
     .btn-delete-proyecto:active { background: rgba(255, 92, 92, 0.12); }
 
-    .btn-global-summary {
-      width: 100%;
-      padding: 14px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, var(--accent), #E0551F);
-      color: #fff;
-      cursor: pointer;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(255, 122, 0, 0.28);
-      min-height: 48px;
-    }
+    .btn-global-summary { width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 700; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent), #E0551F); color: #fff; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(255, 122, 0, 0.28); min-height: 48px; }
     .btn-global-summary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .nota-guardada {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-    .nota-guardada summary {
-      color: var(--text);
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      outline: none;
-      min-height: 40px;
-    }
+    .nota-guardada { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; }
+    .nota-guardada summary { color: var(--text); font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; outline: none; min-height: 40px; }
     .nota-guardada summary::-webkit-details-marker { display: none; }
     .nota-guardada .fecha-tag { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
     .nota-guardada .nota-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
     .nota-guardada .notion-content { padding: 18px 16px; font-size: 14.5px; }
 
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(11, 19, 43, 0.9);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(11, 19, 43, 0.9); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
     .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .modal-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      max-width: 640px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 22px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-      -webkit-overflow-scrolling: touch;
-    }
-    .modal-box h3 {
-      color: var(--accent);
-      font-size: 1.05rem;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .modal-subtitle {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-bottom: 18px;
-      line-height: 1.5;
-    }
-    .modal-box .modal-content {
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: var(--text);
-    }
-    .btn-close-modal {
-      margin-top: 16px;
-      width: 100%;
-      background: var(--bg);
-      border: 2px solid var(--border);
-      color: var(--text);
-      padding: 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      min-height: 48px;
-    }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); -webkit-overflow-scrolling: touch; }
+    .modal-box h3 { color: var(--accent); font-size: 1.05rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .modal-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+    .modal-box .modal-content { font-size: 0.9rem; line-height: 1.7; color: var(--text); }
+    .btn-close-modal { margin-top: 16px; width: 100%; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 12px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; min-height: 48px; }
     .btn-close-modal:active { border-color: var(--accent); color: var(--accent); }
 
     .prompt-modal-box { max-width: 560px; }
-    .prompt-step {
-      margin-bottom: 20px;
-      animation: fadeSlide 0.25s ease;
-    }
-    .prompt-step-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-    .prompt-step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      font-size: 0.68rem;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
-    .prompt-cat-chips {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .prompt-cat-chip {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 14px 12px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.22s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 52px;
-      text-align: left;
-      font-family: var(--font);
-      touch-action: manipulation;
-    }
+    .prompt-step { margin-bottom: 20px; animation: fadeSlide 0.25s ease; }
+    .prompt-step-label { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .prompt-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; flex-shrink: 0; }
+    .prompt-cat-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .prompt-cat-chip { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; font-size: 0.88rem; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 8px; min-height: 52px; text-align: left; font-family: var(--font); touch-action: manipulation; }
     .prompt-cat-chip:active { transform: scale(0.97); }
-    .prompt-cat-chip.selected {
-      border-color: var(--accent);
-      background: rgba(255, 122, 0, 0.12);
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.2);
-    }
+    .prompt-cat-chip.selected { border-color: var(--accent); background: rgba(255, 122, 0, 0.12); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.2); }
     .prompt-cat-chip .cat-emoji { font-size: 1.2rem; }
 
-    .prompt-check-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 8px;
-    }
-    .prompt-check {
-      background: var(--bg);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 11px 12px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 500;
-      transition: all 0.18s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 44px;
-      color: var(--text);
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font-family: var(--font);
-    }
+    .prompt-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+    .prompt-check { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.18s; display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text); user-select: none; -webkit-tap-highlight-color: transparent; font-family: var(--font); }
     .prompt-check:active { transform: scale(0.97); }
     .prompt-check input { display: none; }
-    .prompt-check-box {
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid var(--muted);
-      border-radius: 4px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-    }
-    .prompt-check:has(input:checked) {
-      border-color: var(--accent);
-      background: rgba(255, 122, 0, 0.08);
-    }
-    .prompt-check:has(input:checked) .prompt-check-box {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .prompt-check:has(input:checked) .prompt-check-box::after {
-      content: '';
-      width: 4px;
-      height: 8px;
-      border: solid #fff;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg) translate(-1px, -1px);
-    }
+    .prompt-check-box { width: 16px; height: 16px; border: 1.5px solid var(--muted); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .prompt-check:has(input:checked) { border-color: var(--accent); background: rgba(255, 122, 0, 0.08); }
+    .prompt-check:has(input:checked) .prompt-check-box { background: var(--accent); border-color: var(--accent); }
+    .prompt-check:has(input:checked) .prompt-check-box::after { content: ''; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
     .prompt-check-label { flex: 1; }
 
-    .prompt-empty-hint {
-      font-size: 0.78rem;
-      color: var(--muted);
-      padding: 14px;
-      text-align: center;
-      border: 1px dashed var(--border);
-      border-radius: var(--radius-sm);
-      line-height: 1.5;
-    }
-
-    .prompt-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 22px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-    .prompt-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.92rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.22s;
-      min-height: 48px;
-      touch-action: manipulation;
-      font-family: var(--font);
-    }
-    .prompt-btn-primary {
-      background: linear-gradient(135deg, var(--accent), #E0551F);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3);
-    }
+    .prompt-actions { display: flex; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .prompt-btn { flex: 1; padding: 14px; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.22s; min-height: 48px; touch-action: manipulation; font-family: var(--font); }
+    .prompt-btn-primary { background: linear-gradient(135deg, var(--accent), #E0551F); color: #fff; box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3); }
     .prompt-btn-primary:active { transform: scale(0.97); }
     .prompt-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .prompt-btn-secondary {
-      background: transparent;
-      color: var(--muted);
-      border: 2px solid var(--border);
-      flex: 0 0 auto;
-      min-width: 100px;
-    }
-    .prompt-btn-secondary:active {
-      border-color: var(--accent);
-      color: var(--text);
-    }
+    .prompt-btn-secondary { background: transparent; color: var(--muted); border: 2px solid var(--border); flex: 0 0 auto; min-width: 100px; }
+    .prompt-btn-secondary:active { border-color: var(--accent); color: var(--text); }
 
-    .state-msg {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 24px;
-      color: var(--muted);
-      font-size: 0.9rem;
-      text-align: center;
-    }
+    .state-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: var(--muted); font-size: 0.9rem; text-align: center; }
     .state-msg.error-msg { color: var(--error); }
     .state-msg .big { font-size: 2rem; }
 
-    #toast {
-      position: fixed;
-      bottom: calc(20px + var(--safe-bottom));
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 999;
-      white-space: nowrap;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      max-width: 90vw;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    #toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
     #toast.show { transform: translateX(-50%) translateY(0); }
 
-    #file-input, #import-file {
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-    }
+    #file-input, #import-file { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; opacity: 0; overflow: hidden; z-index: -1; }
 
-    /* ══════════ DIAGNÓSTICO + ERRORES VISIBLES ══════════ */
-    .diag-result {
-      font-size: 0.78rem;
-      line-height: 1.5;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      margin-top: 10px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .diag-result.ok {
-      background: rgba(76, 175, 80, 0.1);
-      border: 1px solid var(--success);
-      color: var(--success);
-    }
-    .diag-result.fail {
-      background: rgba(255, 92, 92, 0.1);
-      border: 1px solid var(--error);
-      color: var(--error);
-    }
+    .diag-result { font-size: 0.78rem; line-height: 1.5; padding: 10px 12px; border-radius: var(--radius-sm); margin-top: 10px; font-family: monospace; white-space: pre-wrap; word-break: break-word; }
+    .diag-result.ok { background: rgba(76, 175, 80, 0.1); border: 1px solid var(--success); color: var(--success); }
+    .diag-result.fail { background: rgba(255, 92, 92, 0.1); border: 1px solid var(--error); color: var(--error); }
 
-    .transcript-progress {
-      background: rgba(245, 166, 35, 0.08);
-      border: 1px solid var(--gold);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin: 10px 0;
-      color: var(--gold);
-      font-size: 0.82rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      word-break: break-word;
-    }
-    .transcript-progress .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(245, 166, 35, 0.3);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
+    .transcript-progress { background: rgba(245, 166, 35, 0.08); border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 14px; margin: 10px 0; color: var(--gold); font-size: 0.82rem; display: flex; align-items: center; gap: 8px; word-break: break-word; }
+    .transcript-progress .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(245, 166, 35, 0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .transcript-error {
-      background: rgba(255, 92, 92, 0.1);
-      border: 1px solid var(--error);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      margin: 10px 0;
-      color: var(--error);
-      font-size: 0.82rem;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-    .transcript-error .err-title {
-      font-weight: 700;
-      display: block;
-      margin-bottom: 6px;
-    }
-    .transcript-error .err-detail {
-      font-family: monospace;
-      font-size: 0.72rem;
-      color: var(--muted);
-      background: var(--bg);
-      padding: 8px 10px;
-      border-radius: 6px;
-      margin-top: 8px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
+    .transcript-error { background: rgba(255, 92, 92, 0.1); border: 1px solid var(--error); border-radius: var(--radius-sm); padding: 12px 14px; margin: 10px 0; color: var(--error); font-size: 0.82rem; line-height: 1.5; word-break: break-word; }
+    .transcript-error .err-title { font-weight: 700; display: block; margin-bottom: 6px; }
+    .transcript-error .err-detail { font-family: monospace; font-size: 0.72rem; color: var(--muted); background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-top: 8px; overflow-x: auto; white-space: pre-wrap; }
 
-    .transcript-cancel-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: transparent;
-      border: 2px solid var(--error);
-      color: var(--error);
-      padding: 8px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      min-height: 40px;
-      font-family: var(--font);
-    }
+    .transcript-cancel-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 2px solid var(--error); color: var(--error); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-top: 8px; min-height: 40px; font-family: var(--font); }
     .transcript-cancel-btn:active { background: rgba(255, 92, 92, 0.15); }
 
     @media (max-width: 480px) {
@@ -1047,16 +257,43 @@
     <div class="logo">
       <span class="logo-icon">🧠</span>
       <span>Meeting Mind</span>
-      <span class="badge">GROQ</span>
+      <span class="badge">GEMINI</span>
     </div>
     <button id="btn-config">⚙️ Configuración</button>
   </header>
 
   <div id="config-panel">
-    <label for="model-select">Modelo de Inteligencia Artificial (Texto — Groq)</label>
-    <select id="model-select">
-      <option value="">Cargando modelos dinámicos...</option>
+
+    <label for="gemini-model-select">Modelo de Notas Inteligentes (Gemini)</label>
+    <select id="gemini-model-select">
+      <option value="gemini-3.8-flash">✨ Gemini 3.8 Flash (Recomendado — última generación)</option>
+      <option value="gemini-3.7-flash">⚡ Gemini 3.7 Flash</option>
+      <option value="gemini-3.6-flash">💫 Gemini 3.6 Flash</option>
+      <option value="gemini-3.5-flash">💡 Gemini 3.5 Flash</option>
+      <option value="gemini-3.5-flash-lite">🌱 Gemini 3.5 Flash-Lite (ligero)</option>
+      <option value="gemini-3.1-pro-preview">🧠 Gemini 3.1 Pro Preview (razonamiento)</option>
     </select>
+
+    <div class="key-divider">
+      <label>🔮 Gemini API Key (para Notas Inteligentes)</label>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Consigue tu key gratis en <strong>aistudio.google.com/apikey</strong>.
+        Puede empezar por <code style="background:rgba(135,131,120,0.15);padding:1px 5px;border-radius:3px;">AIza</code>
+        o por <code style="background:rgba(135,131,120,0.15);padding:1px 5px;border-radius:3px;">AQ.</code>.
+        Se guarda localmente y <strong>persiste entre actualizaciones del APK</strong>.
+      </p>
+      <input type="password" id="gemini-key-input"
+             placeholder="AIzaSy... o AQ.Ab8..."
+             spellcheck="false"
+             autocapitalize="off"
+             autocomplete="off"
+             autocorrect="off" />
+      <div class="keys-btn-row">
+        <button id="btn-save-gemini-key" class="btn-secondary">💾 Guardar</button>
+        <button id="btn-test-gemini" class="btn-secondary">🧪 Probar</button>
+      </div>
+      <div id="gemini-key-status"></div>
+    </div>
 
     <div class="key-divider">
       <label>Copia de Seguridad</label>
@@ -1068,10 +305,28 @@
     </div>
 
     <div class="key-divider">
-      <label>🔬 Diagnóstico de conexión</label>
+      <label>🎙️ Groq API Keys (solo para Transcripción Whisper)</label>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Estas keys se usan <strong>únicamente</strong> para transcribir audios con Whisper. Pega una key por línea.
+      </p>
+      <textarea id="groq-keys-input"
+                placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#10;gsk_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"></textarea>
+      <div class="keys-btn-row">
+        <button id="btn-save-keys" class="btn-secondary">💾 Guardar Keys</button>
+        <button id="btn-reset-keys" class="btn-secondary">↺ Restaurar Defaults</button>
+      </div>
+      <div id="keys-save-status"></div>
+    </div>
+
+    <div class="key-divider">
+      <label>🔬 Diagnóstico de conexión (Groq/Whisper)</label>
       <div style="margin-top: 10px;">
         <button id="btn-test-apis" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px; width: 100%;">
-          🔬 Probar las 5 API Keys con Groq
+          🔬 Probar las <span id="keys-count-diag">2</span> Groq API Keys
         </button>
         <div id="diag-result" style="display:none;"></div>
       </div>
@@ -1088,15 +343,13 @@
         <button class="btn btn-danger" id="btn-clear" style="display:none;">🗑️</button>
       </div>
 
-      <div class="btn-row" style="margin-top: 8px;">
-        <button class="btn btn-primary" id="btn-analyze" style="display:none;">✨ Generar Notas Inteligentes</button>
-      </div>
-
       <input type="file" id="file-input"
              accept="audio/*,.flac,.mp3,.mp4,.mpeg,.mpga,.m4a,.ogg,.wav,.webm"
              multiple />
 
-      <div id="status-dot"><span class="dot"></span><span id="status-text">Listo. Sube o graba un audio.</span></div>
+      <div id="status-dot"><span class="dot"></span><span id="status-text">Listo. Elige un modo y empieza.</span></div>
+
+      <div id="wake-lock-notice">💡 Pantalla mantenida encendida por seguridad</div>
     </div>
 
     <div class="tabs">
@@ -1107,10 +360,22 @@
 
     <div class="tab-pane active" id="tab-transcripcion">
       <div class="notes-header">
-        <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar Todo</button>
+        <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar</button>
       </div>
-      <div id="transcript-box">
-        <span style="color:var(--muted)">La transcripción aparecerá aquí...</span>
+
+      <div id="transcript-progress-area"></div>
+
+      <textarea id="transcript-box"
+                placeholder="La transcripción aparecerá aquí... También puedes PEGAR tu propia transcripción y pulsar 'Analizar Texto Pegado'."
+                spellcheck="false"></textarea>
+
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="btn-analyze-pasted" class="btn btn-primary" style="flex:1; min-width:180px;">
+          ✨ Analizar Texto Pegado
+        </button>
+        <button id="btn-clear-transcript" class="btn btn-danger" style="padding:11px 16px;" title="Borrar transcripción">
+          🗑️
+        </button>
       </div>
     </div>
 
@@ -1118,7 +383,7 @@
       <div id="notes-container">
         <div class="state-msg">
           <span class="big">✨</span>
-          <span>Sube tus audios primero y luego pulsa "Generar Notas Inteligentes".</span>
+          <span>Graba o sube un audio, y las notas se generarán automáticamente.</span>
         </div>
       </div>
     </div>
@@ -1130,51 +395,29 @@
 
   <div id="toast"></div>
 
-  <div class="modal-overlay" id="prompt-modal">
-    <div class="modal-box prompt-modal-box">
-      <h3>✨ Configurar Notas con IA</h3>
-      <p class="modal-subtitle">Elige el tipo de contenido y qué quieres que la IA extraiga del audio.</p>
+  <div class="modal-overlay" id="mode-select-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <h3>🎯 ¿Qué enfoque de notas deseas?</h3>
+      <p class="modal-subtitle">Elige el tipo de contenido para esta sesión. Las notas se generarán <strong>automáticamente</strong> al terminar la transcripción.</p>
 
-      <div class="prompt-step">
-        <label class="prompt-step-label">
-          <span class="prompt-step-num">1</span>
-          Categoría principal
-        </label>
-        <div class="prompt-cat-chips" id="prompt-cat-chips">
-          <button type="button" class="prompt-cat-chip" data-cat="academico">
-            <span class="cat-emoji">🎓</span> Académico
-          </button>
-          <button type="button" class="prompt-cat-chip" data-cat="ejecutivo">
-            <span class="cat-emoji">💼</span> Ejecutivo
-          </button>
-          <button type="button" class="prompt-cat-chip" data-cat="libre">
-            <span class="cat-emoji">📝</span> Libre
-          </button>
-          <button type="button" class="prompt-cat-chip" data-cat="idiomas">
-            <span class="cat-emoji">🌐</span> Idiomas
-          </button>
-        </div>
-      </div>
-
-      <div class="prompt-step" id="prompt-context-step" style="display:none;">
-        <label class="prompt-step-label">
-          <span class="prompt-step-num">2</span>
-          Contexto del audio
-        </label>
-        <div class="prompt-check-grid" id="prompt-context-grid"></div>
-      </div>
-
-      <div class="prompt-step" id="prompt-focus-step" style="display:none;">
-        <label class="prompt-step-label">
-          <span class="prompt-step-num">3</span>
-          Enfoque principal
-        </label>
-        <div class="prompt-check-grid" id="prompt-focus-grid"></div>
+      <div class="prompt-cat-chips" id="mode-select-chips" style="grid-template-columns: repeat(2, 1fr);">
+        <button type="button" class="prompt-cat-chip" data-mode="academico">
+          <span class="cat-emoji">🎓</span> Académico
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="idiomas">
+          <span class="cat-emoji">🌐</span> Idiomas
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="ejecutivo">
+          <span class="cat-emoji">💼</span> Ejecutivo
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="libre">
+          <span class="cat-emoji">📝</span> Libre
+        </button>
       </div>
 
       <div class="prompt-actions">
-        <button type="button" class="prompt-btn prompt-btn-secondary" id="prompt-cancel">Cancelar</button>
-        <button type="button" class="prompt-btn prompt-btn-primary" id="prompt-process" disabled>✨ Procesar con IA</button>
+        <button type="button" class="prompt-btn prompt-btn-secondary" id="mode-select-cancel">Cancelar</button>
+        <button type="button" class="prompt-btn prompt-btn-primary" id="mode-select-confirm" disabled>Comenzar</button>
       </div>
     </div>
   </div>
@@ -1188,11 +431,79 @@
   </div>
 
   <script>
-    // ═══════════════════ API KEYS Y ENDPOINTS (GROQ) ═══════════════════
-    const GROQ_KEYS = [
+    // ═══════════════════════════════════════════════════════════════
+    // 🔮 GEMINI — Configuración
+    // ═══════════════════════════════════════════════════════════════
+    const GEMINI_API_KEY_DEFAULT = 'PEGA_AQUI_TU_API_KEY_DE_GEMINI';
+
+    const LS_KEY_GEMINI_API = 'meetingmind_gemini_api_key';
+    const LS_KEY_GEMINI_MODEL = 'meetingmind_gemini_model';
+
+    // 🔥 Endpoint clásico que SÍ soporta CORS en WebView
+    const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+    function isValidGeminiKey(k) {
+      if (typeof k !== 'string') return false;
+      const trimmed = k.trim();
+      if (trimmed.length < 20) return false;
+      return trimmed.startsWith('AIza') || trimmed.startsWith('AQ.');
+    }
+
+    function loadGeminiKey() {
+      try {
+        const stored = localStorage.getItem(LS_KEY_GEMINI_API);
+        if (stored) {
+          const cleaned = stored.trim();
+          if (isValidGeminiKey(cleaned)) return cleaned;
+        }
+      } catch (e) {}
+      return GEMINI_API_KEY_DEFAULT;
+    }
+
+    let GEMINI_API_KEY = loadGeminiKey();
+
+    function saveGeminiKey(key) {
+      const cleaned = (key || '').trim();
+      if (!isValidGeminiKey(cleaned)) {
+        return { ok: false, error: 'La key debe empezar por "AIza" o "AQ." y tener al menos 20 caracteres.' };
+      }
+      try {
+        localStorage.setItem(LS_KEY_GEMINI_API, cleaned);
+        GEMINI_API_KEY = cleaned;
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎙️ GROQ — Whisper (transcripción de audio)
+    // ═══════════════════════════════════════════════════════════════
+    const GROQ_KEYS_DEFAULT = [
       "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",
       "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"
     ];
+
+    const LS_KEY_GROQ_KEYS = 'meetingmind_groq_keys';
+
+    function isValidGroqKey(k) {
+      return typeof k === 'string' && k.trim().startsWith('gsk_') && k.trim().length > 20;
+    }
+
+    function loadGroqKeys() {
+      try {
+        const stored = localStorage.getItem(LS_KEY_GROQ_KEYS);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(isValidGroqKey)) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+      return [...GROQ_KEYS_DEFAULT];
+    }
+
+    let GROQ_KEYS = loadGroqKeys();
     let groqKeyIndex = 0;
     function getNextGroqKey() {
       const key = GROQ_KEYS[groqKeyIndex];
@@ -1200,74 +511,60 @@
       return key;
     }
 
+    function saveGroqKeys(keysArray) {
+      const cleaned = keysArray.map(k => (typeof k === 'string' ? k.trim() : '')).filter(isValidGroqKey);
+      if (cleaned.length === 0) return { ok: false, error: 'No hay keys válidas.' };
+      try {
+        localStorage.setItem(LS_KEY_GROQ_KEYS, JSON.stringify(cleaned));
+        GROQ_KEYS = cleaned;
+        groqKeyIndex = 0;
+        return { ok: true, count: cleaned.length };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    function resetGroqKeys() {
+      try { localStorage.removeItem(LS_KEY_GROQ_KEYS); } catch (e) {}
+      GROQ_KEYS = [...GROQ_KEYS_DEFAULT];
+      groqKeyIndex = 0;
+    }
+
+    function updateKeysCountUI() {
+      const el = document.getElementById('keys-count-diag');
+      if (el) el.textContent = GROQ_KEYS.length;
+    }
+
     const GROQ_AUDIO_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
-    const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
     const GROQ_MODELS_URL = 'https://api.groq.com/openai/v1/models';
 
-    const LS_KEY_MODEL = 'meetingmind_groq_text_model';
     const LS_KEY_PROJECTS = 'meetingmind_projects';
-    const LS_KEY_MODE = 'meetingmind_analysis_mode';
     const LS_KEY_CHECKBOX = 'meetingmind_notion_checkboxes';
 
-    const PROMPT_CATEGORIES = {
+    const MODE_DEFINITIONS = {
       academico: {
-        label: 'Académico',
-        emoji: '🎓',
-        context: [
-          { value: 'Clase Teórica', label: 'Clase Teórica', emoji: '📖' },
-          { value: 'Laboratorio Práctico', label: 'Laboratorio Práctico', emoji: '🔬' },
-          { value: 'Seminario', label: 'Seminario', emoji: '💬' },
-          { value: 'Conferencia', label: 'Conferencia', emoji: '🎤' }
-        ],
-        focus: [
-          { value: 'Extraer Fórmulas y Cálculos', label: 'Extraer Fórmulas/Cálculos', emoji: '🧮' },
-          { value: 'Conceptos Clave', label: 'Conceptos Clave', emoji: '🧠' },
-          { value: 'Asignaciones', label: 'Asignaciones', emoji: '📋' }
-        ]
-      },
-      ejecutivo: {
-        label: 'Ejecutivo',
-        emoji: '💼',
-        context: [
-          { value: 'Reunión de Avance', label: 'Reunión de Avance', emoji: '📈' },
-          { value: 'Lluvia de Ideas', label: 'Lluvia de Ideas', emoji: '💡' },
-          { value: 'Entrevista', label: 'Entrevista', emoji: '🎤' },
-          { value: 'Reunión Técnica', label: 'Reunión Técnica', emoji: '🛠️' }
-        ],
-        focus: [
-          { value: 'Acuerdos', label: 'Acuerdos', emoji: '🤝' },
-          { value: 'Tareas Pendientes', label: 'Tareas Pendientes', emoji: '✅' },
-          { value: 'Decisiones Clave', label: 'Decisiones Clave', emoji: '🎯' }
-        ]
-      },
-      libre: {
-        label: 'Libre',
-        emoji: '📝',
-        context: [
-          { value: 'Podcast / Radio', label: 'Podcast / Radio', emoji: '📻' },
-          { value: 'Conversación Libre', label: 'Conversación Libre', emoji: '💬' },
-          { value: 'Reflexión Personal', label: 'Reflexión Personal', emoji: '🌱' },
-          { value: 'Otro', label: 'Otro', emoji: '🗂️' }
-        ],
-        focus: [
-          { value: 'Resumen General', label: 'Resumen General', emoji: '📌' },
-          { value: 'Citas Destacadas', label: 'Citas Destacadas', emoji: '💭' },
-          { value: 'Ideas Principales', label: 'Ideas Principales', emoji: '💡' }
-        ]
+        categoria: 'academico', categoriaLabel: 'Académico',
+        contexto: ['Clase Teórica'],
+        enfoque: ['Conceptos Clave', 'Extraer Fórmulas y Cálculos'],
+        isLanguageFocus: false
       },
       idiomas: {
-        label: 'Idiomas',
-        emoji: '🌐',
-        context: [
-          { value: 'Clase de Idioma', label: 'Clase de Idioma', emoji: '📚' },
-          { value: 'Práctica Oral', label: 'Práctica Oral', emoji: '🗣️' },
-          { value: 'Conversación Nativa', label: 'Conversación Nativa', emoji: '🌍' }
-        ],
-        focus: [
-          { value: 'Vocabulario Nuevo', label: 'Vocabulario Nuevo', emoji: '📖' },
-          { value: 'Gramática', label: 'Gramática', emoji: '✏️' },
-          { value: 'Pronunciación', label: 'Pronunciación', emoji: '🔊' }
-        ]
+        categoria: 'academico', categoriaLabel: 'Idiomas',
+        contexto: ['Clase de Idioma'],
+        enfoque: ['Vocabulario Nuevo', 'Gramática'],
+        isLanguageFocus: true
+      },
+      ejecutivo: {
+        categoria: 'ejecutivo', categoriaLabel: 'Ejecutivo',
+        contexto: ['Reunión de Avance'],
+        enfoque: ['Acuerdos', 'Tareas Pendientes', 'Decisiones Clave'],
+        isLanguageFocus: false
+      },
+      libre: {
+        categoria: 'libre', categoriaLabel: 'Libre',
+        contexto: ['Conversación Libre'],
+        enfoque: ['Resumen General', 'Ideas Principales'],
+        isLanguageFocus: false
       }
     };
 
@@ -1311,13 +608,14 @@
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function showToast(msg) {
+    function showToast(msg, durationMs) {
       const t = document.getElementById('toast');
       if (!t) return;
+      const dur = (typeof durationMs === 'number' && durationMs > 0) ? durationMs : 3000;
       t.textContent = msg;
       t.classList.add('show');
       clearTimeout(showToast._timer);
-      showToast._timer = setTimeout(() => t.classList.remove('show'), 3000);
+      showToast._timer = setTimeout(() => t.classList.remove('show'), dur);
     }
 
     function setStatus(type, text) {
@@ -1331,65 +629,51 @@
       txt.textContent = text;
     }
 
-    let cachedAvailableModels = null;
-    async function fetchAvailableModels(forceRefresh = false) {
-      if (cachedAvailableModels && !forceRefresh) return cachedAvailableModels;
-      try {
-        const response = await fetchWithTimeout(GROQ_MODELS_URL, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${GROQ_KEYS[0]}` }
-        }, 20000);
-        if (!response.ok) {
-          cachedAvailableModels = ['llama-3.3-70b-versatile'];
-          return cachedAvailableModels;
-        }
-        const data = await response.json();
-        const ids = (data.data || []).map(m => m.id);
-        const valid = ids.filter(id =>
-          !id.toLowerCase().includes('whisper') &&
-          !id.toLowerCase().includes('prompt-guard')
-        );
-        const preferred = valid.filter(id =>
-          id.includes('llama') || id.includes('mixtral') ||
-          id.includes('gemma') || id.includes('gpt-oss')
-        );
-        cachedAvailableModels = preferred.length > 0
-          ? preferred.slice(0, 3)
-          : valid.slice(0, 3);
-        if (!cachedAvailableModels.length) {
-          cachedAvailableModels = ['llama-3.3-70b-versatile'];
-        }
-        return cachedAvailableModels;
-      } catch (err) {
-        console.error('Error obteniendo modelos:', err);
-        cachedAvailableModels = ['llama-3.3-70b-versatile'];
-        return cachedAvailableModels;
-      }
-    }
-
     const memoriaTemporal = {
       datos: {},
       guardar(c, v) { try { localStorage.setItem(c, v); } catch (e) { this.datos[c] = v; } },
       obtener(c) { try { return localStorage.getItem(c); } catch (e) { return this.datos[c] || null; } }
     };
 
-    let accumulatedTranscript = '';
     let currentNotionMarkdown = '';
     let currentNoteKey = '';
     let currentOpenProjectId = null;
-    let currentMode = 'ejecutivo';
+    let currentSessionMode = null;
 
     let micStream = null;
     let currentRecorder = null;
     let isRecordingActive = false;
     let recordingChunkInterval = null;
 
-    let promptModalState = {
-      categoria: null,
-      contexto: [],
-      enfoque: []
-    };
+    let modeSelectState = { mode: null, pendingAction: null };
+    let wakeLock = null;
 
+    async function requestWakeLock() {
+      const notice = document.getElementById('wake-lock-notice');
+      try {
+        if (!('wakeLock' in navigator)) return false;
+        if (wakeLock) return true;
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+        if (notice) notice.classList.add('show');
+        return true;
+      } catch (err) {
+        wakeLock = null;
+        return false;
+      }
+    }
+
+    async function releaseWakeLock() {
+      const notice = document.getElementById('wake-lock-notice');
+      try {
+        if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+      } catch (err) {}
+      if (notice) notice.classList.remove('show');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🚀 INIT
+    // ═══════════════════════════════════════════════════════════════
     window.addEventListener('DOMContentLoaded', () => {
       try { initUI(); } catch (err) { alert('Error al inicializar: ' + err.message); }
     });
@@ -1397,31 +681,178 @@
     function initUI() {
       const btnConfig = document.getElementById('btn-config');
       const configPanel = document.getElementById('config-panel');
-      const modelSelect = document.getElementById('model-select');
+      const geminiModelSelect = document.getElementById('gemini-model-select');
       const btnStartRecord = document.getElementById('btn-start-record');
       const btnUpload = document.getElementById('btn-upload');
-      const btnAnalyze = document.getElementById('btn-analyze');
       const btnClear = document.getElementById('btn-clear');
+      const btnAnalyzePasted = document.getElementById('btn-analyze-pasted');
+      const btnClearTranscript = document.getElementById('btn-clear-transcript');
       const fileInput = document.getElementById('file-input');
+      const transcriptBox = document.getElementById('transcript-box');
       const tabs = document.querySelectorAll('.tab');
       const tabPanes = document.querySelectorAll('.tab-pane');
 
-      fetchAvailableModels().then(models => {
-        if (models.length > 0) {
-          modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
-          const saved = memoriaTemporal.obtener(LS_KEY_MODEL);
-          if (saved && models.includes(saved)) modelSelect.value = saved;
-          else { modelSelect.value = models[0]; memoriaTemporal.guardar(LS_KEY_MODEL, models[0]); }
-        } else {
-          modelSelect.innerHTML = `<option value="llama-3.3-70b-versatile">🧠 llama-3.3-70b-versatile</option>`;
-          memoriaTemporal.guardar(LS_KEY_MODEL, 'llama-3.3-70b-versatile');
-        }
-      });
-      modelSelect.addEventListener('change', () => {
-        memoriaTemporal.guardar(LS_KEY_MODEL, modelSelect.value);
+      const geminiKeyInput = document.getElementById('gemini-key-input');
+      const geminiKeyStatus = document.getElementById('gemini-key-status');
+      geminiKeyInput.value = (GEMINI_API_KEY && GEMINI_API_KEY !== GEMINI_API_KEY_DEFAULT && isValidGeminiKey(GEMINI_API_KEY))
+        ? GEMINI_API_KEY
+        : '';
+
+      const GEMINI_MODEL_DEFAULT = 'gemini-3.8-flash';
+      const savedModel = memoriaTemporal.obtener(LS_KEY_GEMINI_MODEL);
+      const modelExists = savedModel && [...geminiModelSelect.options].some(o => o.value === savedModel);
+      if (modelExists) {
+        geminiModelSelect.value = savedModel;
+      } else {
+        geminiModelSelect.value = GEMINI_MODEL_DEFAULT;
+        memoriaTemporal.guardar(LS_KEY_GEMINI_MODEL, GEMINI_MODEL_DEFAULT);
+      }
+      geminiModelSelect.addEventListener('change', () => {
+        memoriaTemporal.guardar(LS_KEY_GEMINI_MODEL, geminiModelSelect.value);
+        showToast('✅ Modelo: ' + geminiModelSelect.value);
       });
 
-      currentMode = memoriaTemporal.obtener(LS_KEY_MODE) || 'ejecutivo';
+      document.getElementById('btn-save-gemini-key').addEventListener('click', () => {
+        const result = saveGeminiKey(geminiKeyInput.value);
+        if (result.ok) {
+          geminiKeyStatus.textContent = '✅ Gemini API Key guardada correctamente.';
+          geminiKeyStatus.style.color = 'var(--success)';
+          showToast('✅ Key de Gemini guardada');
+        } else {
+          geminiKeyStatus.textContent = '⚠️ ' + result.error;
+          geminiKeyStatus.style.color = 'var(--error)';
+          showToast('⚠️ ' + result.error);
+        }
+      });
+
+      // 🔥 Botón Probar — endpoint clásico
+      document.getElementById('btn-test-gemini').addEventListener('click', async () => {
+        geminiKeyStatus.textContent = '🧪 Probando conexión con Gemini…';
+        geminiKeyStatus.style.color = 'var(--muted)';
+
+        const apiKeyClean = String(GEMINI_API_KEY || '').trim();
+
+        if (!isValidGeminiKey(apiKeyClean)) {
+          geminiKeyStatus.textContent = '❌ Gemini API Key no configurada. Pégala arriba y pulsa Guardar.';
+          geminiKeyStatus.style.color = 'var(--error)';
+          return;
+        }
+
+        const testModels = [
+          geminiModelSelect.value,
+          'gemini-3.8-flash',
+          'gemini-3.7-flash',
+          'gemini-3.6-flash',
+          'gemini-3.5-flash',
+          'gemini-3.5-flash-lite',
+          'gemini-3.1-pro-preview'
+        ].filter((m, i, arr) => m && arr.indexOf(m) === i);
+
+        let lastErr = null;
+
+        for (const rawModel of testModels) {
+          const model = rawModel.trim().replace(/^models\//, '');
+          const url = `${GEMINI_API_BASE}/${model}:generateContent`;
+
+          try {
+            geminiKeyStatus.textContent = `🧪 Probando "${model}"…`;
+            const res = await fetchWithTimeout(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKeyClean
+              },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: 'Responde exactamente con el texto: OK' }] }],
+                generationConfig: { temperature: 0, maxOutputTokens: 20 }
+              })
+            }, 30000);
+
+            if (res.ok) {
+              const data = await res.json();
+              const txt = extractGeminiText(data);
+              if (txt && txt.trim()) {
+                geminiKeyStatus.textContent = `✅ Gemini responde correctamente con "${model}".`;
+                geminiKeyStatus.style.color = 'var(--success)';
+                showToast(`✅ Gemini OK (${model})`);
+
+                if (model !== geminiModelSelect.value) {
+                  const opt = [...geminiModelSelect.options].find(o => o.value === model);
+                  if (opt) {
+                    geminiModelSelect.value = model;
+                    memoriaTemporal.guardar(LS_KEY_GEMINI_MODEL, model);
+                    showToast(`✅ Modelo ajustado a "${model}"`);
+                  }
+                }
+                return;
+              }
+              lastErr = new Error('Respuesta vacía');
+              continue;
+            }
+
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData?.error?.message || errData?.message || `HTTP ${res.status}`;
+            lastErr = new Error(`${res.status}: ${errMsg}`);
+
+            if (res.status === 404 || errMsg.toLowerCase().includes('not found')) {
+              continue;
+            }
+            if (res.status === 503 || res.status === 502 || res.status === 504) {
+              await new Promise(r => setTimeout(r, 1200));
+              continue;
+            }
+            if (res.status === 429) {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
+            if (res.status === 400 && (errMsg.toLowerCase().includes('api key') || errMsg.toLowerCase().includes('api_key'))) {
+              geminiKeyStatus.textContent = `❌ API Key inválida. Verifícala en aistudio.google.com/apikey`;
+              geminiKeyStatus.style.color = 'var(--error)';
+              return;
+            }
+            if (res.status === 401 || res.status === 403) {
+              geminiKeyStatus.textContent = `❌ API Key sin permisos o revocada (HTTP ${res.status}).`;
+              geminiKeyStatus.style.color = 'var(--error)';
+              return;
+            }
+          } catch (fetchErr) {
+            lastErr = fetchErr;
+          }
+        }
+
+        geminiKeyStatus.textContent = `❌ No se pudo conectar. ${lastErr?.message || 'Verifica tu conexión.'}`;
+        geminiKeyStatus.style.color = 'var(--error)';
+      });
+
+      const keysInput = document.getElementById('groq-keys-input');
+      const keysStatus = document.getElementById('keys-save-status');
+      keysInput.value = GROQ_KEYS.join('\n');
+      updateKeysCountUI();
+
+      document.getElementById('btn-save-keys').addEventListener('click', () => {
+        const lines = keysInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+        const result = saveGroqKeys(lines);
+        if (result.ok) {
+          keysStatus.textContent = `✅ ${result.count} key(s) guardada(s) para Whisper.`;
+          keysStatus.style.color = 'var(--success)';
+          updateKeysCountUI();
+          showToast(`✅ ${result.count} key(s) guardada(s)`);
+        } else {
+          keysStatus.textContent = `⚠️ ${result.error}`;
+          keysStatus.style.color = 'var(--error)';
+          showToast('⚠️ No se pudieron guardar las keys');
+        }
+      });
+
+      document.getElementById('btn-reset-keys').addEventListener('click', () => {
+        if (!confirm('¿Restaurar las Groq API keys de fábrica?')) return;
+        resetGroqKeys();
+        keysInput.value = GROQ_KEYS.join('\n');
+        keysStatus.textContent = '↺ Keys restauradas.';
+        keysStatus.style.color = 'var(--muted)';
+        updateKeysCountUI();
+        showToast('↺ Keys restauradas');
+      });
 
       btnConfig.addEventListener('click', () => configPanel.classList.toggle('open'));
 
@@ -1440,17 +871,12 @@
 
       btnStartRecord.addEventListener('click', () => {
         if (isRecordingActive) stopRecordingProcess();
-        else startRecordingProcess();
+        else openModeSelectModal('record');
       });
 
       btnUpload.addEventListener('click', () => {
         if (isRecordingActive) { showToast('Detén la grabación primero.'); return; }
-        fileInput.click();
-      });
-
-      btnAnalyze.addEventListener('click', () => {
-        if (!accumulatedTranscript.trim()) { showToast('⚠️ No hay transcripción disponible.'); return; }
-        openPromptModal();
+        openModeSelectModal('upload');
       });
 
       btnClear.addEventListener('click', () => {
@@ -1470,7 +896,7 @@
           }
         }
         try {
-          await handleMultipleAudioFiles(files, document.getElementById('transcript-box'));
+          await handleMultipleAudioFiles(files);
         } catch (err) {
           showToast(`❌ Error: ${err.message}`);
           setStatus('error', 'Error al procesar');
@@ -1479,11 +905,32 @@
       });
 
       document.getElementById('btn-copy-transcript').addEventListener('click', () => {
-        const text = accumulatedTranscript.trim();
+        const text = transcriptBox.value.trim();
         if (!text) { showToast('⚠️ No hay texto para copiar'); return; }
         navigator.clipboard.writeText(text)
           .then(() => showToast('✅ Transcripción copiada'))
           .catch(() => showToast('⚠️ Error al copiar'));
+      });
+
+      btnAnalyzePasted.addEventListener('click', async () => {
+        const text = transcriptBox.value.trim();
+        if (!text || text.length < 20) {
+          showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
+          return;
+        }
+        if (!currentSessionMode) {
+          openModeSelectModal('analyze-pasted');
+          return;
+        }
+        await triggerAutoAnalysis();
+      });
+
+      btnClearTranscript.addEventListener('click', () => {
+        if (!transcriptBox.value.trim()) return;
+        if (confirm('¿Borrar la transcripción actual?')) {
+          transcriptBox.value = '';
+          setStatus('idle', 'Listo. Elige un modo y empieza.');
+        }
       });
 
       document.getElementById('btn-close-modal').addEventListener('click', closeModal);
@@ -1491,8 +938,7 @@
         if (e.target.id === 'modal-overlay') closeModal();
       });
 
-      initPromptModalListeners();
-
+      initModeSelectModalListeners();
       renderProjectsTab();
 
       document.getElementById('btn-export-data').addEventListener('click', () => {
@@ -1534,7 +980,7 @@
           const resultEl = document.getElementById('diag-result');
           resultEl.style.display = 'block';
           resultEl.className = 'diag-result';
-          resultEl.textContent = '🔬 Probando las 5 API Keys contra Groq...\n\n';
+          resultEl.textContent = `🔬 Probando las ${GROQ_KEYS.length} Groq API Keys (Whisper)...\n\n`;
 
           let okCount = 0;
           const lines = [];
@@ -1542,7 +988,7 @@
           for (let i = 0; i < GROQ_KEYS.length; i++) {
             const key = GROQ_KEYS[i];
             const preview = key.slice(0, 12) + '…' + key.slice(-4);
-            lines.push(`[${i + 1}/5] Probando ${preview}...`);
+            lines.push(`[${i + 1}/${GROQ_KEYS.length}] Probando ${preview}...`);
             resultEl.textContent = lines.join('\n');
 
             try {
@@ -1554,143 +1000,107 @@
               if (res.ok) {
                 const data = await res.json();
                 const count = (data.data || []).length;
-                lines[lines.length - 1] = `✅ [${i + 1}/5] ${preview} → OK (${count} modelos)`;
+                lines[lines.length - 1] = `✅ [${i + 1}/${GROQ_KEYS.length}] ${preview} → OK (${count} modelos)`;
                 okCount++;
               } else if (res.status === 401 || res.status === 403) {
-                lines[lines.length - 1] = `❌ [${i + 1}/5] ${preview} → REVOCADA/INVÁLIDA (${res.status})`;
+                lines[lines.length - 1] = `❌ [${i + 1}/${GROQ_KEYS.length}] ${preview} → REVOCADA/INVÁLIDA (${res.status})`;
               } else if (res.status === 429) {
-                lines[lines.length - 1] = `⚠️ [${i + 1}/5] ${preview} → Rate limit (429)`;
+                lines[lines.length - 1] = `⚠️ [${i + 1}/${GROQ_KEYS.length}] ${preview} → Rate limit (429)`;
               } else {
-                lines[lines.length - 1] = `⚠️ [${i + 1}/5] ${preview} → HTTP ${res.status}`;
+                lines[lines.length - 1] = `⚠️ [${i + 1}/${GROQ_KEYS.length}] ${preview} → HTTP ${res.status}`;
               }
             } catch (err) {
-              lines[lines.length - 1] = `❌ [${i + 1}/5] ${preview} → ${err.message}`;
+              lines[lines.length - 1] = `❌ [${i + 1}/${GROQ_KEYS.length}] ${preview} → ${err.message}`;
             }
             resultEl.textContent = lines.join('\n');
           }
 
-          const summary = `\n\n📊 Resultado: ${okCount}/5 keys funcionan.`;
+          const summary = `\n\n📊 Resultado: ${okCount}/${GROQ_KEYS.length} keys funcionan.`;
           resultEl.textContent = lines.join('\n') + summary;
-          resultEl.className = 'diag-result ' + (okCount === 5 ? 'ok' : 'fail');
-
-          if (okCount === 0) {
-            lines.push('\n\n🚨 TODAS las keys están muertas. Ve a https://console.groq.com/keys y genera nuevas.');
-            resultEl.textContent = lines.join('\n');
-          }
+          resultEl.className = 'diag-result ' + (okCount === GROQ_KEYS.length ? 'ok' : 'fail');
         });
       }
     }
 
-    function initPromptModalListeners() {
-      const modal = document.getElementById('prompt-modal');
-      const chips = document.querySelectorAll('#prompt-cat-chips .prompt-cat-chip');
-      const btnCancel = document.getElementById('prompt-cancel');
-      const btnProcess = document.getElementById('prompt-process');
+    function initModeSelectModalListeners() {
+      const modal = document.getElementById('mode-select-modal');
+      const chips = document.querySelectorAll('#mode-select-chips .prompt-cat-chip');
+      const btnCancel = document.getElementById('mode-select-cancel');
+      const btnConfirm = document.getElementById('mode-select-confirm');
 
       chips.forEach(chip => {
         chip.addEventListener('click', () => {
-          const cat = chip.dataset.cat;
-          promptModalState.categoria = cat;
+          const mode = chip.dataset.mode;
+          modeSelectState.mode = mode;
           chips.forEach(c => c.classList.toggle('selected', c === chip));
-          renderPromptChecklists(cat);
-          updatePromptProcessButton();
+          btnConfirm.disabled = !mode;
         });
       });
 
-      btnCancel.addEventListener('click', closePromptModal);
+      btnCancel.addEventListener('click', () => {
+        modeSelectState = { mode: null, pendingAction: null };
+        modal.classList.remove('open');
+      });
+
       modal.addEventListener('click', (e) => {
-        if (e.target.id === 'prompt-modal') closePromptModal();
+        if (e.target.id === 'mode-select-modal') {
+          modeSelectState = { mode: null, pendingAction: null };
+          modal.classList.remove('open');
+        }
       });
 
-      btnProcess.addEventListener('click', () => {
-        if (!promptModalState.categoria) { showToast('⚠️ Elige una categoría primero.'); return; }
-        if (!promptModalState.contexto.length) { showToast('⚠️ Selecciona al menos un contexto.'); return; }
-        if (!promptModalState.enfoque.length) { showToast('⚠️ Selecciona al menos un enfoque.'); return; }
-        const opts = {
-          categoria: promptModalState.categoria,
-          categoriaLabel: PROMPT_CATEGORIES[promptModalState.categoria].label,
-          contexto: [...promptModalState.contexto],
-          enfoque: [...promptModalState.enfoque]
-        };
-        closePromptModal();
-        analyzeText(accumulatedTranscript.trim(), document.getElementById('notes-container'), opts);
+      btnConfirm.addEventListener('click', () => {
+        const mode = modeSelectState.mode;
+        const action = modeSelectState.pendingAction;
+        if (!mode) return;
+
+        currentSessionMode = mode;
+        const modeDef = MODE_DEFINITIONS[mode];
+        showToast(`🎯 Modo: ${modeDef.categoriaLabel}`);
+
+        modal.classList.remove('open');
+        modeSelectState = { mode: null, pendingAction: null };
+
+        if (action === 'record') startRecordingProcess();
+        else if (action === 'upload') document.getElementById('file-input').click();
+        else if (action === 'analyze-pasted') triggerAutoAnalysis();
       });
     }
 
-    function openPromptModal() {
-      promptModalState = { categoria: null, contexto: [], enfoque: [] };
-      document.querySelectorAll('#prompt-cat-chips .prompt-cat-chip').forEach(c => c.classList.remove('selected'));
-      document.getElementById('prompt-context-grid').innerHTML = '';
-      document.getElementById('prompt-focus-grid').innerHTML = '';
-      document.getElementById('prompt-context-step').style.display = 'none';
-      document.getElementById('prompt-focus-step').style.display = 'none';
-      document.getElementById('prompt-process').disabled = true;
-      document.getElementById('prompt-modal').classList.add('open');
+    function openModeSelectModal(action) {
+      modeSelectState = { mode: currentSessionMode, pendingAction: action };
+      const chips = document.querySelectorAll('#mode-select-chips .prompt-cat-chip');
+      chips.forEach(c => c.classList.toggle('selected', c.dataset.mode === currentSessionMode));
+      document.getElementById('mode-select-confirm').disabled = !currentSessionMode;
+      document.getElementById('mode-select-modal').classList.add('open');
     }
 
-    function closePromptModal() {
-      document.getElementById('prompt-modal').classList.remove('open');
-    }
-
-    function renderPromptChecklists(catKey) {
-      const data = PROMPT_CATEGORIES[catKey];
-      if (!data) return;
-
-      const ctxGrid = document.getElementById('prompt-context-grid');
-      const focusGrid = document.getElementById('prompt-focus-grid');
-
-      ctxGrid.innerHTML = data.context.map(item => `
-        <label class="prompt-check">
-          <input type="checkbox" data-type="contexto" value="${escHtml(item.value)}">
-          <span class="prompt-check-box"></span>
-          <span class="prompt-check-label">${item.emoji || ''} ${escHtml(item.label)}</span>
-        </label>
-      `).join('');
-
-      focusGrid.innerHTML = data.focus.map(item => `
-        <label class="prompt-check">
-          <input type="checkbox" data-type="enfoque" value="${escHtml(item.value)}">
-          <span class="prompt-check-box"></span>
-          <span class="prompt-check-label">${item.emoji || ''} ${escHtml(item.label)}</span>
-        </label>
-      `).join('');
-
-      document.getElementById('prompt-context-step').style.display = 'block';
-      document.getElementById('prompt-focus-step').style.display = 'block';
-
-      ctxGrid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', () => {
-          const val = cb.value;
-          const arr = promptModalState.contexto;
-          const idx = arr.indexOf(val);
-          if (cb.checked && idx === -1) arr.push(val);
-          else if (!cb.checked && idx !== -1) arr.splice(idx, 1);
-          updatePromptProcessButton();
-        });
-      });
-
-      focusGrid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', () => {
-          const val = cb.value;
-          const arr = promptModalState.enfoque;
-          const idx = arr.indexOf(val);
-          if (cb.checked && idx === -1) arr.push(val);
-          else if (!cb.checked && idx !== -1) arr.splice(idx, 1);
-          updatePromptProcessButton();
-        });
-      });
-
-      updatePromptProcessButton();
-    }
-
-    function updatePromptProcessButton() {
-      const btn = document.getElementById('prompt-process');
-      const ok = promptModalState.categoria && promptModalState.contexto.length > 0 && promptModalState.enfoque.length > 0;
-      btn.disabled = !ok;
-    }
-
+    // ═══════════════════════════════════════════════════════════════
+    // 🎙️ GRABACIÓN
+    // ═══════════════════════════════════════════════════════════════
     async function startRecordingProcess() {
       if (isRecordingActive) return;
+      await requestWakeLock();
+
+      if (window.AndroidNative && typeof window.AndroidNative.startRecording === 'function') {
+        try {
+          window.AndroidNative.startRecording();
+          isRecordingActive = true;
+          const btn = document.getElementById('btn-start-record');
+          btn.textContent = '⏹️ Detener Grabación';
+          btn.classList.add('recording');
+          setStatus('active', 'Grabando en segundo plano (nativo Android)…');
+          disableButtonsExcept(btn);
+        } catch (err) {
+          showToast('❌ Error al iniciar grabación nativa: ' + err.message);
+          isRecordingActive = false;
+          resetRecordButton();
+          enableAllButtons();
+          releaseWakeLock();
+        }
+        return;
+      }
+
       try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         isRecordingActive = true;
@@ -1708,6 +1118,7 @@
         isRecordingActive = false;
         resetRecordButton();
         enableAllButtons();
+        releaseWakeLock();
       }
     }
 
@@ -1720,7 +1131,7 @@
         if (!chunks.length) return;
         const blob = new Blob(chunks, { type: 'audio/webm' });
         const file = new File([blob], `record_${Date.now()}.webm`, { type: 'audio/webm' });
-        transcribeRecordedChunk(file);
+        await transcribeRecordedChunk(file);
       };
       currentRecorder.start();
       recordingChunkInterval = setTimeout(() => {
@@ -1731,46 +1142,22 @@
       }, 300000);
     }
 
-    async function transcribeRecordedChunk(file) {
-      const box = document.getElementById('transcript-box');
-      const id = 'temp_' + Date.now();
-      const ind = document.createElement('div');
-      ind.id = id;
-      ind.className = 'transcript-progress';
-      ind.innerHTML = '<span class="spinner"></span><span class="progress-text">Transcribiendo bloque de audio...</span>';
-      box.appendChild(ind);
-      try {
-        const transcript = await transcribeWithGroqChunked(file, (msg) => {
-          const t = ind.querySelector('.progress-text');
-          if (t) t.textContent = msg;
-          setStatus('loading', msg);
-        });
-        if (transcript && transcript.trim()) {
-          accumulatedTranscript += (accumulatedTranscript.trim() ? '\n\n' : '') + transcript.trim();
-          box.textContent = accumulatedTranscript;
-          showAnalyzeUI();
-        }
-      } catch (err) {
-        const errDiv = document.createElement('div');
-        errDiv.className = 'transcript-error';
-        errDiv.innerHTML = `<span class="err-title">❌ Fallo al transcribir bloque</span>${escHtml(err.message)}`;
-        box.appendChild(errDiv);
-        showToast(`❌ Fallo al transcribir bloque: ${err.message.slice(0, 80)}`);
-      } finally {
-        const el = document.getElementById(id);
-        if (el) el.remove();
-      }
-    }
-
     function stopRecordingProcess() {
       if (!isRecordingActive) return;
       isRecordingActive = false;
+      releaseWakeLock();
+
+      if (window.AndroidNative && typeof window.AndroidNative.stopRecording === 'function') {
+        setStatus('loading', 'Procesando grabación nativa…');
+        window.AndroidNative.stopRecording();
+        return;
+      }
+
       clearTimeout(recordingChunkInterval);
       if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
       if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
       resetRecordButton();
-      setStatus('idle', 'Grabación finalizada.');
-      enableAllButtons();
+      setStatus('loading', 'Procesando grabación…');
     }
 
     function resetRecordButton() {
@@ -1781,14 +1168,115 @@
       }
     }
 
-    function showAnalyzeUI() {
-      document.getElementById('btn-analyze').style.display = 'flex';
-      document.getElementById('btn-clear').style.display = 'block';
+    window.receiveNativeAudio = async function (base64Audio) {
+      try {
+        if (!base64Audio || typeof base64Audio !== 'string' || base64Audio.length < 10) {
+          throw new Error('Audio nativo vacío o inválido.');
+        }
+        const cleanB64 = base64Audio.includes(',') ? base64Audio.split(',').pop() : base64Audio;
+        const binary = atob(cleanB64);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'audio/mp4' });
+        const file = new File([blob], `record_native_${Date.now()}.m4a`, { type: 'audio/mp4' });
+        resetRecordButton();
+        setStatus('loading', 'Transcribiendo grabación nativa…');
+        await transcribeRecordedChunk(file);
+      } catch (err) {
+        console.error('[receiveNativeAudio]', err);
+        const msg = (err && err.message) ? err.message : '';
+        const isNetworkError =
+          msg.includes('Error de red') || msg.includes('timeout') ||
+          msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
+          msg.includes('Todas las') || msg.includes('todas las') ||
+          msg.includes('API Keys fallaron') || msg.includes('Load failed');
+
+        if (isNetworkError) {
+          showToast('⚠️ Sin conexión. Tu audio está guardado en Música > MeetingMind', 8000);
+          setStatus('error', '⚠️ Error de red — audio guardado en Música > MeetingMind');
+          const area = document.getElementById('transcript-progress-area');
+          if (area) {
+            const notice = document.createElement('div');
+            notice.className = 'transcript-error';
+            notice.innerHTML = `
+              <span class="err-title">⚠️ No se pudo transcribir por error de red</span>
+              <strong>Tu grabación NO se perdió.</strong> Está guardada en:
+              <div class="err-detail">📁 Música › MeetingMind › MeetingMind_*.m4a</div>
+            `;
+            area.appendChild(notice);
+          }
+        } else {
+          showToast('❌ Error al procesar audio nativo: ' + msg);
+          setStatus('error', 'Error al procesar audio nativo');
+        }
+        resetRecordButton();
+      } finally {
+        isRecordingActive = false;
+        enableAllButtons();
+        releaseWakeLock();
+      }
+    };
+
+    window.receiveNativeError = function (message) {
+      showToast('❌ ' + (message || 'Error en grabación nativa'));
+      isRecordingActive = false;
+      resetRecordButton();
+      setStatus('error', message || 'Error en grabación nativa');
+      enableAllButtons();
+      releaseWakeLock();
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✍️ TRANSCRIPCIÓN
+    // ═══════════════════════════════════════════════════════════════
+    function appendToTranscript(text) {
+      const box = document.getElementById('transcript-box');
+      if (!box || !text) return;
+      const current = box.value.trim();
+      box.value = current ? (current + '\n\n' + text.trim()) : text.trim();
     }
 
-    async function handleMultipleAudioFiles(files, box) {
+    function setTranscriptProgressHTML(html) {
+      const area = document.getElementById('transcript-progress-area');
+      if (!area) return;
+      area.innerHTML = html;
+    }
+
+    function clearTranscriptProgress() { setTranscriptProgressHTML(''); }
+
+    async function transcribeRecordedChunk(file) {
+      const id = 'temp_' + Date.now();
+      setTranscriptProgressHTML(
+        `<div class="transcript-progress" id="${id}"><span class="spinner"></span><span class="progress-text">Transcribiendo bloque de audio...</span></div>`
+      );
+      try {
+        const transcript = await transcribeWithGroqChunked(file, (msg) => {
+          const el = document.getElementById(id);
+          const t = el ? el.querySelector('.progress-text') : null;
+          if (t) t.textContent = msg;
+          setStatus('loading', msg);
+        });
+        if (transcript && transcript.trim()) appendToTranscript(transcript.trim());
+        clearTranscriptProgress();
+        await maybeAutoAnalyze();
+      } catch (err) {
+        const errDiv = document.createElement('div');
+        errDiv.className = 'transcript-error';
+        errDiv.innerHTML = `<span class="err-title">❌ Fallo al transcribir bloque</span>${escHtml(err.message)}`;
+        const area = document.getElementById('transcript-progress-area');
+        if (area) area.appendChild(errDiv);
+        showToast(`❌ Fallo al transcribir bloque: ${err.message.slice(0, 80)}`);
+      } finally {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+    }
+
+    async function handleMultipleAudioFiles(files) {
       disableAllButtons();
-      if (!accumulatedTranscript.trim()) box.textContent = '';
+      const progressArea = document.getElementById('transcript-progress-area');
+      progressArea.innerHTML = '';
 
       globalTranscriptionController = new AbortController();
       const signal = globalTranscriptionController.signal;
@@ -1803,7 +1291,6 @@
 
       for (let i = 0; i < files.length; i++) {
         if (signal.aborted) break;
-
         const file = files[i];
         const fileMB = (file.size / (1024 * 1024)).toFixed(2);
         setStatus('loading', `Procesando audio ${i + 1}/${files.length} (${fileMB} MB)...`);
@@ -1811,8 +1298,8 @@
         const progressEl = document.createElement('div');
         progressEl.className = 'transcript-progress';
         progressEl.innerHTML = `<span class="spinner"></span><span class="progress-text">Preparando audio ${i + 1}/${files.length}...</span>`;
-        box.appendChild(progressEl);
-        if (!box.contains(cancelBtn)) box.appendChild(cancelBtn);
+        progressArea.appendChild(progressEl);
+        if (!progressArea.contains(cancelBtn)) progressArea.appendChild(cancelBtn);
 
         const startTime = Date.now();
         const timerInt = setInterval(() => {
@@ -1828,41 +1315,26 @@
         try {
           const transcript = await transcribeWithGroqChunked(file, (msg) => {
             const textEl = progressEl.querySelector('.progress-text');
-            if (textEl) {
-              textEl.textContent = msg;
-              textEl.dataset.base = msg;
-            }
+            if (textEl) { textEl.textContent = msg; textEl.dataset.base = msg; }
             setStatus('loading', `${msg} (Audio ${i + 1}/${files.length})`);
           });
-
           if (transcript && transcript.trim()) {
-            if (accumulatedTranscript.trim()) accumulatedTranscript += '\n\n';
-            accumulatedTranscript += transcript.trim();
-            box.textContent = accumulatedTranscript;
-            if (!box.contains(cancelBtn)) box.appendChild(cancelBtn);
+            appendToTranscript(transcript.trim());
             showToast(`✅ Audio ${i + 1} completado.`);
           } else {
             const emptyEl = document.createElement('div');
             emptyEl.className = 'transcript-error';
-            emptyEl.innerHTML = `<span class="err-title">⚠️ Audio ${i + 1} sin texto detectable</span>El archivo puede estar silencioso, corrupto o en un formato no soportado.`;
-            box.appendChild(emptyEl);
+            emptyEl.innerHTML = `<span class="err-title">⚠️ Audio ${i + 1} sin texto detectable</span>El archivo puede estar silencioso o corrupto.`;
+            progressArea.appendChild(emptyEl);
           }
         } catch (err) {
           const errDiv = document.createElement('div');
           errDiv.className = 'transcript-error';
           const isCancel = err.message.includes('Cancelado');
-          errDiv.innerHTML = `
-            <span class="err-title">${isCancel ? '⏹️ Cancelado' : '❌ Error al procesar "' + escHtml(file.name) + '"'}</span>
-            ${escHtml(err.message)}
-            <div class="err-detail">${escHtml(err.stack || '(sin stack trace)')}</div>
-          `;
-          box.appendChild(errDiv);
-          if (isCancel) {
-            showToast('⏹️ Transcripción cancelada.');
-          } else {
-            showToast(`❌ Fallo: ${err.message.slice(0, 80)}`);
-          }
-          if (isCancel) break;
+          errDiv.innerHTML = `<span class="err-title">${isCancel ? '⏹️ Cancelado' : '❌ Error al procesar "' + escHtml(file.name) + '"'}</span>${escHtml(err.message)}`;
+          progressArea.appendChild(errDiv);
+          if (isCancel) { showToast('⏹️ Transcripción cancelada.'); break; }
+          else showToast(`❌ Fallo: ${err.message.slice(0, 80)}`);
         } finally {
           clearInterval(timerInt);
           progressEl.remove();
@@ -1872,19 +1344,15 @@
       cancelBtn.remove();
       globalTranscriptionController = null;
 
-      if (accumulatedTranscript.trim()) {
-        showAnalyzeUI();
-        setStatus('idle', 'Audios procesados. Genera las notas.');
-      } else {
-        setStatus('error', 'No se pudo extraer texto del audio.');
-      }
+      const hasContent = document.getElementById('transcript-box').value.trim().length > 0;
+      if (hasContent && !signal.aborted) await maybeAutoAnalyze();
+      else setStatus('error', 'No se pudo extraer texto del audio.');
       enableAllButtons();
     }
 
     async function transcribeWithGroqChunked(file, onProgress) {
       const CHUNK_SIZE = 10 * 1024 * 1024;
       const total = file.size;
-      const totalMB = (total / (1024 * 1024)).toFixed(2);
       const chunks = [];
       let start = 0, idx = 0;
       while (start < total) {
@@ -1894,14 +1362,11 @@
         idx++;
       }
 
-      console.log(`[Chunked] ${totalMB} MB → ${chunks.length} parte(s)`);
-
       let full = '';
       for (let i = 0; i < chunks.length; i++) {
         if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
           throw new Error('Cancelado por el usuario.');
         }
-
         const chunkMB = (chunks[i].blob.size / (1024 * 1024)).toFixed(2);
         if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length} (${chunkMB} MB)...`);
 
@@ -1915,7 +1380,7 @@
         if (t && t.trim()) full += (full ? ' ' : '') + t.trim();
 
         if (i < chunks.length - 1) {
-          if (onProgress) onProgress(`Parte ${i + 1} OK. Esperando 5s antes de la siguiente...`);
+          if (onProgress) onProgress(`Parte ${i + 1} OK. Esperando 5s...`);
           await delay(5000);
         }
       }
@@ -1924,17 +1389,11 @@
 
     async function transcribeSingleChunk(file) {
       let lastError = null;
-      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-
       for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
         if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
           throw new Error('Cancelado por el usuario.');
         }
-
         const apiKey = getNextGroqKey();
-        const keyPreview = apiKey.slice(0, 12) + '…' + apiKey.slice(-4);
-        console.log(`[Whisper] Intento ${attempt + 1}/${GROQ_KEYS.length} | Key ${keyPreview} | File ${fileSizeMB} MB`);
-
         const formData = new FormData();
         formData.append('file', file);
         formData.append('model', 'whisper-large-v3-turbo');
@@ -1951,39 +1410,28 @@
 
           if (response.ok) {
             const data = await response.json();
-            console.log(`[Whisper] ✅ Éxito con key ${keyPreview}. Texto: ${(data.text || '').length} chars`);
             return data.text || '';
           }
-
           const errData = await response.json().catch(() => ({}));
           const errMsg = errData?.error?.message || `HTTP ${response.status}`;
-          console.error(`[Whisper] ❌ Error ${response.status} con key ${keyPreview}: ${errMsg}`);
-
           if (response.status === 401 || response.status === 403) {
-            lastError = new Error(`API Key inválida o revocada (${response.status}). Genera nuevas keys en console.groq.com/keys`);
+            lastError = new Error(`API Key inválida o revocada (${response.status}).`);
             continue;
           }
-
           if (response.status === 429) {
             lastError = new Error(`Rate Limit alcanzado (429): ${errMsg}`);
             await delay(3000);
             continue;
           }
-
           if (response.status >= 500) {
             lastError = new Error(`Error del servidor Groq (${response.status}): ${errMsg}`);
             await delay(2000);
             continue;
           }
-
           throw new Error(`HTTP ${response.status}: ${errMsg}`);
-
         } catch (err) {
-          console.error(`[Whisper] Excepción con key ${keyPreview}:`, err.message);
           lastError = err;
-
           if (err.message.includes('cancelada')) throw err;
-
           if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
             await delay(1500);
             continue;
@@ -1994,86 +1442,374 @@
       throw new Error(`Todas las ${GROQ_KEYS.length} API Keys fallaron. Último: ${lastError?.message || 'Desconocido'}`);
     }
 
-    function buildNotionPrompt(options, textoTranscripcion) {
-      const categoriaKey = options.categoria || 'ejecutivo';
-      const categoriaData = PROMPT_CATEGORIES[categoriaKey] || PROMPT_CATEGORIES.ejecutivo;
-
-      const contextoStr = options.contexto.join(', ');
-      const enfoqueStr = options.enfoque.join(', ');
-
-      let esquema;
-      if (categoriaKey === 'academico') {
-        esquema = `### 🎓 Tema de la Clase
-[Resumen del tema expuesto]
-
-### 🧠 Conceptos y Definiciones
-* **[Concepto/Fórmula]**: [Explicación detallada]
-
-### 📝 Apuntes Clave
-* [Dato importante 1]
-
-### ✅ Asignaciones (Checklist)
-- [ ] [Tarea, práctica o lectura pendiente]`;
-      } else if (categoriaKey === 'ejecutivo') {
-        esquema = `### 📝 Resumen Ejecutivo
-[Resumen conciso]
-
-### 💡 Puntos Clave
-* [Punto clave 1]
-
-### 🎯 Decisiones y Acuerdos
-* [Decisión 1]
-
-### ✅ Elementos de Acción (Checklist)
-- [ ] [Tarea con responsable/fecha]`;
-      } else if (categoriaKey === 'idiomas') {
-        esquema = `### 🌐 Explicación del Profesor
-[Explicación didáctica del tema]
-
-### 📖 Vocabulario Clave
-* **[Palabra]**: [Significado y ejemplo]
-
-### ✏️ Reglas y Estructuras
-* [Regla gramatical aplicada]
-
-### 🔊 Pronunciación y Tips
-* [Consejo práctico]`;
-      } else {
-        esquema = `### 📝 Resumen General
-[Síntesis de lo tratado]
-
-### 💡 Ideas Principales
-* [Idea 1]
-
-### 💭 Citas Destacadas
-* "[Cita textual]"
-
-### 📌 Notas Adicionales
-* [Nota]`;
+    // ═══════════════════════════════════════════════════════════════
+    // 🎯 AUTO-ANÁLISIS
+    // ═══════════════════════════════════════════════════════════════
+    async function maybeAutoAnalyze() {
+      const text = document.getElementById('transcript-box').value.trim();
+      if (!text || text.length < 20) {
+        setStatus('error', 'Transcripción demasiado corta para generar notas.');
+        return;
       }
-
-      return `Eres el motor de IA de la aplicación "Meeting Mind". Eres un asistente experto en estructurar notas limpias en Markdown, idéntico a "Notion AI".
-
-DATOS DE ENTRADA:
-- Categoría principal: ${categoriaData.label} (${categoriaData.emoji})
-- Contexto del audio: ${contextoStr}
-- Enfoque principal: ${enfoqueStr}
-
-REGLAS ESTRICTAS:
-1. NO inventes información. Basa tu respuesta únicamente en el "Texto en crudo".
-2. Devuelve ÚNICAMENTE el texto en formato Markdown sin saludos ni introducciones.
-
-INSTRUCCIONES DE FORMATO:
-Usa EXACTAMENTE este esquema (omite las secciones que no apliquen al contenido):
-
-${esquema}
-
-TEXTO EN CRUDO:
-"""
-${textoTranscripcion}
-"""`;
+      if (!currentSessionMode) {
+        showToast('⚠️ Selecciona primero un enfoque de notas.');
+        setStatus('idle', 'Transcripción lista. Pulsa "Analizar Texto Pegado" para generar notas.');
+        return;
+      }
+      const opts = getSessionOptions();
+      await analyzeText(text, document.getElementById('notes-container'), opts);
+      document.querySelector('[data-tab="notas"]')?.click();
     }
 
+    async function triggerAutoAnalysis() {
+      const text = document.getElementById('transcript-box').value.trim();
+      if (!text || text.length < 20) {
+        showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
+        return;
+      }
+      if (!currentSessionMode) {
+        openModeSelectModal('analyze-pasted');
+        return;
+      }
+      const opts = getSessionOptions();
+      await analyzeText(text, document.getElementById('notes-container'), opts);
+      document.querySelector('[data-tab="notas"]')?.click();
+    }
+
+    function getSessionOptions() {
+      const mode = currentSessionMode || 'academico';
+      const def = MODE_DEFINITIONS[mode] || MODE_DEFINITIONS.academico;
+      return {
+        categoria: def.categoria,
+        categoriaLabel: def.categoriaLabel,
+        contexto: [...def.contexto],
+        enfoque: [...def.enfoque],
+        isLanguageFocus: def.isLanguageFocus === true
+      };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🤖 GEMINI — Extracción robusta del texto
+    // ═══════════════════════════════════════════════════════════════
+    function extractGeminiText(data) {
+      if (!data || typeof data !== 'object') return '';
+
+      // Formato clásico: candidates[0].content.parts[0].text
+      const candidates = data.candidates;
+      if (Array.isArray(candidates) && candidates.length > 0) {
+        const parts = candidates[0]?.content?.parts;
+        if (Array.isArray(parts)) {
+          let text = '';
+          for (const p of parts) {
+            if (p?.thought === true) continue;
+            if (typeof p?.text === 'string') text += p.text;
+          }
+          if (text.trim()) return text;
+        }
+      }
+
+      // Formato Interactions: steps[].content[].text
+      if (Array.isArray(data.steps)) {
+        let text = '';
+        for (const step of data.steps) {
+          if (step.type === 'model_output' && Array.isArray(step.content)) {
+            for (const block of step.content) {
+              if (block.type === 'text' && typeof block.text === 'string') {
+                text += block.text;
+              }
+            }
+          }
+        }
+        if (text.trim()) return text;
+      }
+
+      if (typeof data.output_text === 'string' && data.output_text.trim()) {
+        return data.output_text;
+      }
+
+      return '';
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🤖 GEMINI — Endpoint clásico (CORS OK) con fallback 3.x
+    // ═══════════════════════════════════════════════════════════════
+    async function callGemini(systemPrompt, userContent, timeoutMs, options = {}) {
+      const apiKey = String(GEMINI_API_KEY || '').trim();
+
+      if (!isValidGeminiKey(apiKey)) {
+        throw new Error('Gemini API Key no configurada o inválida. Ve a ⚙️ Configuración → 🔮 Gemini API Key.');
+      }
+
+      const userModel = (memoriaTemporal.obtener(LS_KEY_GEMINI_MODEL) || 'gemini-3.8-flash')
+        .trim()
+        .replace(/^models\//, '');
+
+      const modelsToTry = [
+        userModel,
+        'gemini-3.8-flash',
+        'gemini-3.7-flash',
+        'gemini-3.6-flash',
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-pro-preview',
+        'gemini-3-flash-preview'
+      ].filter((m, i, arr) => m && arr.indexOf(m) === i);
+
+      let lastError = null;
+      let lastStatus = 0;
+
+      for (const currentModel of modelsToTry) {
+        const url = `${GEMINI_API_BASE}/${currentModel}:generateContent`;
+
+        const payload = {
+          contents: [{
+            parts: [{ text: systemPrompt + '\n\n' + userContent }]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 8192
+          }
+        };
+
+        if (options.responseFormat === 'json') {
+          payload.generationConfig.responseMimeType = 'application/json';
+        }
+
+        let response;
+        try {
+          response = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify(payload)
+          }, timeoutMs || 120000);
+        } catch (fetchErr) {
+          lastError = fetchErr;
+          console.warn(`[Gemini] Error de red con "${currentModel}":`, fetchErr.message);
+          break;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          const text = extractGeminiText(data);
+          if (text && text.trim()) {
+            console.log(`[Gemini] ✅ Éxito con "${currentModel}"`);
+            return text;
+          }
+          const reason = data?.candidates?.[0]?.finishReason;
+          if (reason && reason !== 'STOP') {
+            throw new Error(`Gemini bloqueó la respuesta (${reason}). Intenta reformular.`);
+          }
+          throw new Error('Respuesta vacía de Gemini.');
+        }
+
+        let errMsg = `HTTP ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData?.error?.message || errData?.message || errMsg;
+        } catch (_) {}
+
+        lastStatus = response.status;
+        const low = errMsg.toLowerCase();
+
+        if (response.status === 404 || (low.includes('not found') && low.includes('model'))) {
+          lastError = new Error(`Modelo "${currentModel}" no disponible.`);
+          continue;
+        }
+
+        if (response.status === 400 && (low.includes('not supported') || low.includes('no longer available'))) {
+          lastError = new Error(`Modelo "${currentModel}" no soportado.`);
+          continue;
+        }
+
+        if (response.status === 400) {
+          if (low.includes('api key') || low.includes('api_key') || low.includes('invalid key')) {
+            throw new Error('Gemini API Key inválida. Revisa que sea correcta y sin espacios.');
+          }
+          throw new Error(`Solicitud inválida a Gemini: ${errMsg}`);
+        }
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Gemini API Key sin permisos o revocada.');
+        }
+        if (response.status === 429) {
+          lastError = new Error(`Rate limit alcanzado.`);
+          await delay(2000);
+          continue;
+        }
+        if (response.status >= 500) {
+          const waitMs = response.status === 503 ? 1200 : 800;
+          lastError = new Error(`Servidor saturado (${response.status}).`);
+          await delay(waitMs);
+          continue;
+        }
+
+        lastError = new Error(`Gemini: ${errMsg}`);
+      }
+
+      if (lastStatus === 0) {
+        throw new Error(`No se pudo conectar con Gemini. Verifica tu conexión a internet.`);
+      }
+      if (lastStatus === 503 || lastStatus === 502 || lastStatus === 504) {
+        throw new Error('Los servidores de Gemini están saturados (503). Espera 1-2 minutos y reintenta.');
+      }
+      if (lastStatus === 429) {
+        throw new Error('Límite temporal de Gemini alcanzado. Espera un minuto.');
+      }
+      throw new Error(`Todos los modelos fallaron. Último: ${lastError?.message || `HTTP ${lastStatus}`}`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎓 SYSTEM PROMPTS
+    // ═══════════════════════════════════════════════════════════════
+    function getSystemPromptForMode(mode, isLanguageFocus) {
+      const REGLAS_COMUNES = `Eres el motor de IA de "Meeting Mind". Actúas como un TUTOR EXPERTO y CORRECTOR ACADÉMICO SENIOR. Tu única misión es transformar transcripciones crudas en notas profesionalmente impecables.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REGLAS UNIVERSALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1) CORRECCIÓN Y PRECISIÓN ACADÉMICA:
+   • Si en la transcripción se dice un concepto, fórmula, definición, fecha, ley o dato de forma ERRÓNEA, CONFUSA O INCOMPLETA, NO lo repitas tal cual.
+   • CORRÍGELO a su versión académicamente correcta.
+   • Marca la corrección entre paréntesis: "(el audio decía: ...)".
+
+2) ENRIQUECIMIENTO EXPLICATIVO:
+   • Si una idea quedó a medias o enredada, REESTRUCTÚRALA y COMPLÉTALA didácticamente.
+
+3) SIN INVENTAR TEMAS AJENOS:
+   • PROHIBIDO introducir conceptos, autores o teorías que NO fueron mencionados.
+
+4) FORMATO DE SALIDA — JSON ESTRICTO OBLIGATORIO:
+
+   {
+     "titulo_principal": "Título descriptivo",
+     "secciones": [
+       {
+         "titulo_seccion": "Nombre de la sección",
+         "tipo_contenido": "lista",
+         "contenido": ["elemento 1", "elemento 2"]
+       }
+     ]
+   }
+
+   REGLAS DEL JSON:
+   • SOLO el JSON. Nada de texto antes ni después.
+   • "tipo_contenido": exactamente "lista" | "parrafos" | "bloque".
+   • "contenido": siempre array de strings.
+   • Escapa comillas internas (\\") y saltos de línea (\\n).
+   • PROHIBIDO usar markdown dentro de los strings.`;
+
+      if (mode === 'academico' && isLanguageFocus === true) {
+        return `${REGLAS_COMUNES}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODO: ACADÉMICO con ENFOQUE EN CLASE DE IDIOMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ROL: TUTOR Y PROFESOR DE IDIOMAS EXPERTO.
+
+ESTRUCTURA OBLIGATORIA — EXACTAMENTE estas 5 secciones:
+   1. "Explicación Didáctica del Profesor" → "parrafos"
+   2. "Vocabulario y Expresiones Clave" → "lista"
+   3. "Reglas Gramaticales y Estructuras" → "bloque"
+   4. "Corrección de Errores y Tips de Pronunciación" → "lista"
+   5. "Guía de Repaso Rápido" → "lista"
+
+Genera el JSON con esas 5 secciones exactas.`;
+      }
+
+      const REGLAS_MODO = {
+        academico: `
+MODO: ACADÉMICO — Apuntes de Clase / Estudio
+ESTRUCTURA: Tema Central, Conceptos, Fórmulas, Desarrollo, Correcciones, Tareas.`,
+        ejecutivo: `
+MODO: EJECUTIVO — Reunión de Negocio
+ESTRUCTURA: Resumen Ejecutivo, Puntos Clave, Decisiones, Acciones, Métricas, Aclaraciones.`,
+        libre: `
+MODO: LIBRE — Reflexión / Podcast
+ESTRUCTURA: Resumen General, Ideas Principales, Citas, Notas, Reflexiones.`
+      };
+
+      const reglasEspecificas = REGLAS_MODO[mode] || REGLAS_MODO.academico;
+      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📝 JSON → MARKDOWN
+    // ═══════════════════════════════════════════════════════════════
+    function jsonNotesToMarkdown(obj) {
+      if (!obj || typeof obj !== 'object') return '';
+      const lines = [];
+      const titulo = obj.titulo_principal || obj.titulo || 'Apuntes de la sesión';
+      lines.push(`# ${titulo}`);
+      lines.push('');
+
+      const secciones = Array.isArray(obj.secciones) ? obj.secciones : [];
+      for (const sec of secciones) {
+        const secTitulo = sec.titulo_seccion || sec.titulo || 'Sección';
+        const tipo = (sec.tipo_contenido || sec.tipo || 'lista').toLowerCase();
+        const contenido = Array.isArray(sec.contenido)
+          ? sec.contenido
+          : (typeof sec.contenido === 'string' ? [sec.contenido] : []);
+
+        lines.push(`### ${secTitulo}`);
+        lines.push('');
+
+        if (tipo === 'lista') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`- ${text}`);
+          }
+        } else if (tipo === 'parrafos') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) { lines.push(text); lines.push(''); }
+          }
+        } else if (tipo === 'bloque') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`> ${text}`);
+          }
+        } else {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`- ${text}`);
+          }
+        }
+        lines.push('');
+      }
+      return lines.join('\n').trim();
+    }
+
+    function tryParseNotesJson(rawText) {
+      if (!rawText || typeof rawText !== 'string') return null;
+      let cleaned = rawText.trim()
+        .replace(/^```(?:json)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (parsed && typeof parsed === 'object' && (parsed.titulo_principal || parsed.secciones)) return parsed;
+      } catch (e) {
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          try {
+            const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(candidate);
+            if (parsed && typeof parsed === 'object') return parsed;
+          } catch (_) {}
+        }
+      }
+      return null;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📋 CHECKBOX + MARKDOWN RENDER
+    // ═══════════════════════════════════════════════════════════════
     function getCheckboxState() {
       try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); }
       catch (e) { return {}; }
@@ -2082,9 +1818,7 @@ ${textoTranscripcion}
       try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(s)); } catch (e) {}
     }
     function toggleCheckboxState(key, checked) {
-      const s = getCheckboxState();
-      s[key] = checked;
-      saveCheckboxState(s);
+      const s = getCheckboxState(); s[key] = checked; saveCheckboxState(s);
     }
 
     function renderMarkdownToHTML(markdown, noteKey) {
@@ -2100,7 +1834,6 @@ ${textoTranscripcion}
           marked.setOptions({ gfm: true, breaks: true, headerIds: false, mangle: false });
           html = marked.parse(clean);
         } catch (e) {
-          console.warn('marked falló, usando fallback:', e);
           html = fallbackMarkdownRenderer(clean);
         }
       } else {
@@ -2135,32 +1868,24 @@ ${textoTranscripcion}
           out.push(`<li><input type="checkbox"${checked ? ' checked' : ''}> ${inline(cb[2])}</li>`);
           continue;
         }
-
         const h = t.match(/^(#{1,6})\s+(.+)$/);
-        if (h) {
-          closeLists();
-          out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
-          continue;
-        }
+        if (h) { closeLists(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
 
         if (/^[-*+]\s+/.test(t)) {
           if (!inList || listType !== 'ul') { closeLists(); out.push('<ul>'); inList = true; listType = 'ul'; }
           out.push(`<li>${inline(t.replace(/^[-*+]\s+/, ''))}</li>`);
           continue;
         }
-
         if (/^\d+[.)]\s+/.test(t)) {
           if (!inList || listType !== 'ol') { closeLists(); out.push('<ol>'); inList = true; listType = 'ol'; }
           out.push(`<li>${inline(t.replace(/^\d+[.)]\s+/, ''))}</li>`);
           continue;
         }
-
         if (/^>\s?/.test(t)) {
           closeLists();
           out.push(`<blockquote>${inline(t.replace(/^>\s?/, ''))}</blockquote>`);
           continue;
         }
-
         closeLists();
         out.push(`<p>${inline(t)}</p>`);
       }
@@ -2171,7 +1896,6 @@ ${textoTranscripcion}
     function postProcessCheckboxes(html, noteKey) {
       const temp = document.createElement('div');
       temp.innerHTML = html;
-
       const stored = getCheckboxState();
       let idx = 0;
 
@@ -2184,28 +1908,21 @@ ${textoTranscripcion}
         const li = cb.closest('li');
         if (li) {
           li.classList.add('notion-check-item');
-
           if (!li.querySelector('.notion-check-text')) {
             const span = document.createElement('span');
             span.className = 'notion-check-text';
             let node = cb.nextSibling;
-            while (node) {
-              const next = node.nextSibling;
-              span.appendChild(node);
-              node = next;
-            }
+            while (node) { const next = node.nextSibling; span.appendChild(node); node = next; }
             li.innerHTML = '';
             li.appendChild(cb);
             li.appendChild(span);
           }
-
           const saved = stored[id];
           const finalChecked = (typeof saved === 'boolean') ? saved : cb.checked;
           cb.checked = finalChecked;
           li.classList.toggle('notion-checked', finalChecked);
         }
       });
-
       return temp.innerHTML;
     }
 
@@ -2223,51 +1940,61 @@ ${textoTranscripcion}
       });
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // ✨ ANÁLISIS CON GEMINI
+    // ═══════════════════════════════════════════════════════════════
     async function analyzeText(text, notesContainer, options) {
-      const promptNotion = buildNotionPrompt(options, text);
+      const systemPrompt = getSystemPromptForMode(
+        options.categoria,
+        options.isLanguageFocus === true
+      );
 
       disableAllButtons();
       notesContainer.innerHTML = `
         <div class="state-msg">
           <span class="big">✨</span>
-          <span id="notion-progress">Generando notas estilo Notion…</span>
+          <span id="notion-progress">Generando notas con Gemini…</span>
         </div>
       `;
-      setStatus('loading', 'Generando notas con IA…');
-
-      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
+      setStatus('loading', 'Generando notas con Gemini…');
 
       try {
-        const payload = {
-          model: currentModel,
-          messages: [
-            { role: 'system', content: promptNotion },
-            { role: 'user', content: 'Genera las notas ahora siguiendo estrictamente el formato Markdown indicado.' }
-          ],
-          temperature: 0.3,
-          max_tokens: 4096
-        };
+        const userMessage = `${options.isLanguageFocus
+          ? 'Enfoque adicional: CLASE DE IDIOMAS.\n\n'
+          : ''}Contexto: ${options.contexto.join(', ')}
+Enfoque: ${options.enfoque.join(', ')}
 
-        const progressEl = document.getElementById('notion-progress');
-        if (progressEl) progressEl.textContent = 'Procesando respuesta del modelo…';
+TRANSCRIPCIÓN COMPLETA:
+"""
+${text}
+"""
 
-        const rawMarkdown = await callGroqChat(payload);
+Genera las notas AHORA en JSON estricto.`;
 
-        const cleanMarkdown = rawMarkdown.trim()
-          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
-          .replace(/\n?```\s*$/i, '')
-          .trim();
+        const rawResponse = await callGemini(systemPrompt, userMessage, 180000, { responseFormat: 'json' });
 
-        const titleMatch = cleanMarkdown.match(/^#\s+(.+)$/m)
-          || cleanMarkdown.match(/^###\s+[^\n]+/m);
-        const docTitle = titleMatch
-          ? (titleMatch[1] || titleMatch[0]).replace(/[*_`#]/g, '').trim()
-          : 'Apuntes de la sesión';
+        const jsonNotes = tryParseNotesJson(rawResponse);
+        let markdownNotes, docTitle;
 
-        renderNotionNotes(cleanMarkdown, notesContainer, docTitle);
+        if (jsonNotes) {
+          markdownNotes = jsonNotesToMarkdown(jsonNotes);
+          docTitle = jsonNotes.titulo_principal || 'Apuntes de la sesión';
+        } else {
+          markdownNotes = rawResponse.trim()
+            .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+            .replace(/\n?```\s*$/i, '')
+            .trim();
+          const titleMatch = markdownNotes.match(/^#\s+(.+)$/m)
+            || markdownNotes.match(/^###\s+[^\n]+/m);
+          docTitle = titleMatch
+            ? (titleMatch[1] || titleMatch[0]).replace(/[*_`#]/g, '').trim()
+            : 'Apuntes de la sesión';
+        }
 
-        setStatus('active', '✨ Notas Notion generadas');
-        showToast('✅ Notas estilo Notion listas');
+        renderNotionNotes(markdownNotes, notesContainer, docTitle);
+
+        setStatus('active', '✨ Notas generadas con Gemini');
+        showToast('✅ Notas listas');
         document.querySelector('[data-tab="notas"]')?.click();
 
       } catch (err) {
@@ -2291,7 +2018,6 @@ ${textoTranscripcion}
       currentNotionMarkdown = markdown;
 
       const html = renderMarkdownToHTML(markdown, currentNoteKey);
-
       const projects = getProjects();
       const projectOptionsHtml = projects.length
         ? projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.nombre)}</option>`).join('')
@@ -2306,7 +2032,7 @@ ${textoTranscripcion}
           <div class="notes-header-right">
             <button id="btn-copy-notion" class="btn-copy-notion">📋 Copiar MD</button>
             <button id="btn-download-md" class="btn-copy-notion">⬇️ .md</button>
-            <button id="btn-reconfigure" class="btn-copy-notion">🔄 Re-configurar</button>
+            <button id="btn-reconfigure" class="btn-copy-notion">🔄 Re-generar</button>
           </div>
         </div>
         <div class="notion-content" id="notion-render-target">
@@ -2336,8 +2062,9 @@ ${textoTranscripcion}
       const btnReconfigure = document.getElementById('btn-reconfigure');
       if (btnReconfigure) {
         btnReconfigure.addEventListener('click', () => {
-          if (!accumulatedTranscript.trim()) { showToast('⚠️ No hay transcripción disponible.'); return; }
-          openPromptModal();
+          const text = document.getElementById('transcript-box').value.trim();
+          if (!text) { showToast('⚠️ No hay transcripción disponible.'); return; }
+          openModeSelectModal('analyze-pasted');
         });
       }
 
@@ -2350,82 +2077,25 @@ ${textoTranscripcion}
       });
     }
 
-    async function callGroqChat(payload) {
-      const dynamicModels = await fetchAvailableModels();
-      const modelsToTry = [...new Set([payload.model, ...dynamicModels])].filter(Boolean);
-
-      let lastError = null;
-      const maxAttempts = modelsToTry.length * GROQ_KEYS.length;
-      let attemptCount = 0;
-
-      for (const model of modelsToTry) {
-        const currentPayload = { ...payload, model };
-        for (let ka = 0; ka < GROQ_KEYS.length; ka++) {
-          if (attemptCount >= maxAttempts) break;
-          attemptCount++;
-          const apiKey = getNextGroqKey();
-          try {
-            const response = await fetchWithTimeout(GROQ_CHAT_URL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-              },
-              body: JSON.stringify(currentPayload)
-            }, 60000);
-
-            if (response.ok) {
-              const data = await response.json();
-              const content = data?.choices?.[0]?.message?.content;
-              if (content) return content;
-              throw new Error('Respuesta vacía del modelo');
-            }
-
-            let errMsg = `HTTP ${response.status}`;
-            try {
-              const errData = await response.json();
-              errMsg = errData?.error?.message || errMsg;
-            } catch (_) {}
-
-            if (response.status === 429) {
-              lastError = new Error(`[Rate Limit] ${errMsg}`);
-              await delay(2000 * (ka + 1));
-              continue;
-            }
-            lastError = new Error(errMsg);
-            break;
-          } catch (err) {
-            lastError = err;
-            if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-              await delay(1500 * (ka + 1));
-              continue;
-            }
-            break;
-          }
-        }
-      }
-      throw new Error(`Todos los modelos y claves fallaron. Último: ${lastError?.message || 'Desconocido'}`);
-    }
-
     function resetSession() {
-      accumulatedTranscript = '';
+      document.getElementById('transcript-box').value = '';
+      document.getElementById('transcript-progress-area').innerHTML = '';
       currentNotionMarkdown = '';
       currentNoteKey = '';
-      document.getElementById('transcript-box').innerHTML = '<span style="color:var(--muted)">La transcripción aparecerá aquí...</span>';
-      document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Sube tus audios primero y luego pulsa "Generar Notas Inteligentes".</span></div>';
-      document.getElementById('btn-analyze').style.display = 'none';
+      document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Graba o sube un audio, y las notas se generarán automáticamente.</span></div>';
       document.getElementById('btn-clear').style.display = 'none';
-      setStatus('idle', 'Listo. Sube o graba un audio.');
+      currentSessionMode = null;
+      setStatus('idle', 'Listo. Elige un modo y empieza.');
     }
 
     function disableButtonsExcept(activeBtn) {
-      ['btn-start-record', 'btn-upload', 'btn-analyze'].forEach(id => {
+      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted'].forEach(id => {
         const b = document.getElementById(id);
         if (b && b !== activeBtn) b.disabled = true;
       });
     }
     function disableAllButtons() {
-      ['btn-start-record', 'btn-upload', 'btn-analyze'].forEach(id => {
+      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted'].forEach(id => {
         const b = document.getElementById(id);
         if (b) b.disabled = true;
       });
@@ -2433,15 +2103,21 @@ ${textoTranscripcion}
     function enableAllButtons() {
       const btnStart = document.getElementById('btn-start-record');
       const btnUpload = document.getElementById('btn-upload');
-      const btnAnalyze = document.getElementById('btn-analyze');
+      const btnAnalyze = document.getElementById('btn-analyze-pasted');
       if (btnStart) btnStart.disabled = false;
       if (btnUpload) btnUpload.disabled = false;
-      if (btnAnalyze) {
-        btnAnalyze.disabled = false;
-        if (accumulatedTranscript.trim()) btnAnalyze.style.display = 'flex';
+      if (btnAnalyze) btnAnalyze.disabled = false;
+
+      const btnClear = document.getElementById('btn-clear');
+      if (btnClear) {
+        const hasContent = document.getElementById('transcript-box').value.trim().length > 0;
+        btnClear.style.display = hasContent ? 'block' : 'none';
       }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // 📁 PROYECTOS
+    // ═══════════════════════════════════════════════════════════════
     function getProjects() {
       try {
         const raw = memoriaTemporal.obtener(LS_KEY_PROJECTS);
@@ -2574,9 +2250,7 @@ ${textoTranscripcion}
         <div id="notas-guardadas-list">${notasHtml}</div>
       `;
 
-      container.querySelectorAll('.notion-content').forEach(el => {
-        attachNotionCheckboxListeners(el);
-      });
+      container.querySelectorAll('.notion-content').forEach(el => attachNotionCheckboxListeners(el));
 
       document.getElementById('btn-back-projects').addEventListener('click', () => {
         currentOpenProjectId = null;
@@ -2602,36 +2276,33 @@ ${textoTranscripcion}
         `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`
       ).join('\n\n');
 
-      openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen global con Groq…');
-      const model = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
+      openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen con Gemini…');
 
       const systemPrompt = `Eres un asistente experto. Recibirás varias notas Markdown de distintas sesiones de un mismo proyecto. Genera un "Resumen Global" en Markdown bien estructurado.
 REGLAS:
 - Usa H1 para el título, H2 para secciones, H3 para subtemas.
-- Incluye secciones: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (usa checkboxes Markdown \`- [ ] tarea\`).
+- Incluye secciones: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (usa checkboxes Markdown "- [ ] tarea").
 - No inventes información. Solo sintetiza lo que está en las notas.
 - Devuelve ÚNICAMENTE Markdown, sin explicaciones.`;
 
+      const modalContent = document.getElementById('modal-content');
+
       try {
-        const payload = {
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: combined }
-          ],
-          temperature: 0.3,
-          max_tokens: 4096
-        };
-        const result = await callGroqChat(payload);
-        const md = result.trim()
+        const userContent = `Estas son las notas del proyecto "${project.nombre}":\n\n${combined}`;
+        const rawMd = await callGemini(systemPrompt, userContent, 180000);
+
+        const md = rawMd.trim()
           .replace(/^```(?:markdown|md)?\s*\n?/i, '')
           .replace(/\n?```\s*$/i, '')
           .trim();
+
         const html = renderMarkdownToHTML(md, 'global_' + Date.now());
         document.getElementById('modal-content').innerHTML = `<div class="notion-content">${html}</div>`;
         attachNotionCheckboxListeners(document.getElementById('modal-content'));
+
       } catch (err) {
-        document.getElementById('modal-content').textContent = `⚠️ Error: ${err.message}`;
+        console.error('Error generando resumen global:', err);
+        if (modalContent) modalContent.textContent = `⚠️ Error: ${err.message}`;
       }
     }
 
