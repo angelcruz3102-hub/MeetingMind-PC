@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Meeting Mind — Notion AI Style</title>
 
-  <!-- Librerías de Terceros -->
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 
@@ -76,6 +75,10 @@
     .btn-danger { background: transparent; color: var(--error); border: 2px solid var(--error); }
     #btn-start-record { width: 100%; padding: 16px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #E0551F); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.32); letter-spacing: 0.04em; min-height: 52px; }
     #btn-start-record.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4); }
+
+    #btn-record-system { display: none; }
+    #btn-record-system.recording { background: rgba(255, 92, 92, 0.15); border-color: var(--error); color: var(--error); animation: pulse 1.4s ease-in-out infinite; }
+
     @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.55); } 50% { box-shadow: 0 0 0 10px rgba(255, 92, 92, 0); } }
 
     #status-dot { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); padding: 6px 14px; border-radius: 99px; border: 1px solid var(--border); margin-top: 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -191,16 +194,6 @@
     .prompt-cat-chip.selected { border-color: var(--accent); background: rgba(255, 122, 0, 0.12); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.2); }
     .prompt-cat-chip .cat-emoji { font-size: 1.2rem; }
 
-    .prompt-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
-    .prompt-check { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.18s; display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text); user-select: none; -webkit-tap-highlight-color: transparent; font-family: var(--font); }
-    .prompt-check:active { transform: scale(0.97); }
-    .prompt-check input { display: none; }
-    .prompt-check-box { width: 16px; height: 16px; border: 1.5px solid var(--muted); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .prompt-check:has(input:checked) { border-color: var(--accent); background: rgba(255, 122, 0, 0.08); }
-    .prompt-check:has(input:checked) .prompt-check-box { background: var(--accent); border-color: var(--accent); }
-    .prompt-check:has(input:checked) .prompt-check-box::after { content: ''; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
-    .prompt-check-label { flex: 1; }
-
     .prompt-actions { display: flex; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
     .prompt-btn { flex: 1; padding: 14px; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.22s; min-height: 48px; touch-action: manipulation; font-family: var(--font); }
     .prompt-btn-primary { background: linear-gradient(135deg, var(--accent), #E0551F); color: #fff; box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3); }
@@ -244,7 +237,6 @@
       .notion-content h2 { font-size: 1.25em; }
       .notion-content h3 { font-size: 1.08em; }
       .prompt-cat-chips { grid-template-columns: 1fr; }
-      .prompt-check-grid { grid-template-columns: 1fr; }
       .prompt-actions { flex-direction: column-reverse; }
       .prompt-btn-secondary { width: 100%; }
     }
@@ -253,15 +245,9 @@
        🖥️ DESKTOP LAYOUT (≥ 1024px) — dos columnas
        ═══════════════════════════════════════════════════════════════════ */
     @media (min-width: 1024px) {
-      :root {
-        --max-width: 1440px;
-        --radius: 16px;
-      }
+      :root { --max-width: 1440px; --radius: 16px; }
 
-      body {
-        padding: 22px 32px 48px;
-        font-size: 15px;
-      }
+      body { padding: 22px 32px 48px; font-size: 15px; }
 
       header { margin-bottom: 20px; gap: 16px; }
       .logo { font-size: 1.35rem; }
@@ -270,7 +256,6 @@
       #btn-config { padding: 8px 16px; font-size: 0.82rem; min-height: 38px; }
       #config-panel { padding: 20px 22px; }
 
-      /* ─── Grid principal de 2 columnas ─── */
       .card {
         display: grid;
         grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -295,13 +280,21 @@
       .btn { padding: 10px 20px; font-size: 0.86rem; min-height: 42px; }
       #btn-start-record {
         flex: 0 0 auto;
-        min-width: 220px;
+        min-width: 200px;
         width: auto;
         padding: 12px 22px;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         min-height: 46px;
       }
       #btn-upload, #btn-clear { min-height: 46px; }
+
+      /* 👇 Nuevo botón de audio del sistema visible sólo en PC */
+      #btn-record-system {
+        display: inline-flex;
+        min-height: 46px;
+        padding: 12px 20px;
+        font-size: 0.86rem;
+      }
 
       #status-dot { font-size: 0.76rem; padding: 5px 12px; margin-top: 4px; }
 
@@ -315,7 +308,6 @@
       .tab { padding: 13px 18px; font-size: 0.84rem; min-width: 0; }
       .tab[data-tab="transcripcion"] { display: none; }
 
-      /* ─── Columna izquierda: Transcripción siempre visible ─── */
       #tab-transcripcion {
         grid-area: transcript;
         display: block !important;
@@ -335,7 +327,6 @@
 
       .notes-header { margin-bottom: 12px; }
 
-      /* ─── Columna derecha: Notas / Proyectos ─── */
       #tab-notas,
       #tab-proyectos {
         grid-area: sidebar;
@@ -347,17 +338,13 @@
       }
 
       .notion-content { padding: 26px 24px; font-size: 14.5px; }
-
       .proyectos-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
       .proyecto-card { padding: 18px; min-height: 110px; }
-
       .modal-box { padding: 26px 30px; }
 
-      /* Pista de drag & drop visible sólo en desktop */
       .drop-hint { display: block !important; }
     }
 
-    /* ─── Fallback para pantallas medianas ─── */
     @media (min-width: 768px) and (max-width: 1023px) {
       :root { --max-width: 900px; }
       body { padding: 20px 20px 40px; }
@@ -388,16 +375,12 @@
       border-radius: var(--radius);
       padding: 44px 56px;
       text-align: center;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55),
-                  0 0 0 12px rgba(255, 122, 0, 0.08);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 12px rgba(255, 122, 0, 0.08);
       animation: dropPulse 1.6s ease-in-out infinite;
     }
     .drop-icon { font-size: 3.2rem; line-height: 1; margin-bottom: 14px; }
     .drop-title { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
-    .drop-sub {
-      font-size: 0.82rem; color: var(--muted); margin-top: 8px;
-      letter-spacing: 0.06em; text-transform: uppercase;
-    }
+    .drop-sub { font-size: 0.82rem; color: var(--muted); margin-top: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
 
     @keyframes dropPulse {
       0%, 100% { transform: scale(1); box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 12px rgba(255,122,0,0.08); }
@@ -474,7 +457,11 @@
       <span class="actions-label">Añadir contenido a la sesión</span>
 
       <div class="btn-row">
-        <button class="btn btn-primary" id="btn-start-record">🔴 Iniciar Grabación</button>
+        <button class="btn btn-primary" id="btn-start-record">🔴 Iniciar Grabación (Mic)</button>
+        <button class="btn btn-secondary" id="btn-record-system"
+                title="Abre el selector del navegador. Elige la pestaña o pantalla y marca 'Compartir audio'.">
+          🖥️ Grabar Audio del Sistema
+        </button>
         <button class="btn btn-secondary" id="btn-upload">📂 Subir Audios</button>
         <button class="btn btn-danger" id="btn-clear" style="display:none;">🗑️</button>
       </div>
@@ -535,7 +522,6 @@
 
   <div id="toast"></div>
 
-  <!-- 📥 Overlay de Drag & Drop (solo se muestra al arrastrar archivos) -->
   <div id="drop-overlay" class="drop-overlay" aria-hidden="true">
     <div class="drop-overlay-box">
       <div class="drop-icon">📥</div>
@@ -593,7 +579,7 @@
     })();
 
     // ═══════════════════════════════════════════════════════════════
-    // 🤖 BRIDGE NATIVO ENCAPSULADO (silencioso en PC)
+    // 🤖 BRIDGE NATIVO ENCAPSULADO
     // ═══════════════════════════════════════════════════════════════
     const NativeBridge = {
       isAvailable() {
@@ -841,14 +827,10 @@
 
         const valid = ids.filter(id => {
           const low = id.toLowerCase();
-          return !low.includes('whisper') &&
-                 !low.includes('prompt-guard') &&
-                 !low.includes('safeguard') &&
-                 !low.includes('llava') &&
-                 !low.includes('vision') &&
-                 !low.includes('tts') &&
-                 !low.includes('embed') &&
-                 !low.includes('guard');
+          return !low.includes('whisper') && !low.includes('prompt-guard') &&
+                 !low.includes('safeguard') && !low.includes('llava') &&
+                 !low.includes('vision') && !low.includes('tts') &&
+                 !low.includes('embed') && !low.includes('guard');
         });
 
         const preferred = [];
@@ -898,6 +880,8 @@
     let isRecordingActive = false;
     let isStarting = false;
     let recordingChunkInterval = null;
+    let currentRecordingMode = null;   // 'mic' | 'system' | null
+    let systemAudioStream = null;
 
     let modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
     let wakeLock = null;
@@ -937,21 +921,15 @@
     // 💾 GUARDADO DE ARCHIVOS (File System Access API con fallback)
     // ═══════════════════════════════════════════════════════════════
     async function saveTextFile(name, mime, text) {
-      // 1) Puente nativo Android
       if (NativeBridge.saveFile(name, mime, text)) return true;
 
-      // 2) File System Access API (Chrome/Edge ≥ 86, Safari ≥ 15.2)
       if (typeof window.showSaveFilePicker === 'function' && !/Android/i.test(navigator.userAgent)) {
         try {
           const ext = (name.split('.').pop() || '').toLowerCase();
           const types = [];
-          if (ext === 'md') {
-            types.push({ description: 'Markdown', accept: { 'text/markdown': ['.md'] } });
-          } else if (ext === 'json') {
-            types.push({ description: 'JSON', accept: { 'application/json': ['.json'] } });
-          } else if (ext === 'txt') {
-            types.push({ description: 'Texto', accept: { 'text/plain': ['.txt'] } });
-          }
+          if (ext === 'md') types.push({ description: 'Markdown', accept: { 'text/markdown': ['.md'] } });
+          else if (ext === 'json') types.push({ description: 'JSON', accept: { 'application/json': ['.json'] } });
+          else if (ext === 'txt') types.push({ description: 'Texto', accept: { 'text/plain': ['.txt'] } });
           const handle = await window.showSaveFilePicker({ suggestedName: name, types });
           const writable = await handle.createWritable();
           await writable.write(new Blob([text], { type: mime }));
@@ -963,14 +941,36 @@
         }
       }
 
-      // 3) Fallback clásico (descarga normal)
       const url = URL.createObjectURL(new Blob([text], { type: mime }));
       const a = Object.assign(document.createElement('a'), { href: url, download: name });
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
       return true;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🖥️ CAPTURA DE AUDIO DEL SISTEMA / PESTAÑA (solo PC)
+    // ═══════════════════════════════════════════════════════════════
+    async function getSystemAudioStream() {
+      if (typeof navigator.mediaDevices?.getDisplayMedia !== 'function') {
+        throw new Error('Tu navegador no soporta captura de audio del sistema.');
+      }
+
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: { restrictOwnAudio: true }
+      });
+
+      const audioTracks = displayStream.getAudioTracks();
+
+      if (audioTracks.length === 0) {
+        displayStream.getVideoTracks().forEach(t => t.stop());
+        throw new Error('No se seleccionó audio. Marca "Compartir audio" en el selector del navegador.');
+      }
+
+      const audioOnly = new MediaStream(audioTracks);
+      displayStream.getVideoTracks().forEach(t => t.stop());
+      return audioOnly;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -985,6 +985,7 @@
       const configPanel = document.getElementById('config-panel');
       const modelSelect = document.getElementById('model-select');
       const btnStartRecord = document.getElementById('btn-start-record');
+      const btnRecordSystem = document.getElementById('btn-record-system');
       const btnUpload = document.getElementById('btn-upload');
       const btnClear = document.getElementById('btn-clear');
       const btnAnalyzePasted = document.getElementById('btn-analyze-pasted');
@@ -1056,8 +1057,22 @@
       });
 
       btnStartRecord.addEventListener('click', () => {
-        if (isRecordingActive) stopRecordingProcess();
-        else openModeSelectModal('record');
+        if (isRecordingActive) {
+          if (currentRecordingMode === 'system') stopSystemAudioRecording();
+          else stopRecordingProcess();
+        } else {
+          openModeSelectModal('record');
+        }
+      });
+
+      // 👇 Botón de audio del sistema
+      btnRecordSystem?.addEventListener('click', () => {
+        if (isRecordingActive) {
+          if (currentRecordingMode === 'system') stopSystemAudioRecording();
+          else showToast('Detén primero la grabación de micrófono.');
+        } else {
+          startSystemAudioRecordingProcess();
+        }
       });
 
       btnUpload.addEventListener('click', () => {
@@ -1104,10 +1119,7 @@
           showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
           return;
         }
-        if (!currentSessionMode) {
-          openModeSelectModal('analyze-pasted');
-          return;
-        }
+        if (!currentSessionMode) { openModeSelectModal('analyze-pasted'); return; }
         await triggerAutoAnalysis();
       });
 
@@ -1164,9 +1176,9 @@
           resultEl.className = 'diag-result';
           resultEl.textContent = `🔬 Probando las ${GROQ_KEYS.length} Groq API Keys...\n\n`;
           if (GROQ_KEYS.length === 0) {
-             resultEl.textContent = '⚠️ No hay API Keys configuradas. Pega una arriba.';
-             resultEl.className = 'diag-result fail';
-             return;
+            resultEl.textContent = '⚠️ No hay API Keys configuradas. Pega una arriba.';
+            resultEl.className = 'diag-result fail';
+            return;
           }
           let okCount = 0;
           const lines = [];
@@ -1202,11 +1214,9 @@
         });
       }
 
-      // ── Inicializar drag & drop y atajos de teclado
       initDragAndDrop();
       initKeyboardShortcuts();
 
-      // ── En desktop, activar la pestaña "Notas" en el panel derecho
       if (IS_DESKTOP) {
         const notasTab = document.querySelector('.tab[data-tab="notas"]');
         const notasPane = document.getElementById('tab-notas');
@@ -1222,7 +1232,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 📥 DRAG & DROP DESDE EL EXPLORADOR DE ARCHIVOS
+    // 📥 DRAG & DROP
     // ═══════════════════════════════════════════════════════════════
     function initDragAndDrop() {
       const overlay = document.getElementById('drop-overlay');
@@ -1246,7 +1256,6 @@
         dragDepth = 0;
       };
 
-      // Previene que el navegador abra el archivo en otra pestaña
       ['dragenter','dragover','dragleave','drop'].forEach(evt => {
         window.addEventListener(evt, (e) => {
           e.preventDefault();
@@ -1271,31 +1280,19 @@
         e.stopPropagation();
         hideOverlay();
 
-        if (isRecordingActive) {
-          showToast('⚠️ Detén la grabación antes de soltar archivos.');
-          return;
-        }
-        if (globalTranscriptionController) {
-          showToast('⚠️ Ya hay una transcripción en curso.');
-          return;
-        }
+        if (isRecordingActive) { showToast('⚠️ Detén la grabación antes de soltar archivos.'); return; }
+        if (globalTranscriptionController) { showToast('⚠️ Ya hay una transcripción en curso.'); return; }
 
         const files = Array.from(e.dataTransfer?.files || []);
         if (!files.length) return;
 
         const audioFiles = files.filter(isValidAudio);
-        if (!audioFiles.length) {
-          showToast('⚠️ No se detectaron archivos de audio válidos.');
-          return;
-        }
+        if (!audioFiles.length) { showToast('⚠️ No se detectaron archivos de audio válidos.'); return; }
         if (audioFiles.length < files.length) {
           showToast(`⚠️ ${files.length - audioFiles.length} archivo(s) ignorados.`);
         }
 
-        if (!currentSessionMode) {
-          openModeSelectModal('upload-files', audioFiles);
-          return;
-        }
+        if (!currentSessionMode) { openModeSelectModal('upload-files', audioFiles); return; }
 
         try {
           setStatus('loading', 'Procesando archivos arrastrados…');
@@ -1309,7 +1306,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ⌨️ ATAJOS DE TECLADO (desktop)
+    // ⌨️ ATAJOS DE TECLADO
     // ═══════════════════════════════════════════════════════════════
     function initKeyboardShortcuts() {
       if (!IS_DESKTOP) return;
@@ -1319,7 +1316,6 @@
         const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
         const isButton = tag === 'button';
 
-        // ── ESC: cerrar modales
         if (e.key === 'Escape') {
           const modeModal = document.getElementById('mode-select-modal');
           const mainModal = document.getElementById('modal-overlay');
@@ -1328,28 +1324,27 @@
             modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
             return;
           }
-          if (mainModal?.classList.contains('open')) {
-            closeModal();
-            return;
-          }
+          if (mainModal?.classList.contains('open')) { closeModal(); return; }
         }
 
-        // ── ESPACIO: iniciar / detener grabación
         if (e.code === 'Space' && !isTyping && !isButton) {
           e.preventDefault();
-          const btn = document.getElementById('btn-start-record');
-          if (btn && !btn.disabled) btn.click();
+          if (isRecordingActive) {
+            if (currentRecordingMode === 'system') stopSystemAudioRecording();
+            else stopRecordingProcess();
+          } else {
+            const btn = document.getElementById('btn-start-record');
+            if (btn && !btn.disabled) btn.click();
+          }
           return;
         }
 
-        // ── Ctrl/Cmd + V: enfocar la transcripción para pegar
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'v' && !isTyping) {
           const box = document.getElementById('transcript-box');
           if (box) box.focus();
           return;
         }
 
-        // ── Ctrl/Cmd + Enter: analizar transcripción
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !isTyping) {
           e.preventDefault();
           const btn = document.getElementById('btn-analyze-pasted');
@@ -1357,7 +1352,6 @@
           return;
         }
 
-        // ── Ctrl/Cmd + S: guardar .md de las notas
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
           if (currentNotionMarkdown && !isTyping) {
             e.preventDefault();
@@ -1407,15 +1401,11 @@
         modal.classList.remove('open');
         modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
 
-        if (action === 'record') {
-          startRecordingProcess();
-        } else if (action === 'upload') {
-          document.getElementById('file-input').click();
-        } else if (action === 'upload-files') {
-          if (files && files.length) handleMultipleAudioFiles(files);
-        } else if (action === 'analyze-pasted') {
-          triggerAutoAnalysis();
-        }
+        if (action === 'record') startRecordingProcess();
+        else if (action === 'record-system') startSystemAudioRecordingProcess();
+        else if (action === 'upload') document.getElementById('file-input').click();
+        else if (action === 'upload-files') { if (files && files.length) handleMultipleAudioFiles(files); }
+        else if (action === 'analyze-pasted') triggerAutoAnalysis();
       });
     }
 
@@ -1428,7 +1418,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 🎙️ GRABACIÓN
+    // 🎙️ GRABACIÓN DE MICRÓFONO
     // ═══════════════════════════════════════════════════════════════
     async function startRecordingProcess() {
       if (isRecordingActive || isStarting) return;
@@ -1439,9 +1429,9 @@
       isStarting = true;
       await requestWakeLock();
 
-      // Intento nativo primero (Android)
       if (NativeBridge.startRecording()) {
         isRecordingActive = true;
+        currentRecordingMode = 'mic';
         const btn = document.getElementById('btn-start-record');
         btn.textContent = '⏹️ Detener Grabación';
         btn.classList.add('recording');
@@ -1454,18 +1444,20 @@
       try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         isRecordingActive = true;
+        currentRecordingMode = 'mic';
         const btn = document.getElementById('btn-start-record');
         btn.textContent = '⏹️ Detener Grabación';
         btn.classList.add('recording');
-        setStatus('active', 'Grabando audio del micrófono...');
+        setStatus('active', '🎙️ Grabando audio del micrófono...');
         disableButtonsExcept(btn);
-        startMediaRecorderChunk();
+        startMediaRecorderChunk(micStream);
       } catch (err) {
         if (err.name === 'NotAllowedError') showToast('⚠️ Permiso denegado.');
         else if (err.name === 'NotFoundError') showToast('⚠️ No se encontró micrófono.');
         else showToast(`⚠️ Error: ${err.message}`);
         if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
         isRecordingActive = false;
+        currentRecordingMode = null;
         resetRecordButton();
         enableAllButtons();
         releaseWakeLock();
@@ -1474,12 +1466,78 @@
       }
     }
 
-    function startMediaRecorderChunk() {
-      if (!isRecordingActive || !micStream) return;
+    // ═══════════════════════════════════════════════════════════════
+    // 🖥️ GRABACIÓN DE AUDIO DEL SISTEMA
+    // ═══════════════════════════════════════════════════════════════
+    async function startSystemAudioRecordingProcess() {
+      if (isRecordingActive || isStarting) return;
+      if (GROQ_KEYS.length === 0) {
+        showToast('⚠️ Configura al menos una API Key de Groq antes de grabar.', 5000);
+        return;
+      }
+      if (!IS_DESKTOP) { showToast('⚠️ Esta función solo está disponible en PC.'); return; }
+
+      isStarting = true;
+      await requestWakeLock();
+
+      try {
+        const stream = await getSystemAudioStream();
+
+        isRecordingActive = true;
+        currentRecordingMode = 'system';
+        systemAudioStream = stream;
+
+        const btn = document.getElementById('btn-record-system');
+        btn.textContent = '⏹️ Detener Audio Sistema';
+        btn.classList.add('recording');
+        setStatus('active', '🔊 Grabando audio del sistema / pestaña...');
+        disableButtonsExcept(btn);
+
+        // Si el usuario detiene la compartición desde la barra del navegador
+        stream.getAudioTracks()[0]?.addEventListener('ended', () => {
+          if (isRecordingActive && currentRecordingMode === 'system') stopSystemAudioRecording();
+        });
+
+        startMediaRecorderChunk(stream);
+      } catch (err) {
+        showToast(`⚠️ ${err.message}`, 6000);
+        setStatus('error', 'No se pudo iniciar la captura del sistema');
+        isRecordingActive = false;
+        currentRecordingMode = null;
+        enableAllButtons();
+        releaseWakeLock();
+      } finally {
+        isStarting = false;
+      }
+    }
+
+    function stopSystemAudioRecording() {
+      if (!isRecordingActive) return;
+      isRecordingActive = false;
+      currentRecordingMode = null;
+      releaseWakeLock();
+
+      clearTimeout(recordingChunkInterval);
+      if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
+
+      if (systemAudioStream) {
+        systemAudioStream.getTracks().forEach(t => t.stop());
+        systemAudioStream = null;
+      }
+
+      resetRecordButton();
+      setStatus('loading', 'Procesando grabación del sistema…');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎙️ MEDIARECORDER — Recibe cualquier MediaStream
+    // ═══════════════════════════════════════════════════════════════
+    function startMediaRecorderChunk(stream) {
+      if (!isRecordingActive || !stream) return;
       let mime = 'audio/webm;codecs=opus';
       if (!MediaRecorder.isTypeSupported(mime)) mime = 'audio/webm';
 
-      currentRecorder = new MediaRecorder(micStream, { mimeType: mime, audioBitsPerSecond: 32000 });
+      currentRecorder = new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 32000 });
       const chunks = [];
       currentRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
@@ -1505,7 +1563,7 @@
       recordingChunkInterval = setTimeout(() => {
         if (isRecordingActive && currentRecorder && currentRecorder.state !== 'inactive') {
           currentRecorder.stop();
-          startMediaRecorderChunk();
+          startMediaRecorderChunk(stream);
         }
       }, 300000);
     }
@@ -1513,9 +1571,9 @@
     function stopRecordingProcess() {
       if (!isRecordingActive) return;
       isRecordingActive = false;
+      currentRecordingMode = null;
       releaseWakeLock();
 
-      // Parada nativa primero
       if (NativeBridge.stopRecording()) {
         setStatus('loading', 'Procesando grabación nativa…');
         nativeStopTimer = setTimeout(() => window.receiveNativeError('El servicio nativo no respondió.'), 60000);
@@ -1530,10 +1588,15 @@
     }
 
     function resetRecordButton() {
-      const btn = document.getElementById('btn-start-record');
-      if (btn) {
-        btn.textContent = '🔴 Iniciar Grabación';
-        btn.classList.remove('recording');
+      const micBtn = document.getElementById('btn-start-record');
+      if (micBtn) {
+        micBtn.textContent = '🔴 Iniciar Grabación (Mic)';
+        micBtn.classList.remove('recording');
+      }
+      const sysBtn = document.getElementById('btn-record-system');
+      if (sysBtn) {
+        sysBtn.textContent = '🖥️ Grabar Audio del Sistema';
+        sysBtn.classList.remove('recording');
       }
     }
 
@@ -1605,6 +1668,7 @@
         resetRecordButton();
       } finally {
         isRecordingActive = false;
+        currentRecordingMode = null;
         enableAllButtons();
         releaseWakeLock();
       }
@@ -1614,6 +1678,7 @@
       clearTimeout(nativeStopTimer);
       showToast('❌ ' + (message || 'Error en grabación nativa'));
       isRecordingActive = false;
+      currentRecordingMode = null;
       resetRecordButton();
       setStatus('error', message || 'Error en grabación nativa');
       enableAllButtons();
@@ -1734,17 +1799,14 @@
     }
 
     async function transcribeFile(file, onProgress) {
-      // 1) Archivo suficientemente pequeño → envío directo en 1 chunk
       if (file.size <= MAX_DIRECT_BYTES) {
         return transcribeSingleChunk(file, 1);
       }
 
-      // 2) Archivo demasiado grande → rechazar
       if (file.size > CHUNK_MAX_MB * 1024 * 1024) {
         throw new Error(`Archivo demasiado grande (${(file.size/1024/1024).toFixed(1)}MB). Divídelo antes de subirlo.`);
       }
 
-      // 3) Decodificar el audio y trocear a PCM 16kHz mono
       const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       let buf;
       try {
@@ -1824,9 +1886,7 @@
             externalSignal: globalTranscriptionController ? globalTranscriptionController.signal : null
           }, uploadTimeout);
 
-          if (response.ok) {
-            return await response.text() || '';
-          }
+          if (response.ok) return await response.text() || '';
 
           if (response.status === 401 || response.status === 403) {
             keyCooldown.set(apiKey, Date.now() + 3600e3);
@@ -1840,9 +1900,7 @@
             await delay(ra * 1000);
             continue;
           }
-          if (response.status === 413) {
-            throw new Error(`Archivo demasiado grande para Groq (413).`);
-          }
+          if (response.status === 413) throw new Error(`Archivo demasiado grande para Groq (413).`);
           if (response.status === 400) {
             const txt = await response.text().catch(() => '');
             throw new Error(`Audio rechazado por Groq (400). ${txt.slice(0, 50)}...`);
@@ -1894,10 +1952,7 @@
         showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
         return;
       }
-      if (!currentSessionMode) {
-        openModeSelectModal('analyze-pasted');
-        return;
-      }
+      if (!currentSessionMode) { openModeSelectModal('analyze-pasted'); return; }
       const opts = getSessionOptions();
       await analyzeText(text, document.getElementById('notes-container'), opts);
       document.querySelector('[data-tab="notas"]')?.click();
@@ -1923,23 +1978,23 @@ REGLAS UNIVERSALES INQUEBRANTABLES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1) CORRECCIÓN SILENCIOSA DE TRANSCRIPCIÓN:
-   • Si el texto contiene ruidos, palabras inaudibles o errores de captura de audio, infiere la palabra correcta basándote en el contexto general. Sustituye la palabra de forma invisible.
-   • Tienes ESTRICTAMENTE PROHIBIDO agregar notas aclaratorias, explicar qué palabra fue modificada, o usar frases como "(el audio decía...)".
+   • Si el texto contiene ruidos, palabras inaudibles o errores de captura, infiere la palabra correcta basándote en el contexto general. Sustituye la palabra de forma invisible.
+   • Tienes ESTRICTAMENTE PROHIBIDO agregar notas aclaratorias o usar frases como "(el audio decía...)".
 
 2) CORRECCIÓN FACTUAL SIN EXPANSIÓN:
-   • Si identificas un error técnico o de datos en lo que dijo el hablante, aplica la corrección técnica directamente en los apuntes.
-   • No agregues teoría, no des justificaciones, ni incluyas contexto de respaldo para explicar tu corrección.
+   • Si identificas un error técnico o de datos, aplica la corrección directamente en los apuntes.
+   • No agregues teoría, no des justificaciones, ni contexto de respaldo.
 
 3) CERO ALUCINACIÓN (ROL ESTRICTO):
-   • Actúa exclusivamente como un transcriptor y estructurador. Tienes prohibido asumir el rol de analista, consultor o experto.
-   • No inventes consejos, recomendaciones, inferencias lógicas, análisis de causas ni siguientes pasos a menos que el hablante los haya dictado explícitamente.
+   • Actúa exclusivamente como transcriptor y estructurador. Prohibido asumir el rol de analista o experto.
+   • No inventes consejos, recomendaciones, ni siguientes pasos a menos que se hayan dictado explícitamente.
 
 4) CONCISIÓN IMPLACABLE (LÍMITE DE VOLUMEN):
-   • Tu objetivo es sintetizar. El volumen de palabras de tu respuesta debe ser SIEMPRE menor al volumen de la transcripción original.
-   • Elimina introducciones, frases de transición y conclusiones prefabricadas. Ve directo a los datos.
+   • Tu objetivo es sintetizar. El volumen de palabras de tu respuesta debe ser SIEMPRE menor al de la transcripción.
+   • Elimina introducciones, frases de transición y conclusiones prefabricadas.
 
 5) ESTRUCTURA DINÁMICA:
-   • Si el texto original carece de información para justificar una sección, OMITE esa sección por completo. NUNCA generes contenido para rellenar un espacio en blanco.
+   • Si el texto original carece de información para justificar una sección, OMITE esa sección por completo.
 
 6) FORMATO DE SALIDA — JSON ESTRICTO:
    Devuelve EXCLUSIVAMENTE un objeto JSON válido:
@@ -2010,19 +2065,13 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
 - "Corrección de Errores y Tips de Pronunciación" | tipo_contenido: "lista"`;
 
       let reglasEspecificas;
-      if (mode === 'academico' && isLanguageFocus === true) {
-        reglasEspecificas = IDIOMAS_PROMPT;
-      } else if (mode === 'academico') {
-        reglasEspecificas = ACADEMICO_PROMPT;
-      } else if (mode === 'ejecutivo') {
-        reglasEspecificas = EJECUTIVO_PROMPT;
-      } else if (mode === 'libre') {
-        reglasEspecificas = LIBRE_PROMPT;
-      } else {
-        reglasEspecificas = ACADEMICO_PROMPT;
-      }
+      if (mode === 'academico' && isLanguageFocus === true) reglasEspecificas = IDIOMAS_PROMPT;
+      else if (mode === 'academico') reglasEspecificas = ACADEMICO_PROMPT;
+      else if (mode === 'ejecutivo') reglasEspecificas = EJECUTIVO_PROMPT;
+      else if (mode === 'libre') reglasEspecificas = LIBRE_PROMPT;
+      else reglasEspecificas = ACADEMICO_PROMPT;
 
-      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}\n\n[RECORDATORIO FINAL E INQUEBRANTABLE: DEVUELVE EXCLUSIVAMENTE CÓDIGO JSON VÁLIDO. CERO TEXTO DE INTRODUCCIÓN O CONCLUSIÓN ANTES O DESPUÉS DEL JSON.]`;
+      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}\n\n[RECORDATORIO FINAL: DEVUELVE EXCLUSIVAMENTE CÓDIGO JSON VÁLIDO. CERO TEXTO DE INTRODUCCIÓN O CONCLUSIÓN.]`;
     }
 
     async function callGroqChat(payload) {
@@ -2297,10 +2346,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
     }
 
     async function analyzeText(text, notesContainer, options) {
-      const systemPrompt = getSystemPromptForMode(
-        options.categoria,
-        options.isLanguageFocus === true
-      );
+      const systemPrompt = getSystemPromptForMode(options.categoria, options.isLanguageFocus === true);
 
       disableAllButtons();
       notesContainer.innerHTML = `
@@ -2335,9 +2381,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
             setStatus('loading', `Analizando bloque ${i + 1}/${chunks.length}…`);
           }
 
-          const userMessage = `${options.isLanguageFocus
-            ? 'Enfoque adicional: CLASE DE IDIOMAS.\n\n'
-            : ''}Contexto del audio: ${options.contexto.join(', ')}
+          const userMessage = `${options.isLanguageFocus ? 'Enfoque adicional: CLASE DE IDIOMAS.\n\n' : ''}Contexto del audio: ${options.contexto.join(', ')}
 Enfoque principal: ${options.enfoque.join(', ')}
 
 ${chunks.length > 1
@@ -2363,9 +2407,9 @@ Genera las notas AHORA en JSON estricto.`;
           let jsonNotes = null;
           for (let t = 0; t < 2 && !jsonNotes; t++) {
             try {
-               jsonNotes = tryParseNotesJson(await callGroqChat(payload));
+              jsonNotes = tryParseNotesJson(await callGroqChat(payload));
             } catch(e) {
-               console.warn(`[analyzeText] Fallo intento ${t+1} bloque ${i+1}`, e);
+              console.warn(`[analyzeText] Fallo intento ${t+1} bloque ${i+1}`, e);
             }
           }
 
@@ -2480,25 +2524,27 @@ Genera las notas AHORA en JSON estricto.`;
     }
 
     function disableButtonsExcept(activeBtn) {
-      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted', 'btn-clear-transcript', 'btn-clear'].forEach(id => {
+      ['btn-start-record', 'btn-record-system', 'btn-upload', 'btn-analyze-pasted', 'btn-clear-transcript', 'btn-clear'].forEach(id => {
         const b = document.getElementById(id);
         if (b && b !== activeBtn) b.disabled = true;
       });
     }
     function disableAllButtons() {
-      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted', 'btn-clear-transcript', 'btn-clear'].forEach(id => {
+      ['btn-start-record', 'btn-record-system', 'btn-upload', 'btn-analyze-pasted', 'btn-clear-transcript', 'btn-clear'].forEach(id => {
         const b = document.getElementById(id);
         if (b) b.disabled = true;
       });
     }
     function enableAllButtons() {
       const btnStart = document.getElementById('btn-start-record');
+      const btnSys = document.getElementById('btn-record-system');
       const btnUpload = document.getElementById('btn-upload');
       const btnAnalyze = document.getElementById('btn-analyze-pasted');
       const btnClearT = document.getElementById('btn-clear-transcript');
       const btnClearS = document.getElementById('btn-clear');
 
       if (btnStart) btnStart.disabled = false;
+      if (btnSys) btnSys.disabled = false;
       if (btnUpload) btnUpload.disabled = false;
       if (btnAnalyze) btnAnalyze.disabled = false;
       if (btnClearT) btnClearT.disabled = false;
@@ -2698,7 +2744,6 @@ REGLAS:
 
       try {
         const chunks = splitIntoWordChunks(combined, WORDS_PER_CHUNK);
-        console.log(`[globalSummary] ${chunks.length} chunk(s)`);
         const partialSummaries = [];
 
         for (let i = 0; i < chunks.length; i++) {
@@ -2748,9 +2793,7 @@ REGLAS:
               { role: 'system', content: fusionPrompt },
               {
                 role: 'user',
-                content: partialSummaries
-                  .map((s, i) => `--- RESUMEN PARCIAL ${i + 1} ---\n\n${s}`)
-                  .join('\n\n')
+                content: partialSummaries.map((s, i) => `--- RESUMEN PARCIAL ${i + 1} ---\n\n${s}`).join('\n\n')
               }
             ],
             temperature: 0.3,
