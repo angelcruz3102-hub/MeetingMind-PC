@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Meeting Mind — Notion AI Style</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --accent: #FF7A00; --accent-h: #FF9533; --gold: #f5a623; --error: #ff5c5c; --success: #4caf50;
+      --radius: 14px; --radius-sm: 10px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --bg: #0B132B; --surface: #1C2541; --border: #3A506B;
+      --text: #F0F4F8; --muted: #8AA2B7;
+      --max-width: 1100px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html { height: 100%; }
+    body { overscroll-behavior: none; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--font);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 20px 14px calc(40px + var(--safe-bottom));
+      -webkit-user-select: none; user-select: none;
+      touch-action: pan-y;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+
+    #transcript-box, .notion-content, .modal-content, .nota-body { -webkit-user-select: text; user-select: text; }
+
+    header { width: 100%; max-width: var(--max-width); display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    .logo-icon { font-size: 1.6rem; }
+    .badge { background: var(--accent); color: #fff; font-size: 0.62rem; font-weight: 700; padding: 3px 8px; border-radius: 99px; letter-spacing: 0.07em; text-transform: uppercase; }
+    #btn-config { background: var(--surface); border: 2px solid var(--border); color: var(--muted); padding: 10px 18px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.25s ease; min-height: 44px; touch-action: manipulation; }
+    #btn-config:active { transform: scale(0.96); }
+
+    #config-panel { width: 100%; max-width: var(--max-width); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 20px; display: none; animation: fadeSlide 0.25s ease; }
+    #config-panel.open { display: block; }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    #config-panel label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.03em; }
+    #config-panel select { width: 100%; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; font-family: var(--font); cursor: pointer; min-height: 44px; }
+    #config-panel select:focus { border-color: var(--accent); }
+    .key-divider { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
+
+    #groq-keys-input { width: 100%; min-height: 110px; background: var(--bg); color: var(--text); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 0.78rem; line-height: 1.6; outline: none; resize: vertical; -webkit-user-select: text; user-select: text; }
+    #groq-keys-input:focus { border-color: var(--accent); }
+
+    #keys-save-status { font-size: 0.75rem; margin-top: 8px; color: var(--muted); min-height: 1em; }
+    .keys-btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .keys-btn-row .btn-secondary { flex: 1; min-width: 130px; font-size: 0.8rem; padding: 10px 14px; min-height: 44px; }
+
+    .card { width: 100%; max-width: var(--max-width); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); }
+
+    .actions { padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .actions-label { font-size: 0.7rem; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 20px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; white-space: nowrap; min-height: 48px; touch-action: manipulation; }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(255, 122, 0, 0.25); }
+    .btn-primary.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+    .btn-secondary:active { border-color: var(--accent); background: rgba(255, 122, 0, 0.05); }
+    .btn-danger { background: transparent; color: var(--error); border: 2px solid var(--error); }
+    #btn-start-record { width: 100%; padding: 16px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #E0551F); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.32); letter-spacing: 0.04em; min-height: 52px; }
+    #btn-start-record.recording { background: var(--error); animation: pulse 1.4s ease-in-out infinite; box-shadow: 0 4px 18px rgba(255, 92, 92, 0.4); }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 92, 92, 0.55); } 50% { box-shadow: 0 0 0 10px rgba(255, 92, 92, 0); } }
+
+    #status-dot { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); padding: 6px 14px; border-radius: 99px; border: 1px solid var(--border); margin-top: 8px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #status-dot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
+    #status-dot.active .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    #status-dot.loading .dot { background: var(--gold); animation: blink 0.8s step-start infinite; }
+    #status-dot.error .dot { background: var(--error); box-shadow: 0 0 8px var(--error); }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    #wake-lock-notice { display: none; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--gold); padding: 5px 12px; border-radius: 99px; border: 1px solid rgba(245, 166, 35, 0.4); background: rgba(245, 166, 35, 0.08); margin-top: 6px; animation: fadeIn 0.3s ease; }
+    #wake-lock-notice.show { display: inline-flex; }
+
+    .tabs { display: flex; border-top: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab { flex: 1; min-width: 100px; padding: 14px 10px; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.25s ease; background: none; border-top: none; border-left: none; border-right: none; white-space: nowrap; touch-action: manipulation; }
+    .tab:active { background: rgba(255, 122, 0, 0.04); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(255, 122, 0, 0.06); }
+
+    .tab-pane { display: none; padding: 16px; min-height: 180px; }
+    .tab-pane.active { display: block; animation: fadeSlide 0.2s ease; }
+
+    #transcript-progress-area { min-height: 0; margin-bottom: 10px; }
+    #transcript-progress-area:empty { display: none; }
+
+    #transcript-box { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; min-height: 200px; font-size: 0.9rem; line-height: 1.7; color: var(--text); font-family: var(--font); resize: vertical; outline: none; -webkit-user-select: text; user-select: text; box-sizing: border-box; }
+    #transcript-box:focus { border-color: var(--accent); }
+    #transcript-box::placeholder { color: var(--muted); font-style: italic; }
+
+    .notes-header { display: flex; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .notes-header-left, .notes-header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .notes-header-left { flex: 1; }
+    .btn-copy-notion { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 6px; min-height: 44px; touch-action: manipulation; }
+    .btn-copy-notion:active { border-color: var(--accent); color: var(--accent); background: rgba(255, 122, 0, 0.05); }
+    .select-inline { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.82rem; font-family: var(--font); outline: none; max-width: 180px; cursor: pointer; min-height: 44px; }
+    .select-inline:focus { border-color: var(--accent); }
+
+    .notion-content { background: #ffffff; color: #37352f; border-radius: var(--radius); padding: 28px 22px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.65; letter-spacing: -0.003em; word-break: break-word; overflow-wrap: break-word; -webkit-user-select: text; user-select: text; }
+    .notion-content > *:first-child { margin-top: 0 !important; }
+    .notion-content > *:last-child { margin-bottom: 0 !important; }
+    .notion-content h1 { font-size: 1.9em; font-weight: 700; margin: 0.3em 0 0.4em; letter-spacing: -0.02em; color: #37352f; }
+    .notion-content h2 { font-size: 1.4em; font-weight: 600; margin: 1.4em 0 0.5em; color: #37352f; }
+    .notion-content h3 { font-size: 1.15em; font-weight: 600; margin: 1.2em 0 0.4em; color: #37352f; }
+    .notion-content h4 { font-size: 1em; font-weight: 600; margin: 1em 0 0.3em; color: #787774; }
+    .notion-content p { margin: 0.6em 0; color: #37352f; }
+    .notion-content ul, .notion-content ol { margin: 0.5em 0 0.7em; padding-left: 1.6em; }
+    .notion-content li { margin: 0.25em 0; padding-left: 0.15em; }
+    .notion-content li::marker { color: #b7b6b4; }
+    .notion-content strong { font-weight: 600; }
+    .notion-content em { font-style: italic; }
+    .notion-content a { color: inherit; text-decoration: underline; text-decoration-color: rgba(55, 53, 47, 0.4); text-underline-offset: 2px; }
+    .notion-content code { background: rgba(135, 131, 120, 0.15); color: #eb5757; padding: 0.2em 0.4em; border-radius: 3px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85em; }
+    .notion-content pre { background: #f7f6f3; color: #37352f; border-radius: 4px; padding: 14px 16px; margin: 0.8em 0; overflow-x: auto; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85em; line-height: 1.5; -webkit-overflow-scrolling: touch; }
+    .notion-content pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+    .notion-content blockquote { margin: 0.8em 0; padding: 2px 0 2px 14px; border-left: 3px solid #37352f; color: #37352f; }
+    .notion-content hr { border: none; border-top: 1px solid #e9e9e7; margin: 1.4em 0; }
+
+    .notion-content ul.notion-checklist,
+    .notion-content ul:has(> li > input[type="checkbox"]) { list-style: none; padding-left: 0; margin: 0.5em 0 0.7em; }
+    .notion-content li.notion-check-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 0; margin: 0.15em 0; list-style: none; }
+    .notion-content input.notion-checkbox { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border: 1.5px solid #b3b3b1; border-radius: 3px; margin: 3px 0 0; cursor: pointer; flex-shrink: 0; position: relative; background: transparent; transition: background 0.12s, border-color 0.12s; outline: none; }
+    .notion-content input.notion-checkbox:active { transform: scale(0.9); }
+    .notion-content input.notion-checkbox:checked { background: #2383e2; border-color: #2383e2; }
+    .notion-content input.notion-checkbox:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .notion-content li.notion-check-item .notion-check-text { flex: 1; transition: color 0.15s; }
+    .notion-content li.notion-check-item.notion-checked .notion-check-text { color: #9b9a97; text-decoration: line-through; text-decoration-color: #c4c4c2; }
+
+    .proyectos-create-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .proyectos-create-row input { flex: 1; min-width: 150px; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; min-height: 44px; }
+    .proyectos-create-row input:focus { border-color: var(--accent); }
+    .proyectos-create-row button { background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; min-height: 44px; }
+    .proyectos-create-row button:active { background: var(--accent-h); }
+
+    .proyectos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .proyecto-card { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 16px; cursor: pointer; transition: all 0.25s ease; display: flex; flex-direction: column; gap: 6px; min-height: 100px; }
+    .proyecto-card:active { transform: scale(0.96); }
+    .proyecto-card .p-icon { font-size: 1.6rem; }
+    .proyecto-card .p-name { font-size: 0.9rem; font-weight: 600; word-break: break-word; }
+    .proyecto-card .p-meta { font-size: 0.72rem; color: var(--muted); }
+
+    .proyecto-detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .btn-back { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 9px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer; min-height: 44px; }
+    .btn-back:active { border-color: var(--accent); background: rgba(255, 122, 0, 0.04); }
+    .proyecto-detail-header h2 { font-size: 1.05rem; flex: 1; word-break: break-word; }
+    .btn-delete-proyecto { background: transparent; border: 2px solid var(--error); color: var(--error); padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; cursor: pointer; min-height: 44px; }
+    .btn-delete-proyecto:active { background: rgba(255, 92, 92, 0.12); }
+
+    .btn-global-summary { width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 700; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--accent), #E0551F); color: #fff; cursor: pointer; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(255, 122, 0, 0.28); min-height: 48px; }
+    .btn-global-summary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .nota-guardada { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 10px; }
+    .nota-guardada summary { color: var(--text); font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; outline: none; min-height: 40px; }
+    .nota-guardada summary::-webkit-details-marker { display: none; }
+    .nota-guardada .fecha-tag { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+    .nota-guardada .nota-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .nota-guardada .notion-content { padding: 18px 16px; font-size: 14.5px; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(11, 19, 43, 0.9); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); -webkit-overflow-scrolling: touch; }
+    .modal-box h3 { color: var(--accent); font-size: 1.05rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .modal-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+    .modal-box .modal-content { font-size: 0.9rem; line-height: 1.7; color: var(--text); }
+    .btn-close-modal { margin-top: 16px; width: 100%; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 12px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; min-height: 48px; }
+    .btn-close-modal:active { border-color: var(--accent); color: var(--accent); }
+
+    .prompt-modal-box { max-width: 560px; }
+    .prompt-step { margin-bottom: 20px; animation: fadeSlide 0.25s ease; }
+    .prompt-step-label { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .prompt-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; flex-shrink: 0; }
+    .prompt-cat-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .prompt-cat-chip { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; font-size: 0.88rem; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 8px; min-height: 52px; text-align: left; font-family: var(--font); touch-action: manipulation; }
+    .prompt-cat-chip:active { transform: scale(0.97); }
+    .prompt-cat-chip.selected { border-color: var(--accent); background: rgba(255, 122, 0, 0.12); box-shadow: 0 4px 14px rgba(255, 122, 0, 0.2); }
+    .prompt-cat-chip .cat-emoji { font-size: 1.2rem; }
+
+    .prompt-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+    .prompt-check { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 11px 12px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.18s; display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text); user-select: none; -webkit-tap-highlight-color: transparent; font-family: var(--font); }
+    .prompt-check:active { transform: scale(0.97); }
+    .prompt-check input { display: none; }
+    .prompt-check-box { width: 16px; height: 16px; border: 1.5px solid var(--muted); border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .prompt-check:has(input:checked) { border-color: var(--accent); background: rgba(255, 122, 0, 0.08); }
+    .prompt-check:has(input:checked) .prompt-check-box { background: var(--accent); border-color: var(--accent); }
+    .prompt-check:has(input:checked) .prompt-check-box::after { content: ''; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+    .prompt-check-label { flex: 1; }
+
+    .prompt-actions { display: flex; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .prompt-btn { flex: 1; padding: 14px; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.22s; min-height: 48px; touch-action: manipulation; font-family: var(--font); }
+    .prompt-btn-primary { background: linear-gradient(135deg, var(--accent), #E0551F); color: #fff; box-shadow: 0 4px 14px rgba(255, 122, 0, 0.3); }
+    .prompt-btn-primary:active { transform: scale(0.97); }
+    .prompt-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .prompt-btn-secondary { background: transparent; color: var(--muted); border: 2px solid var(--border); flex: 0 0 auto; min-width: 100px; }
+    .prompt-btn-secondary:active { border-color: var(--accent); color: var(--text); }
+
+    .state-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+    .state-msg.error-msg { color: var(--error); }
+    .state-msg .big { font-size: 2rem; }
+
+    #toast { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    #file-input, #import-file { position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; opacity: 0; overflow: hidden; z-index: -1; }
+
+    .diag-result { font-size: 0.78rem; line-height: 1.5; padding: 10px 12px; border-radius: var(--radius-sm); margin-top: 10px; font-family: monospace; white-space: pre-wrap; word-break: break-word; }
+    .diag-result.ok { background: rgba(76, 175, 80, 0.1); border: 1px solid var(--success); color: var(--success); }
+    .diag-result.fail { background: rgba(255, 92, 92, 0.1); border: 1px solid var(--error); color: var(--error); }
+
+    .transcript-progress { background: rgba(245, 166, 35, 0.08); border: 1px solid var(--gold); border-radius: var(--radius-sm); padding: 10px 14px; margin: 10px 0; color: var(--gold); font-size: 0.82rem; display: flex; align-items: center; gap: 8px; word-break: break-word; }
+    .transcript-progress .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(245, 166, 35, 0.3); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .transcript-error { background: rgba(255, 92, 92, 0.1); border: 1px solid var(--error); border-radius: var(--radius-sm); padding: 12px 14px; margin: 10px 0; color: var(--error); font-size: 0.82rem; line-height: 1.5; word-break: break-word; }
+    .transcript-error .err-title { font-weight: 700; display: block; margin-bottom: 6px; }
+    .transcript-error .err-detail { font-family: monospace; font-size: 0.72rem; color: var(--muted); background: var(--bg); padding: 8px 10px; border-radius: 6px; margin-top: 8px; overflow-x: auto; white-space: pre-wrap; }
+
+    .transcript-cancel-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 2px solid var(--error); color: var(--error); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-top: 8px; min-height: 40px; font-family: var(--font); }
+    .transcript-cancel-btn:active { background: rgba(255, 92, 92, 0.15); }
+
+    @media (max-width: 480px) {
+      body { padding: 12px 8px calc(30px + var(--safe-bottom)); }
+      .logo { font-size: 1.2rem; }
+      .btn { padding: 11px 16px; font-size: 0.82rem; min-height: 44px; }
+      .tab { font-size: 0.75rem; padding: 12px 6px; min-width: 80px; }
+      .proyectos-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+      .notion-content { padding: 20px 16px; font-size: 14.5px; }
+      .notion-content h1 { font-size: 1.55em; }
+      .notion-content h2 { font-size: 1.25em; }
+      .notion-content h3 { font-size: 1.08em; }
+      .prompt-cat-chips { grid-template-columns: 1fr; }
+      .prompt-check-grid { grid-template-columns: 1fr; }
+      .prompt-actions { flex-direction: column-reverse; }
+      .prompt-btn-secondary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🧠</span>
+      <span>Meeting Mind</span>
+      <span class="badge">GROQ</span>
+    </div>
+    <button id="btn-config">⚙️ Configuración</button>
+  </header>
+
+  <div id="config-panel">
+
+    <label for="model-select">Modelo de Notas Inteligentes (Groq)</label>
+    <select id="model-select">
+      <option value="llama-3.3-70b-versatile">🧠 llama-3.3-70b-versatile (Recomendado)</option>
+      <option value="llama-3.1-70b-versatile">⚡ llama-3.1-70b-versatile</option>
+      <option value="llama3-70b-8192">💫 llama3-70b-8192</option>
+      <option value="llama3-8b-8192">🌱 llama3-8b-8192 (ligero)</option>
+    </select>
+
+    <div class="key-divider">
+      <label>Copia de Seguridad</label>
+      <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+        <button id="btn-export-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📤 Exportar Datos</button>
+        <button id="btn-import-data" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px;">📥 Importar Datos</button>
+        <input type="file" id="import-file" accept=".json,application/json" />
+      </div>
+    </div>
+
+    <div class="key-divider">
+      <label>🎙️ Groq API Keys</label>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+        Estas keys se usan para <strong>Whisper</strong> (transcripción de audio) y para <strong>las Notas Inteligentes</strong>. Pega una key por línea.
+      </p>
+      <textarea id="groq-keys-input"
+                placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#10;gsk_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"></textarea>
+      <div class="keys-btn-row">
+        <button id="btn-save-keys" class="btn-secondary">💾 Guardar Keys</button>
+        <button id="btn-reset-keys" class="btn-secondary">↺ Restaurar Defaults</button>
+      </div>
+      <div id="keys-save-status"></div>
+    </div>
+
+    <div class="key-divider">
+      <label>🔬 Diagnóstico de conexión</label>
+      <div style="margin-top: 10px;">
+        <button id="btn-test-apis" class="btn-secondary" style="font-size: 0.8rem; padding: 9px 12px; min-height: 44px; width: 100%;">
+          🔬 Probar las <span id="keys-count-diag">2</span> Groq API Keys
+        </button>
+        <div id="diag-result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <span class="actions-label">Añadir contenido a la sesión</span>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-start-record">🔴 Iniciar Grabación</button>
+        <button class="btn btn-secondary" id="btn-upload">📂 Subir Audios</button>
+        <button class="btn btn-danger" id="btn-clear" style="display:none;">🗑️</button>
+      </div>
+
+      <input type="file" id="file-input"
+             accept="audio/*,.flac,.mp3,.mp4,.mpeg,.mpga,.m4a,.ogg,.wav,.webm"
+             multiple />
+
+      <div id="status-dot"><span class="dot"></span><span id="status-text">Listo. Elige un modo y empieza.</span></div>
+
+      <div id="wake-lock-notice">💡 Pantalla mantenida encendida por seguridad</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="transcripcion">📄 Transcripción</button>
+      <button class="tab" data-tab="notas">✨ Notas Inteligentes</button>
+      <button class="tab" data-tab="proyectos">📁 Mis Proyectos</button>
+    </div>
+
+    <div class="tab-pane active" id="tab-transcripcion">
+      <div class="notes-header">
+        <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar</button>
+      </div>
+
+      <div id="transcript-progress-area"></div>
+
+      <textarea id="transcript-box"
+                placeholder="La transcripción aparecerá aquí... También puedes PEGAR tu propia transcripción y pulsar 'Analizar Texto Pegado'."
+                spellcheck="false"></textarea>
+
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button id="btn-analyze-pasted" class="btn btn-primary" style="flex:1; min-width:180px;">
+          ✨ Analizar Texto Pegado
+        </button>
+        <button id="btn-clear-transcript" class="btn btn-danger" style="padding:11px 16px;" title="Borrar transcripción">
+          🗑️
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tab-notas">
+      <div id="notes-container">
+        <div class="state-msg">
+          <span class="big">✨</span>
+          <span>Graba o sube un audio, y las notas se generarán automáticamente.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tab-proyectos">
+      <div id="proyectos-container"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div class="modal-overlay" id="mode-select-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <h3>🎯 ¿Qué enfoque de notas deseas?</h3>
+      <p class="modal-subtitle">Elige el tipo de contenido para esta sesión. Las notas se generarán <strong>automáticamente</strong> al terminar la transcripción.</p>
+
+      <div class="prompt-cat-chips" id="mode-select-chips" style="grid-template-columns: repeat(2, 1fr);">
+        <button type="button" class="prompt-cat-chip" data-mode="academico">
+          <span class="cat-emoji">🎓</span> Académico
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="idiomas">
+          <span class="cat-emoji">🌐</span> Idiomas
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="ejecutivo">
+          <span class="cat-emoji">💼</span> Ejecutivo
+        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="libre">
+          <span class="cat-emoji">📝</span> Libre
+        </button>
+      </div>
+
+      <div class="prompt-actions">
+        <button type="button" class="prompt-btn prompt-btn-secondary" id="mode-select-cancel">Cancelar</button>
+        <button type="button" class="prompt-btn prompt-btn-primary" id="mode-select-confirm" disabled>Comenzar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <h3 id="modal-title">🧠 Resumen Global</h3>
+      <div class="modal-content" id="modal-content">Cargando…</div>
+      <button class="btn-close-modal" id="btn-close-modal">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    // 🎙️ GROQ — Keys y endpoints
+    // ═══════════════════════════════════════════════════════════════
+    const GROQ_KEYS_DEFAULT = [
+      "Poner aqui la api",
+      
+    ];
+
+    const LS_KEY_GROQ_KEYS = 'meetingmind_groq_keys';
+    const LS_KEY_MODEL = 'meetingmind_groq_text_model';
+    const LS_KEY_PROJECTS = 'meetingmind_projects';
+    const LS_KEY_CHECKBOX = 'meetingmind_notion_checkboxes';
+
+    const GROQ_AUDIO_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+    const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
+    const GROQ_MODELS_URL = 'https://api.groq.com/openai/v1/models';
+
+    function isValidGroqKey(k) {
+      return typeof k === 'string' && k.trim().startsWith('gsk_') && k.trim().length > 20;
+    }
+
+    function loadGroqKeys() {
+      try {
+        const stored = localStorage.getItem(LS_KEY_GROQ_KEYS);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed.every(isValidGroqKey)) return parsed;
+        }
+      } catch (e) {}
+      return [...GROQ_KEYS_DEFAULT];
+    }
+
+    let GROQ_KEYS = loadGroqKeys();
+    let groqKeyIndex = 0;
+    function getNextGroqKey() {
+      const key = GROQ_KEYS[groqKeyIndex];
+      groqKeyIndex = (groqKeyIndex + 1) % GROQ_KEYS.length;
+      return key;
+    }
+
+    function saveGroqKeys(keysArray) {
+      const cleaned = keysArray.map(k => (typeof k === 'string' ? k.trim() : '')).filter(isValidGroqKey);
+      if (cleaned.length === 0) return { ok: false, error: 'No hay keys válidas.' };
+      try {
+        localStorage.setItem(LS_KEY_GROQ_KEYS, JSON.stringify(cleaned));
+        GROQ_KEYS = cleaned;
+        groqKeyIndex = 0;
+        cachedAvailableModels = null;
+        return { ok: true, count: cleaned.length };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    function resetGroqKeys() {
+      try { localStorage.removeItem(LS_KEY_GROQ_KEYS); } catch (e) {}
+      GROQ_KEYS = [...GROQ_KEYS_DEFAULT];
+      groqKeyIndex = 0;
+      cachedAvailableModels = null;
+    }
+
+    function updateKeysCountUI() {
+      const el = document.getElementById('keys-count-diag');
+      if (el) el.textContent = GROQ_KEYS.length;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📋 MODOS DE SESIÓN
+    // ═══════════════════════════════════════════════════════════════
+    const MODE_DEFINITIONS = {
+      academico: {
+        categoria: 'academico', categoriaLabel: 'Académico',
+        contexto: ['Clase Teórica'],
+        enfoque: ['Conceptos Clave', 'Extraer Fórmulas y Cálculos'],
+        isLanguageFocus: false
+      },
+      idiomas: {
+        categoria: 'academico', categoriaLabel: 'Idiomas',
+        contexto: ['Clase de Idioma'],
+        enfoque: ['Vocabulario Nuevo', 'Gramática'],
+        isLanguageFocus: true
+      },
+      ejecutivo: {
+        categoria: 'ejecutivo', categoriaLabel: 'Ejecutivo',
+        contexto: ['Reunión de Avance'],
+        enfoque: ['Acuerdos', 'Tareas Pendientes', 'Decisiones Clave'],
+        isLanguageFocus: false
+      },
+      libre: {
+        categoria: 'libre', categoriaLabel: 'Libre',
+        contexto: ['Conversación Libre'],
+        enfoque: ['Resumen General', 'Ideas Principales'],
+        isLanguageFocus: false
+      }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🔥 CHUNKING DE TEXTO — Anti TPM
+    // ═══════════════════════════════════════════════════════════════
+    const WORDS_PER_CHUNK = 1200;
+
+    function splitIntoWordChunks(text, wordsPerChunk = WORDS_PER_CHUNK) {
+      const clean = String(text || '').trim();
+      if (!clean) return [];
+      const words = clean.split(/\s+/).filter(Boolean);
+      if (words.length <= wordsPerChunk) return [clean];
+      const chunks = [];
+      for (let i = 0; i < words.length; i += wordsPerChunk) {
+        chunks.push(words.slice(i, i + wordsPerChunk).join(' '));
+      }
+      return chunks;
+    }
+
+    function mergeJsonNotes(jsonNotesArray) {
+      if (!Array.isArray(jsonNotesArray) || jsonNotesArray.length === 0) return null;
+      if (jsonNotesArray.length === 1) return jsonNotesArray[0];
+
+      const merged = {
+        titulo_principal: jsonNotesArray[0]?.titulo_principal || 'Apuntes de la sesión',
+        secciones: []
+      };
+      const sectionMap = new Map();
+
+      for (const notes of jsonNotesArray) {
+        if (!notes || !Array.isArray(notes.secciones)) continue;
+        for (const sec of notes.secciones) {
+          const title = sec.titulo_seccion || 'Sección';
+          const key = title.toLowerCase().trim();
+          if (!sectionMap.has(key)) {
+            sectionMap.set(key, {
+              titulo_seccion: title,
+              tipo_contenido: sec.tipo_contenido || 'lista',
+              contenido: []
+            });
+          }
+          const target = sectionMap.get(key);
+          const items = Array.isArray(sec.contenido) ? sec.contenido : [];
+          for (const it of items) {
+            const s = String(it).trim();
+            if (s && !target.contenido.includes(s)) target.contenido.push(s);
+          }
+        }
+      }
+      merged.secciones = Array.from(sectionMap.values());
+      return merged;
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    let globalTranscriptionController = null;
+
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const extSignal = options.externalSignal;
+      if (extSignal) {
+        if (extSignal.aborted) {
+          clearTimeout(timeoutId);
+          throw new Error('Operación cancelada por el usuario.');
+        }
+        extSignal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
+
+      try {
+        return await fetch(url, {
+          ...options,
+          signal: controller.signal,
+          mode: 'cors',
+          credentials: 'omit'
+        });
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          if (extSignal && extSignal.aborted) throw new Error('Operación cancelada por el usuario.');
+          throw new Error('La petición excedió el tiempo límite (timeout).');
+        }
+        throw new Error(`Error de red: ${err.message || 'Error desconocido'}`);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    function escHtml(str) {
+      if (typeof str !== 'string') return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg, durationMs) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      const dur = (typeof durationMs === 'number' && durationMs > 0) ? durationMs : 3000;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    function setStatus(type, text) {
+      const dot = document.getElementById('status-dot');
+      const txt = document.getElementById('status-text');
+      if (!dot || !txt) return;
+      dot.className = '';
+      if (type === 'active') dot.classList.add('active');
+      if (type === 'loading') dot.classList.add('loading');
+      if (type === 'error') dot.classList.add('error');
+      txt.textContent = text;
+    }
+
+    let cachedAvailableModels = null;
+    async function fetchAvailableModels(forceRefresh = false) {
+      if (cachedAvailableModels && !forceRefresh) return cachedAvailableModels;
+      try {
+        const response = await fetchWithTimeout(GROQ_MODELS_URL, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${GROQ_KEYS[0]}` }
+        }, 20000);
+        if (!response.ok) {
+          cachedAvailableModels = ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile'];
+          return cachedAvailableModels;
+        }
+        const data = await response.json();
+        const ids = (data.data || []).map(m => m.id);
+        const valid = ids.filter(id => {
+          const low = id.toLowerCase();
+          return !low.includes('whisper') &&
+                 !low.includes('prompt-guard') &&
+                 !low.includes('safeguard') &&
+                 !low.includes('llava') &&
+                 !low.includes('vision') &&
+                 !low.includes('tts') &&
+                 !low.includes('embed') &&
+                 !low.includes('guard');
+        });
+        const prioridad = [
+          'llama-3.3-70b-versatile',
+          'llama-3.1-70b-versatile',
+          'llama3-70b-8192',
+          'llama3-8b-8192'
+        ];
+        const preferred = [];
+        for (const p of prioridad) {
+          if (valid.includes(p) && !preferred.includes(p)) preferred.push(p);
+        }
+        for (const id of valid) {
+          if (preferred.length >= 4) break;
+          const low = id.toLowerCase();
+          if (!preferred.includes(id) &&
+              (low.includes('llama') || low.includes('mixtral') ||
+               low.includes('gemma') || low.includes('gpt-oss'))) {
+            preferred.push(id);
+          }
+        }
+        cachedAvailableModels = preferred.length > 0
+          ? preferred
+          : ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile'];
+        console.log('[fetchAvailableModels] Modelos válidos:', cachedAvailableModels);
+        return cachedAvailableModels;
+      } catch (err) {
+        console.error('Error obteniendo modelos:', err);
+        cachedAvailableModels = ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile'];
+        return cachedAvailableModels;
+      }
+    }
+
+    const memoriaTemporal = {
+      datos: {},
+      guardar(c, v) { try { localStorage.setItem(c, v); } catch (e) { this.datos[c] = v; } },
+      obtener(c) { try { return localStorage.getItem(c); } catch (e) { return this.datos[c] || null; } }
+    };
+
+    let currentNotionMarkdown = '';
+    let currentNoteKey = '';
+    let currentOpenProjectId = null;
+    let currentSessionMode = null;
+
+    let micStream = null;
+    let currentRecorder = null;
+    let isRecordingActive = false;
+    let recordingChunkInterval = null;
+
+    let modeSelectState = { mode: null, pendingAction: null };
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+      const notice = document.getElementById('wake-lock-notice');
+      try {
+        if (!('wakeLock' in navigator)) return false;
+        if (wakeLock) return true;
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+        if (notice) notice.classList.add('show');
+        return true;
+      } catch (err) {
+        wakeLock = null;
+        return false;
+      }
+    }
+
+    async function releaseWakeLock() {
+      const notice = document.getElementById('wake-lock-notice');
+      try {
+        if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+      } catch (err) {}
+      if (notice) notice.classList.remove('show');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🚀 INIT
+    // ═══════════════════════════════════════════════════════════════
+    window.addEventListener('DOMContentLoaded', () => {
+      try { initUI(); } catch (err) { alert('Error al inicializar: ' + err.message); }
+    });
+
+    function initUI() {
+      const btnConfig = document.getElementById('btn-config');
+      const configPanel = document.getElementById('config-panel');
+      const modelSelect = document.getElementById('model-select');
+      const btnStartRecord = document.getElementById('btn-start-record');
+      const btnUpload = document.getElementById('btn-upload');
+      const btnClear = document.getElementById('btn-clear');
+      const btnAnalyzePasted = document.getElementById('btn-analyze-pasted');
+      const btnClearTranscript = document.getElementById('btn-clear-transcript');
+      const fileInput = document.getElementById('file-input');
+      const transcriptBox = document.getElementById('transcript-box');
+      const tabs = document.querySelectorAll('.tab');
+      const tabPanes = document.querySelectorAll('.tab-pane');
+
+      fetchAvailableModels().then(models => {
+        if (models.length > 0) {
+          modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
+          const saved = memoriaTemporal.obtener(LS_KEY_MODEL);
+          if (saved && models.includes(saved)) modelSelect.value = saved;
+          else {
+            modelSelect.value = models[0];
+            memoriaTemporal.guardar(LS_KEY_MODEL, models[0]);
+          }
+        }
+      });
+      modelSelect.addEventListener('change', () => {
+        memoriaTemporal.guardar(LS_KEY_MODEL, modelSelect.value);
+        showToast('✅ Modelo: ' + modelSelect.value);
+      });
+
+      const keysInput = document.getElementById('groq-keys-input');
+      const keysStatus = document.getElementById('keys-save-status');
+      keysInput.value = GROQ_KEYS.join('\n');
+      updateKeysCountUI();
+
+      document.getElementById('btn-save-keys').addEventListener('click', () => {
+        const lines = keysInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+        const result = saveGroqKeys(lines);
+        if (result.ok) {
+          keysStatus.textContent = `✅ ${result.count} key(s) guardada(s).`;
+          keysStatus.style.color = 'var(--success)';
+          updateKeysCountUI();
+          showToast(`✅ ${result.count} key(s) guardada(s)`);
+        } else {
+          keysStatus.textContent = `⚠️ ${result.error}`;
+          keysStatus.style.color = 'var(--error)';
+          showToast('⚠️ No se pudieron guardar las keys');
+        }
+      });
+
+      document.getElementById('btn-reset-keys').addEventListener('click', () => {
+        if (!confirm('¿Restaurar las Groq API keys de fábrica?')) return;
+        resetGroqKeys();
+        keysInput.value = GROQ_KEYS.join('\n');
+        keysStatus.textContent = '↺ Keys restauradas.';
+        keysStatus.style.color = 'var(--muted)';
+        updateKeysCountUI();
+        showToast('↺ Keys restauradas');
+      });
+
+      btnConfig.addEventListener('click', () => configPanel.classList.toggle('open'));
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tabPanes.forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
+          if (tab.dataset.tab === 'proyectos') {
+            currentOpenProjectId = null;
+            renderProjectsTab();
+          }
+        });
+      });
+
+      btnStartRecord.addEventListener('click', () => {
+        if (isRecordingActive) stopRecordingProcess();
+        else openModeSelectModal('record');
+      });
+
+      btnUpload.addEventListener('click', () => {
+        if (isRecordingActive) { showToast('Detén la grabación primero.'); return; }
+        openModeSelectModal('upload');
+      });
+
+      btnClear.addEventListener('click', () => {
+        if (confirm('¿Borrar toda la sesión y empezar de cero?')) resetSession();
+      });
+
+      fileInput.addEventListener('change', async () => {
+        const files = Array.from(fileInput.files);
+        fileInput.value = '';
+        if (!files.length) return;
+        const validExt = ['flac','mp3','mp4','mpeg','mpga','m4a','ogg','wav','webm'];
+        for (const f of files) {
+          const ext = f.name.includes('.') ? f.name.split('.').pop().toLowerCase() : '';
+          if (!ext || !validExt.includes(ext)) {
+            showToast(`⚠️ Formato no soportado: ${f.name}`);
+            return;
+          }
+        }
+        try {
+          await handleMultipleAudioFiles(files);
+        } catch (err) {
+          showToast(`❌ Error: ${err.message}`);
+          setStatus('error', 'Error al procesar');
+          enableAllButtons();
+        }
+      });
+
+      document.getElementById('btn-copy-transcript').addEventListener('click', () => {
+        const text = transcriptBox.value.trim();
+        if (!text) { showToast('⚠️ No hay texto para copiar'); return; }
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('✅ Transcripción copiada'))
+          .catch(() => showToast('⚠️ Error al copiar'));
+      });
+
+      btnAnalyzePasted.addEventListener('click', async () => {
+        const text = transcriptBox.value.trim();
+        if (!text || text.length < 20) {
+          showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
+          return;
+        }
+        if (!currentSessionMode) {
+          openModeSelectModal('analyze-pasted');
+          return;
+        }
+        await triggerAutoAnalysis();
+      });
+
+      btnClearTranscript.addEventListener('click', () => {
+        if (!transcriptBox.value.trim()) return;
+        if (confirm('¿Borrar la transcripción actual?')) {
+          transcriptBox.value = '';
+          setStatus('idle', 'Listo. Elige un modo y empieza.');
+        }
+      });
+
+      document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+      document.getElementById('modal-overlay').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-overlay') closeModal();
+      });
+
+      initModeSelectModalListeners();
+      renderProjectsTab();
+
+      document.getElementById('btn-export-data').addEventListener('click', () => {
+        const data = memoriaTemporal.obtener(LS_KEY_PROJECTS) || '[]';
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MeetingMind_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('✅ Copia descargada.');
+      });
+
+      const importFile = document.getElementById('import-file');
+      document.getElementById('btn-import-data').addEventListener('click', () => importFile.click());
+      importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!Array.isArray(parsed)) throw new Error('Formato inválido');
+            memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(parsed));
+            showToast('✅ Datos importados.');
+            renderProjectsTab();
+          } catch (err) {
+            showToast('⚠️ Archivo inválido.');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      const btnTestApis = document.getElementById('btn-test-apis');
+      if (btnTestApis) {
+        btnTestApis.addEventListener('click', async () => {
+          const resultEl = document.getElementById('diag-result');
+          resultEl.style.display = 'block';
+          resultEl.className = 'diag-result';
+          resultEl.textContent = `🔬 Probando las ${GROQ_KEYS.length} Groq API Keys...\n\n`;
+          let okCount = 0;
+          const lines = [];
+          for (let i = 0; i < GROQ_KEYS.length; i++) {
+            const key = GROQ_KEYS[i];
+            const preview = key.slice(0, 12) + '…' + key.slice(-4);
+            lines.push(`[${i + 1}/${GROQ_KEYS.length}] Probando ${preview}...`);
+            resultEl.textContent = lines.join('\n');
+            try {
+              const res = await fetchWithTimeout(GROQ_MODELS_URL, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${key}` }
+              }, 15000);
+              if (res.ok) {
+                const data = await res.json();
+                const count = (data.data || []).length;
+                lines[lines.length - 1] = `✅ [${i + 1}/${GROQ_KEYS.length}] ${preview} → OK (${count} modelos)`;
+                okCount++;
+              } else if (res.status === 401 || res.status === 403) {
+                lines[lines.length - 1] = `❌ [${i + 1}/${GROQ_KEYS.length}] ${preview} → REVOCADA/INVÁLIDA (${res.status})`;
+              } else if (res.status === 429) {
+                lines[lines.length - 1] = `⚠️ [${i + 1}/${GROQ_KEYS.length}] ${preview} → Rate limit (429)`;
+              } else {
+                lines[lines.length - 1] = `⚠️ [${i + 1}/${GROQ_KEYS.length}] ${preview} → HTTP ${res.status}`;
+              }
+            } catch (err) {
+              lines[lines.length - 1] = `❌ [${i + 1}/${GROQ_KEYS.length}] ${preview} → ${err.message}`;
+            }
+            resultEl.textContent = lines.join('\n');
+          }
+          const summary = `\n\n📊 Resultado: ${okCount}/${GROQ_KEYS.length} keys funcionan.`;
+          resultEl.textContent = lines.join('\n') + summary;
+          resultEl.className = 'diag-result ' + (okCount === GROQ_KEYS.length ? 'ok' : 'fail');
+        });
+      }
+    }
+
+    function initModeSelectModalListeners() {
+      const modal = document.getElementById('mode-select-modal');
+      const chips = document.querySelectorAll('#mode-select-chips .prompt-cat-chip');
+      const btnCancel = document.getElementById('mode-select-cancel');
+      const btnConfirm = document.getElementById('mode-select-confirm');
+
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const mode = chip.dataset.mode;
+          modeSelectState.mode = mode;
+          chips.forEach(c => c.classList.toggle('selected', c === chip));
+          btnConfirm.disabled = !mode;
+        });
+      });
+
+      btnCancel.addEventListener('click', () => {
+        modeSelectState = { mode: null, pendingAction: null };
+        modal.classList.remove('open');
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'mode-select-modal') {
+          modeSelectState = { mode: null, pendingAction: null };
+          modal.classList.remove('open');
+        }
+      });
+
+      btnConfirm.addEventListener('click', () => {
+        const mode = modeSelectState.mode;
+        const action = modeSelectState.pendingAction;
+        if (!mode) return;
+        currentSessionMode = mode;
+        const modeDef = MODE_DEFINITIONS[mode];
+        showToast(`🎯 Modo: ${modeDef.categoriaLabel}`);
+        modal.classList.remove('open');
+        modeSelectState = { mode: null, pendingAction: null };
+        if (action === 'record') startRecordingProcess();
+        else if (action === 'upload') document.getElementById('file-input').click();
+        else if (action === 'analyze-pasted') triggerAutoAnalysis();
+      });
+    }
+
+    function openModeSelectModal(action) {
+      modeSelectState = { mode: currentSessionMode, pendingAction: action };
+      const chips = document.querySelectorAll('#mode-select-chips .prompt-cat-chip');
+      chips.forEach(c => c.classList.toggle('selected', c.dataset.mode === currentSessionMode));
+      document.getElementById('mode-select-confirm').disabled = !currentSessionMode;
+      document.getElementById('mode-select-modal').classList.add('open');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎙️ GRABACIÓN
+    // ═══════════════════════════════════════════════════════════════
+    async function startRecordingProcess() {
+      if (isRecordingActive) return;
+      await requestWakeLock();
+
+      if (window.AndroidNative && typeof window.AndroidNative.startRecording === 'function') {
+        try {
+          window.AndroidNative.startRecording();
+          isRecordingActive = true;
+          const btn = document.getElementById('btn-start-record');
+          btn.textContent = '⏹️ Detener Grabación';
+          btn.classList.add('recording');
+          setStatus('active', 'Grabando en segundo plano (nativo Android)…');
+          disableButtonsExcept(btn);
+        } catch (err) {
+          showToast('❌ Error al iniciar grabación nativa: ' + err.message);
+          isRecordingActive = false;
+          resetRecordButton();
+          enableAllButtons();
+          releaseWakeLock();
+        }
+        return;
+      }
+
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        isRecordingActive = true;
+        const btn = document.getElementById('btn-start-record');
+        btn.textContent = '⏹️ Detener Grabación';
+        btn.classList.add('recording');
+        setStatus('active', 'Grabando audio del micrófono...');
+        disableButtonsExcept(btn);
+        startMediaRecorderChunk();
+      } catch (err) {
+        if (err.name === 'NotAllowedError') showToast('⚠️ Permiso denegado.');
+        else if (err.name === 'NotFoundError') showToast('⚠️ No se encontró micrófono.');
+        else showToast(`⚠️ Error: ${err.message}`);
+        if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+        isRecordingActive = false;
+        resetRecordButton();
+        enableAllButtons();
+        releaseWakeLock();
+      }
+    }
+
+    function startMediaRecorderChunk() {
+      if (!isRecordingActive || !micStream) return;
+      currentRecorder = new MediaRecorder(micStream, { mimeType: 'audio/webm', audioBitsPerSecond: 16000 });
+      const chunks = [];
+      currentRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      currentRecorder.onstop = async () => {
+        if (!chunks.length) return;
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([blob], `record_${Date.now()}.webm`, { type: 'audio/webm' });
+        await transcribeRecordedChunk(file);
+      };
+      currentRecorder.start();
+      recordingChunkInterval = setTimeout(() => {
+        if (isRecordingActive && currentRecorder && currentRecorder.state !== 'inactive') {
+          currentRecorder.stop();
+          startMediaRecorderChunk();
+        }
+      }, 300000);
+    }
+
+    function stopRecordingProcess() {
+      if (!isRecordingActive) return;
+      isRecordingActive = false;
+      releaseWakeLock();
+
+      if (window.AndroidNative && typeof window.AndroidNative.stopRecording === 'function') {
+        setStatus('loading', 'Procesando grabación nativa…');
+        window.AndroidNative.stopRecording();
+        return;
+      }
+
+      clearTimeout(recordingChunkInterval);
+      if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      resetRecordButton();
+      setStatus('loading', 'Procesando grabación…');
+    }
+
+    function resetRecordButton() {
+      const btn = document.getElementById('btn-start-record');
+      if (btn) {
+        btn.textContent = '🔴 Iniciar Grabación';
+        btn.classList.remove('recording');
+      }
+    }
+
+    window.receiveNativeAudio = async function (base64Audio) {
+      try {
+        if (!base64Audio || typeof base64Audio !== 'string' || base64Audio.length < 10) {
+          throw new Error('Audio nativo vacío o inválido.');
+        }
+        const cleanB64 = base64Audio.includes(',') ? base64Audio.split(',').pop() : base64Audio;
+        const binary = atob(cleanB64);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'audio/mp4' });
+        const file = new File([blob], `record_native_${Date.now()}.m4a`, { type: 'audio/mp4' });
+        resetRecordButton();
+        setStatus('loading', 'Transcribiendo grabación nativa…');
+        await transcribeRecordedChunk(file);
+      } catch (err) {
+        console.error('[receiveNativeAudio]', err);
+        const msg = (err && err.message) ? err.message : '';
+        const isNetworkError =
+          msg.includes('Error de red') || msg.includes('timeout') ||
+          msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
+          msg.includes('Todas las') || msg.includes('todas las') ||
+          msg.includes('API Keys fallaron') || msg.includes('Load failed');
+
+        if (isNetworkError) {
+          showToast('⚠️ Sin conexión. Tu audio está guardado en Música > MeetingMind', 8000);
+          setStatus('error', '⚠️ Error de red — audio guardado en Música > MeetingMind');
+          const area = document.getElementById('transcript-progress-area');
+          if (area) {
+            const notice = document.createElement('div');
+            notice.className = 'transcript-error';
+            notice.innerHTML = `
+              <span class="err-title">⚠️ No se pudo transcribir por error de red</span>
+              <strong>Tu grabación NO se perdió.</strong> Está guardada en:
+              <div class="err-detail">📁 Música › MeetingMind › MeetingMind_*.m4a</div>
+            `;
+            area.appendChild(notice);
+          }
+        } else {
+          showToast('❌ Error al procesar audio nativo: ' + msg);
+          setStatus('error', 'Error al procesar audio nativo');
+        }
+        resetRecordButton();
+      } finally {
+        isRecordingActive = false;
+        enableAllButtons();
+        releaseWakeLock();
+      }
+    };
+
+    window.receiveNativeError = function (message) {
+      showToast('❌ ' + (message || 'Error en grabación nativa'));
+      isRecordingActive = false;
+      resetRecordButton();
+      setStatus('error', message || 'Error en grabación nativa');
+      enableAllButtons();
+      releaseWakeLock();
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✍️ TRANSCRIPCIÓN
+    // ═══════════════════════════════════════════════════════════════
+    function appendToTranscript(text) {
+      const box = document.getElementById('transcript-box');
+      if (!box || !text) return;
+      const current = box.value.trim();
+      box.value = current ? (current + '\n\n' + text.trim()) : text.trim();
+    }
+
+    function setTranscriptProgressHTML(html) {
+      const area = document.getElementById('transcript-progress-area');
+      if (!area) return;
+      area.innerHTML = html;
+    }
+
+    function clearTranscriptProgress() { setTranscriptProgressHTML(''); }
+
+    async function transcribeRecordedChunk(file) {
+      const id = 'temp_' + Date.now();
+      setTranscriptProgressHTML(
+        `<div class="transcript-progress" id="${id}"><span class="spinner"></span><span class="progress-text">Transcribiendo bloque de audio...</span></div>`
+      );
+      try {
+        const transcript = await transcribeWithGroqChunked(file, (msg) => {
+          const el = document.getElementById(id);
+          const t = el ? el.querySelector('.progress-text') : null;
+          if (t) t.textContent = msg;
+          setStatus('loading', msg);
+        });
+        if (transcript && transcript.trim()) appendToTranscript(transcript.trim());
+        clearTranscriptProgress();
+        await maybeAutoAnalyze();
+      } catch (err) {
+        const errDiv = document.createElement('div');
+        errDiv.className = 'transcript-error';
+        errDiv.innerHTML = `<span class="err-title">❌ Fallo al transcribir bloque</span>${escHtml(err.message)}`;
+        const area = document.getElementById('transcript-progress-area');
+        if (area) area.appendChild(errDiv);
+        showToast(`❌ Fallo al transcribir bloque: ${err.message.slice(0, 80)}`);
+      } finally {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+    }
+
+    async function handleMultipleAudioFiles(files) {
+      disableAllButtons();
+      const progressArea = document.getElementById('transcript-progress-area');
+      progressArea.innerHTML = '';
+
+      globalTranscriptionController = new AbortController();
+      const signal = globalTranscriptionController.signal;
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'transcript-cancel-btn';
+      cancelBtn.innerHTML = '✕ Cancelar transcripción';
+      cancelBtn.addEventListener('click', () => {
+        if (globalTranscriptionController) globalTranscriptionController.abort();
+        showToast('⏹️ Cancelando...');
+      });
+
+      for (let i = 0; i < files.length; i++) {
+        if (signal.aborted) break;
+        const file = files[i];
+        const fileMB = (file.size / (1024 * 1024)).toFixed(2);
+        setStatus('loading', `Procesando audio ${i + 1}/${files.length} (${fileMB} MB)...`);
+
+        const progressEl = document.createElement('div');
+        progressEl.className = 'transcript-progress';
+        progressEl.innerHTML = `<span class="spinner"></span><span class="progress-text">Preparando audio ${i + 1}/${files.length}...</span>`;
+        progressArea.appendChild(progressEl);
+        if (!progressArea.contains(cancelBtn)) progressArea.appendChild(cancelBtn);
+
+        const startTime = Date.now();
+        const timerInt = setInterval(() => {
+          const secs = Math.floor((Date.now() - startTime) / 1000);
+          const textEl = progressEl.querySelector('.progress-text');
+          if (textEl) {
+            const base = textEl.dataset.base || textEl.textContent;
+            textEl.dataset.base = base;
+            textEl.textContent = `${base} [${secs}s]`;
+          }
+        }, 1000);
+
+        try {
+          const transcript = await transcribeWithGroqChunked(file, (msg) => {
+            const textEl = progressEl.querySelector('.progress-text');
+            if (textEl) { textEl.textContent = msg; textEl.dataset.base = msg; }
+            setStatus('loading', `${msg} (Audio ${i + 1}/${files.length})`);
+          });
+          if (transcript && transcript.trim()) {
+            appendToTranscript(transcript.trim());
+            showToast(`✅ Audio ${i + 1} completado.`);
+          } else {
+            const emptyEl = document.createElement('div');
+            emptyEl.className = 'transcript-error';
+            emptyEl.innerHTML = `<span class="err-title">⚠️ Audio ${i + 1} sin texto detectable</span>El archivo puede estar silencioso o corrupto.`;
+            progressArea.appendChild(emptyEl);
+          }
+        } catch (err) {
+          const errDiv = document.createElement('div');
+          errDiv.className = 'transcript-error';
+          const isCancel = err.message.includes('Cancelado');
+          errDiv.innerHTML = `<span class="err-title">${isCancel ? '⏹️ Cancelado' : '❌ Error al procesar "' + escHtml(file.name) + '"'}</span>${escHtml(err.message)}`;
+          progressArea.appendChild(errDiv);
+          if (isCancel) { showToast('⏹️ Transcripción cancelada.'); break; }
+          else showToast(`❌ Fallo: ${err.message.slice(0, 80)}`);
+        } finally {
+          clearInterval(timerInt);
+          progressEl.remove();
+        }
+      }
+
+      cancelBtn.remove();
+      globalTranscriptionController = null;
+
+      const hasContent = document.getElementById('transcript-box').value.trim().length > 0;
+      if (hasContent && !signal.aborted) await maybeAutoAnalyze();
+      else setStatus('error', 'No se pudo extraer texto del audio.');
+      enableAllButtons();
+    }
+
+    async function transcribeWithGroqChunked(file, onProgress) {
+      const CHUNK_SIZE = 2 * 1024 * 1024; 
+      const total = file.size;
+      const chunks = [];
+      let start = 0, idx = 0;
+      
+      while (start < total) {
+        const end = Math.min(start + CHUNK_SIZE, total);
+        chunks.push({ blob: file.slice(start, end), index: idx + 1, total: Math.ceil(total / CHUNK_SIZE) });
+        start = end;
+        idx++;
+      }
+
+      let full = '';
+      for (let i = 0; i < chunks.length; i++) {
+        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
+          throw new Error('Cancelado por el usuario.');
+        }
+        
+        const chunkMB = (chunks[i].blob.size / (1024 * 1024)).toFixed(2);
+        if (onProgress) onProgress(`Transcribiendo parte ${i + 1} de ${chunks.length} (${chunkMB} MB)...`);
+
+        const t = await transcribeSingleChunk(chunks[i].blob, file.type, i + 1);
+        if (t && t.trim()) full += (full ? ' ' : '') + t.trim();
+
+        if (i < chunks.length - 1) {
+          if (onProgress) onProgress(`Parte ${i + 1} OK. Esperando 15s para no saturar Groq...`);
+          await delay(15000);
+        }
+      }
+      
+      return full;
+    }
+
+    async function transcribeSingleChunk(blob, fileType, partNumber) {
+      let lastError = null;
+      for (let attempt = 0; attempt < GROQ_KEYS.length; attempt++) {
+        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
+          throw new Error('Cancelado por el usuario.');
+        }
+        
+        const apiKey = getNextGroqKey();
+        
+        const formData = new FormData();
+        formData.append('file', blob, `part_${partNumber}.${fileType.split('/')[1] || 'mp3'}`);
+        formData.append('model', 'whisper-large-v3-turbo');
+        formData.append('response_format', 'text');
+        formData.append('language', 'es');
+
+        try {
+          const response = await fetchWithTimeout(GROQ_AUDIO_URL, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}` },
+            body: formData,
+            externalSignal: globalTranscriptionController ? globalTranscriptionController.signal : null
+          }, 60000);
+
+          if (response.ok) {
+            const text = await response.text();
+            return text || '';
+          }
+          
+          if (response.status === 401 || response.status === 403) {
+            lastError = new Error(`API Key inválida o revocada (${response.status}).`);
+            continue;
+          }
+          if (response.status === 429 || response.status === 413) {
+            lastError = new Error(`Límite alcanzado (${response.status}).`);
+            await delay(5000);
+            continue;
+          }
+          if (response.status >= 500) {
+            lastError = new Error(`Error del servidor Groq (${response.status}).`);
+            await delay(3000);
+            continue;
+          }
+          
+          throw new Error(`Error al procesar bloque (${response.status})`);
+
+        } catch (err) {
+          lastError = err;
+          if (err.message.includes('cancelada')) throw err;
+          
+          if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
+            await delay(3000);
+            continue;
+          }
+          throw err; 
+        }
+      }
+      throw new Error(`Todas las API Keys fallaron en esta parte. Último: ${lastError?.message}`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎯 AUTO-ANÁLISIS
+    // ═══════════════════════════════════════════════════════════════
+    async function maybeAutoAnalyze() {
+      const text = document.getElementById('transcript-box').value.trim();
+      if (!text || text.length < 20) {
+        setStatus('error', 'Transcripción demasiado corta para generar notas.');
+        return;
+      }
+      if (!currentSessionMode) {
+        showToast('⚠️ Selecciona primero un enfoque de notas.');
+        setStatus('idle', 'Transcripción lista. Pulsa "Analizar Texto Pegado" para generar notas.');
+        return;
+      }
+      const opts = getSessionOptions();
+      await analyzeText(text, document.getElementById('notes-container'), opts);
+      document.querySelector('[data-tab="notas"]')?.click();
+    }
+
+    async function triggerAutoAnalysis() {
+      const text = document.getElementById('transcript-box').value.trim();
+      if (!text || text.length < 20) {
+        showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
+        return;
+      }
+      if (!currentSessionMode) {
+        openModeSelectModal('analyze-pasted');
+        return;
+      }
+      const opts = getSessionOptions();
+      await analyzeText(text, document.getElementById('notes-container'), opts);
+      document.querySelector('[data-tab="notas"]')?.click();
+    }
+
+    function getSessionOptions() {
+      const mode = currentSessionMode || 'academico';
+      const def = MODE_DEFINITIONS[mode] || MODE_DEFINITIONS.academico;
+      return {
+        categoria: def.categoria,
+        categoriaLabel: def.categoriaLabel,
+        contexto: [...def.contexto],
+        enfoque: [...def.enfoque],
+        isLanguageFocus: def.isLanguageFocus === true
+      };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎓 SYSTEM PROMPTS — VERSIÓN OPTIMIZADA ALINEADA AL JSON
+    // ═══════════════════════════════════════════════════════════════
+    function getSystemPromptForMode(mode, isLanguageFocus) {
+      const REGLAS_COMUNES = `Eres el motor de procesamiento de texto de "Meeting Mind". Tu único propósito es limpiar, estructurar y resumir transcripciones de audio en crudo, priorizando la precisión absoluta y la concisión extrema.
+
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    REGLAS UNIVERSALES INQUEBRANTABLES
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    1) CORRECCIÓN SILENCIOSA DE TRANSCRIPCIÓN:
+       • Si el texto contiene ruidos, palabras inaudibles o errores de captura de audio, infiere la palabra correcta basándote en el contexto general. Sustituye la palabra de forma invisible.
+       • Tienes ESTRICTAMENTE PROHIBIDO agregar notas aclaratorias, explicar qué palabra fue modificada, o usar frases como "(el audio decía...)".
+
+    2) CORRECCIÓN FACTUAL SIN EXPANSIÓN:
+       • Si identificas un error técnico o de datos en lo que dijo el hablante, aplica la corrección técnica directamente en los apuntes.
+       • No agregues teoría, no des justificaciones, ni incluyas contexto de respaldo para explicar tu corrección.
+
+    3) CERO ALUCINACIÓN (ROL ESTRICTO):
+       • Actúa exclusivamente como un transcriptor y estructurador. Tienes prohibido asumir el rol de analista, consultor o experto.
+       • No inventes consejos, recomendaciones, inferencias lógicas, análisis de causas ni siguientes pasos a menos que el hablante los haya dictado explícitamente.
+
+    4) CONCISIÓN IMPLACABLE (LÍMITE DE VOLUMEN):
+       • Tu objetivo es sintetizar. El volumen de palabras de tu respuesta debe ser SIEMPRE menor al volumen de la transcripción original.
+       • Elimina introducciones, frases de transición y conclusiones prefabricadas. Ve directo a los datos.
+
+    5) ESTRUCTURA DINÁMICA:
+       • Si el texto original carece de información para justificar una sección, OMITE esa sección por completo. NUNCA generes contenido para rellenar un espacio en blanco.
+
+    6) FORMATO DE SALIDA — JSON ESTRICTO:
+       Devuelve EXCLUSIVAMENTE un objeto JSON válido:
+
+       {
+         "titulo_principal": "Título descriptivo y conciso",
+         "secciones": [
+           {
+             "titulo_seccion": "Título exacto de la sección",
+             "tipo_contenido": "lista" | "parrafos",
+             "contenido": ["elemento 1", "elemento 2"]
+           }
+         ]
+       }
+
+       REGLAS DEL JSON:
+       • SOLO el JSON. Nada de texto antes ni después.
+       • "tipo_contenido": exactamente "lista" o "parrafos".
+       • "contenido": siempre array de strings.
+       • Escapa comillas internas (\\") y saltos de línea (\\n).
+       • PROHIBIDO usar markdown dentro de los strings (nada de **, ##, -).`;
+
+      const ACADEMICO_PROMPT = `
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    MODO ACTIVO: ACADÉMICO — Apuntes Universitarios
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    PERFIL DEL USUARIO: Estudiante universitario repasando para un examen.
+    Utiliza estas secciones para tu JSON (omite las que no tengan datos):
+
+    - "📌 Tema Central" | tipo_contenido: "parrafos" | (Describir directamente de qué trata)
+    - "🧠 Conceptos y Definiciones" | tipo_contenido: "lista" | (Formato: "Concepto: definición")
+    - "🧮 Fórmulas y Datos Clave" | tipo_contenido: "lista" | (Formato: "Dato: valor con unidades")
+    - "📝 Desarrollo Explicativo" | tipo_contenido: "parrafos" | (Explicación de subtemas)
+    - "✅ Tareas y Asignaciones" | tipo_contenido: "lista" | (Tareas concretas mencionadas)`;
+
+      const EJECUTIVO_PROMPT = `
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    MODO ACTIVO: EJECUTIVO — Reunión de Negocio / Trabajo
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    Utiliza estas secciones para tu JSON (omite las que no tengan datos):
+
+    - "📝 Resumen Ejecutivo" | tipo_contenido: "parrafos"
+    - "💡 Puntos Clave" | tipo_contenido: "lista"
+    - "🎯 Decisiones y Acuerdos" | tipo_contenido: "lista"
+    - "✅ Elementos de Acción" | tipo_contenido: "lista" | (Formato: "Tarea — Responsable — Fecha")
+    - "📊 Métricas y Cifras" | tipo_contenido: "lista"`;
+
+      const LIBRE_PROMPT = `
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    MODO ACTIVO: LIBRE — Reflexión / Podcast / Conversación
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    Utiliza estas secciones para tu JSON (omite las que no tengan datos):
+
+    - "📝 Resumen General" | tipo_contenido: "parrafos"
+    - "💡 Ideas Principales" | tipo_contenido: "lista"
+    - "💭 Citas Destacadas" | tipo_contenido: "lista"
+    - "📌 Notas y Matices" | tipo_contenido: "lista"`;
+
+      const IDIOMAS_PROMPT = `
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    MODO ACTIVO: ACADÉMICO con ENFOQUE EN CLASE DE IDIOMAS
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    Utiliza estas secciones para tu JSON (omite las que no tengan datos):
+
+    - "Explicación Didáctica del Profesor" | tipo_contenido: "parrafos"
+    - "Vocabulario y Expresiones Clave" | tipo_contenido: "lista"
+    - "Reglas Gramaticales y Estructuras" | tipo_contenido: "lista"
+    - "Corrección de Errores y Tips de Pronunciación" | tipo_contenido: "lista"`;
+
+      let reglasEspecificas;
+      if (mode === 'academico' && isLanguageFocus === true) {
+        reglasEspecificas = IDIOMAS_PROMPT;
+      } else if (mode === 'academico') {
+        reglasEspecificas = ACADEMICO_PROMPT;
+      } else if (mode === 'ejecutivo') {
+        reglasEspecificas = EJECUTIVO_PROMPT;
+      } else if (mode === 'libre') {
+        reglasEspecificas = LIBRE_PROMPT;
+      } else {
+        reglasEspecificas = ACADEMICO_PROMPT;
+      }
+
+      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}\n\n[RECORDATORIO FINAL E INQUEBRANTABLE: DEVUELVE EXCLUSIVAMENTE CÓDIGO JSON VÁLIDO. CERO TEXTO DE INTRODUCCIÓN O CONCLUSIÓN ANTES O DESPUÉS DEL JSON.]`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🤖 GROQ CHAT
+    // ═══════════════════════════════════════════════════════════════
+    async function callGroqChat(payload) {
+      const dynamicModels = await fetchAvailableModels();
+      const modelsToTry = [...new Set([payload.model, ...dynamicModels])].filter(Boolean);
+
+      let lastError = null;
+      const maxAttempts = modelsToTry.length * GROQ_KEYS.length;
+      let attemptCount = 0;
+
+      for (const model of modelsToTry) {
+        const currentPayload = { ...payload, model };
+        for (let ka = 0; ka < GROQ_KEYS.length; ka++) {
+          if (attemptCount >= maxAttempts) break;
+          attemptCount++;
+          const apiKey = getNextGroqKey();
+          try {
+            const response = await fetchWithTimeout(GROQ_CHAT_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify(currentPayload)
+            }, 90000);
+
+            if (response.ok) {
+              const data = await response.json();
+              const content = data?.choices?.[0]?.message?.content;
+              if (content) return content;
+              throw new Error('Respuesta vacía del modelo');
+            }
+
+            let errMsg = `HTTP ${response.status}`;
+            try {
+              const errData = await response.json();
+              errMsg = errData?.error?.message || errMsg;
+            } catch (_) {}
+
+            if (response.status === 429) {
+              lastError = new Error(`[Rate Limit] ${errMsg}`);
+              await delay(2000 * (ka + 1));
+              continue;
+            }
+            lastError = new Error(errMsg);
+            break;
+          } catch (err) {
+            lastError = err;
+            if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
+              await delay(1500 * (ka + 1));
+              continue;
+            }
+            break;
+          }
+        }
+      }
+      throw new Error(`Todos los modelos y claves fallaron. Último: ${lastError?.message || 'Desconocido'}`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📝 JSON → MARKDOWN
+    // ═══════════════════════════════════════════════════════════════
+    function jsonNotesToMarkdown(obj) {
+      if (!obj || typeof obj !== 'object') return '';
+      const lines = [];
+      const titulo = obj.titulo_principal || obj.titulo || 'Apuntes de la sesión';
+      lines.push(`# ${titulo}`);
+      lines.push('');
+
+      const secciones = Array.isArray(obj.secciones) ? obj.secciones : [];
+      for (const sec of secciones) {
+        const secTitulo = sec.titulo_seccion || sec.titulo || 'Sección';
+        const tipo = (sec.tipo_contenido || sec.tipo || 'lista').toLowerCase();
+        const contenido = Array.isArray(sec.contenido)
+          ? sec.contenido
+          : (typeof sec.contenido === 'string' ? [sec.contenido] : []);
+
+        lines.push(`### ${secTitulo}`);
+        lines.push('');
+
+        if (tipo === 'lista') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`- ${text}`);
+          }
+        } else if (tipo === 'parrafos') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) { lines.push(text); lines.push(''); }
+          }
+        } else if (tipo === 'bloque') {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`> ${text}`);
+          }
+        } else {
+          for (const item of contenido) {
+            const text = String(item).trim();
+            if (text) lines.push(`- ${text}`);
+          }
+        }
+        lines.push('');
+      }
+      return lines.join('\n').trim();
+    }
+
+    function tryParseNotesJson(rawText) {
+      if (!rawText || typeof rawText !== 'string') return null;
+      let cleaned = rawText.trim()
+        .replace(/^```(?:json)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (parsed && typeof parsed === 'object' && (parsed.titulo_principal || parsed.secciones)) return parsed;
+      } catch (e) {
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          try {
+            const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(candidate);
+            if (parsed && typeof parsed === 'object') return parsed;
+          } catch (_) {}
+        }
+      }
+      return null;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📋 CHECKBOX + MARKDOWN RENDER
+    // ═══════════════════════════════════════════════════════════════
+    function getCheckboxState() {
+      try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function saveCheckboxState(s) {
+      try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(s)); } catch (e) {}
+    }
+    function toggleCheckboxState(key, checked) {
+      const s = getCheckboxState(); s[key] = checked; saveCheckboxState(s);
+    }
+
+    function renderMarkdownToHTML(markdown, noteKey) {
+      if (!markdown || typeof markdown !== 'string') return '';
+      let clean = markdown.trim()
+        .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+        .replace(/\n?```\s*$/i, '')
+        .trim();
+
+      let html = '';
+      if (typeof marked !== 'undefined' && marked.parse) {
+        try {
+          marked.setOptions({ gfm: true, breaks: true, headerIds: false, mangle: false });
+          html = marked.parse(clean);
+        } catch (e) {
+          html = fallbackMarkdownRenderer(clean);
+        }
+      } else {
+        html = fallbackMarkdownRenderer(clean);
+      }
+      return postProcessCheckboxes(html, noteKey);
+    }
+
+    function fallbackMarkdownRenderer(md) {
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const inline = (t) => esc(t)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      const lines = md.split('\n');
+      const out = [];
+      let inList = false, inCheck = false, listType = '';
+      const closeLists = () => {
+        if (inList) { out.push(listType === 'ul' ? '</ul>' : '</ol>'); inList = false; }
+        if (inCheck) { out.push('</ul>'); inCheck = false; }
+      };
+
+      for (const raw of lines) {
+        const t = raw.trim();
+        if (!t) { closeLists(); continue; }
+
+        const cb = t.match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
+        if (cb) {
+          if (!inCheck) { closeLists(); out.push('<ul>'); inCheck = true; }
+          const checked = cb[1].toLowerCase() === 'x';
+          out.push(`<li><input type="checkbox"${checked ? ' checked' : ''}> ${inline(cb[2])}</li>`);
+          continue;
+        }
+        const h = t.match(/^(#{1,6})\s+(.+)$/);
+        if (h) { closeLists(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
+
+        if (/^[-*+]\s+/.test(t)) {
+          if (!inList || listType !== 'ul') { closeLists(); out.push('<ul>'); inList = true; listType = 'ul'; }
+          out.push(`<li>${inline(t.replace(/^[-*+]\s+/, ''))}</li>`);
+          continue;
+        }
+        if (/^\d+[.)]\s+/.test(t)) {
+          if (!inList || listType !== 'ol') { closeLists(); out.push('<ol>'); inList = true; listType = 'ol'; }
+          out.push(`<li>${inline(t.replace(/^\d+[.)]\s+/, ''))}</li>`);
+          continue;
+        }
+        if (/^>\s?/.test(t)) {
+          closeLists();
+          out.push(`<blockquote>${inline(t.replace(/^>\s?/, ''))}</blockquote>`);
+          continue;
+        }
+        closeLists();
+        out.push(`<p>${inline(t)}</p>`);
+      }
+      closeLists();
+      return out.join('\n');
+    }
+
+    function postProcessCheckboxes(html, noteKey) {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      const stored = getCheckboxState();
+      let idx = 0;
+
+      temp.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+        const id = `cb_${noteKey}_${idx++}`;
+        cb.removeAttribute('disabled');
+        cb.classList.add('notion-checkbox');
+        cb.setAttribute('data-check-id', id);
+
+        const li = cb.closest('li');
+        if (li) {
+          li.classList.add('notion-check-item');
+          if (!li.querySelector('.notion-check-text')) {
+            const span = document.createElement('span');
+            span.className = 'notion-check-text';
+            let node = cb.nextSibling;
+            while (node) { const next = node.nextSibling; span.appendChild(node); node = next; }
+            li.innerHTML = '';
+            li.appendChild(cb);
+            li.appendChild(span);
+          }
+          const saved = stored[id];
+          const finalChecked = (typeof saved === 'boolean') ? saved : cb.checked;
+          cb.checked = finalChecked;
+          li.classList.toggle('notion-checked', finalChecked);
+        }
+      });
+      return temp.innerHTML;
+    }
+
+    function attachNotionCheckboxListeners(container) {
+      if (!container) return;
+      container.querySelectorAll('input.notion-checkbox').forEach((cb) => {
+        if (cb.dataset.listenerAttached === '1') return;
+        cb.dataset.listenerAttached = '1';
+        cb.addEventListener('change', () => {
+          const id = cb.getAttribute('data-check-id');
+          toggleCheckboxState(id, cb.checked);
+          const li = cb.closest('li.notion-check-item');
+          if (li) li.classList.toggle('notion-checked', cb.checked);
+        });
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ✨ ANÁLISIS CON GROQ
+    // ═══════════════════════════════════════════════════════════════
+    async function analyzeText(text, notesContainer, options) {
+      const systemPrompt = getSystemPromptForMode(
+        options.categoria,
+        options.isLanguageFocus === true
+      );
+
+      disableAllButtons();
+      notesContainer.innerHTML = `
+        <div class="state-msg">
+          <span class="big">✨</span>
+          <span id="notion-progress">Generando notas con Groq…</span>
+        </div>
+      `;
+      setStatus('loading', 'Generando notas con Groq…');
+
+      const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
+
+      try {
+        const totalWords = String(text || '').trim().split(/\s+/).filter(Boolean).length;
+        const chunks = splitIntoWordChunks(text, WORDS_PER_CHUNK);
+
+        console.log(`[analyzeText] ${totalWords} palabras → ${chunks.length} chunk(s)`);
+
+        if (chunks.length === 0) throw new Error('La transcripción está vacía.');
+
+        const partialResults = [];
+        const progressEl = document.getElementById('notion-progress');
+
+        for (let i = 0; i < chunks.length; i++) {
+          if (progressEl) {
+            progressEl.textContent = chunks.length > 1
+              ? `Procesando bloque ${i + 1} de ${chunks.length}…`
+              : 'Procesando respuesta del modelo…';
+          }
+          if (chunks.length > 1) {
+            setStatus('loading', `Analizando bloque ${i + 1}/${chunks.length}…`);
+          }
+
+          const userMessage = `${options.isLanguageFocus
+            ? 'Enfoque adicional: CLASE DE IDIOMAS. Aplica las 5 secciones obligatorias.\n\n'
+            : ''}Contexto del audio: ${options.contexto.join(', ')}
+Enfoque principal: ${options.enfoque.join(', ')}
+
+${chunks.length > 1
+  ? `(Este es el bloque ${i + 1} de ${chunks.length}. Genera las secciones obligatorias SOLO con la información de este fragmento. NO uses muletillas, NO introduzcas el fragmento.)\n\n`
+  : ''}TRANSCRIPCIÓN CRUDA:
+"""
+${chunks[i]}
+"""
+
+Genera las notas AHORA en JSON estricto con las secciones obligatorias y sin muletillas.`;
+
+          const payload = {
+            model: currentModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.2,
+            max_tokens: 4096,
+            response_format: { type: 'json_object' }
+          };
+
+          const rawResponse = await callGroqChat(payload);
+          const jsonNotes = tryParseNotesJson(rawResponse);
+
+          if (jsonNotes) partialResults.push(jsonNotes);
+          else console.warn(`[analyzeText] Bloque ${i + 1} no devolvió JSON válido.`);
+
+          if (i < chunks.length - 1) await delay(2000);
+        }
+
+        if (partialResults.length === 0) {
+          throw new Error('El modelo no devolvió notas válidas en ningún bloque.');
+        }
+
+        const mergedNotes = mergeJsonNotes(partialResults);
+        const markdownNotes = jsonNotesToMarkdown(mergedNotes);
+        const docTitle = mergedNotes.titulo_principal || 'Apuntes de la sesión';
+
+        renderNotionNotes(markdownNotes, notesContainer, docTitle);
+
+        setStatus('active', '✨ Notas generadas con Groq');
+        showToast(`✅ Notas listas (${chunks.length} bloque${chunks.length > 1 ? 's' : ''})`);
+        document.querySelector('[data-tab="notas"]')?.click();
+
+      } catch (err) {
+        console.error('Error generando notas:', err);
+        setStatus('error', 'Error al generar notas');
+        notesContainer.innerHTML = `
+          <div class="state-msg error-msg">
+            <span class="big">⚠️</span>
+            <strong>Error:</strong>
+            <span>${escHtml(err.message)}</span>
+          </div>
+        `;
+        showToast(`❌ ${err.message}`);
+      } finally {
+        enableAllButtons();
+      }
+    }
+
+    function renderNotionNotes(markdown, container, docTitle) {
+      currentNoteKey = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      currentNotionMarkdown = markdown;
+
+      const html = renderMarkdownToHTML(markdown, currentNoteKey);
+      const projects = getProjects();
+      const projectOptionsHtml = projects.length
+        ? projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.nombre)}</option>`).join('')
+        : '<option value="">Sin proyectos aún</option>';
+
+      container.innerHTML = `
+        <div class="notes-header">
+          <div class="notes-header-left">
+            <select id="save-project-select" class="select-inline">${projectOptionsHtml}</select>
+            <button id="btn-save-to-project" class="btn-copy-notion">💾 Guardar</button>
+          </div>
+          <div class="notes-header-right">
+            <button id="btn-copy-notion" class="btn-copy-notion">📋 Copiar MD</button>
+            <button id="btn-download-md" class="btn-copy-notion">⬇️ .md</button>
+            <button id="btn-reconfigure" class="btn-copy-notion">🔄 Re-generar</button>
+          </div>
+        </div>
+        <div class="notion-content" id="notion-render-target">
+          ${html}
+        </div>
+      `;
+
+      attachNotionCheckboxListeners(document.getElementById('notion-render-target'));
+
+      document.getElementById('btn-copy-notion').addEventListener('click', () => {
+        navigator.clipboard.writeText(currentNotionMarkdown)
+          .then(() => showToast('✅ Markdown copiado'))
+          .catch(() => showToast('⚠️ Error al copiar'));
+      });
+
+      document.getElementById('btn-download-md').addEventListener('click', () => {
+        const blob = new Blob([currentNotionMarkdown], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(docTitle || 'apuntes').replace(/[^\w\s\-áéíóúñ]/gi, '').slice(0, 60)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇️ Archivo .md descargado');
+      });
+
+      const btnReconfigure = document.getElementById('btn-reconfigure');
+      if (btnReconfigure) {
+        btnReconfigure.addEventListener('click', () => {
+          const text = document.getElementById('transcript-box').value.trim();
+          if (!text) { showToast('⚠️ No hay transcripción disponible.'); return; }
+          openModeSelectModal('analyze-pasted');
+        });
+      }
+
+      const btnSave = document.getElementById('btn-save-to-project');
+      if (btnSave) btnSave.addEventListener('click', () => {
+        const sel = document.getElementById('save-project-select');
+        const pid = sel ? sel.value : '';
+        if (!pid) { showToast('⚠️ Crea o selecciona un proyecto primero.'); return; }
+        saveNotionNoteToProject(pid, docTitle || 'Apuntes');
+      });
+    }
+
+    function resetSession() {
+      document.getElementById('transcript-box').value = '';
+      document.getElementById('transcript-progress-area').innerHTML = '';
+      currentNotionMarkdown = '';
+      currentNoteKey = '';
+      document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Graba o sube un audio, y las notas se generarán automáticamente.</span></div>';
+      document.getElementById('btn-clear').style.display = 'none';
+      currentSessionMode = null;
+      setStatus('idle', 'Listo. Elige un modo y empieza.');
+    }
+
+    function disableButtonsExcept(activeBtn) {
+      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b && b !== activeBtn) b.disabled = true;
+      });
+    }
+    function disableAllButtons() {
+      ['btn-start-record', 'btn-upload', 'btn-analyze-pasted'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.disabled = true;
+      });
+    }
+    function enableAllButtons() {
+      const btnStart = document.getElementById('btn-start-record');
+      const btnUpload = document.getElementById('btn-upload');
+      const btnAnalyze = document.getElementById('btn-analyze-pasted');
+      if (btnStart) btnStart.disabled = false;
+      if (btnUpload) btnUpload.disabled = false;
+      if (btnAnalyze) btnAnalyze.disabled = false;
+
+      const btnClear = document.getElementById('btn-clear');
+      if (btnClear) {
+        const hasContent = document.getElementById('transcript-box').value.trim().length > 0;
+        btnClear.style.display = hasContent ? 'block' : 'none';
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📁 PROYECTOS
+    // ═══════════════════════════════════════════════════════════════
+    function getProjects() {
+      try {
+        const raw = memoriaTemporal.obtener(LS_KEY_PROJECTS);
+        const p = raw ? JSON.parse(raw) : [];
+        return Array.isArray(p) ? p : [];
+      } catch (e) { return []; }
+    }
+    function saveProjects(p) { memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(p)); }
+
+    function createProject(nombre) {
+      const projects = getProjects();
+      const nuevo = {
+        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        nombre, fecha: new Date().toISOString(), notas: []
+      };
+      projects.unshift(nuevo);
+      saveProjects(projects);
+      return nuevo;
+    }
+    function deleteProject(id) {
+      let p = getProjects();
+      p = p.filter(x => x.id !== id);
+      saveProjects(p);
+    }
+
+    function saveNotionNoteToProject(projectId, title) {
+      if (!currentNotionMarkdown) { showToast('⚠️ No hay notas generadas.'); return; }
+      const projects = getProjects();
+      const project = projects.find(p => p.id === projectId);
+      if (!project) { showToast('⚠️ Proyecto no encontrado.'); return; }
+      if (!Array.isArray(project.notas)) project.notas = [];
+      project.notas.push({
+        id: 'nota_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        fecha: new Date().toISOString(),
+        title: title,
+        markdown: currentNotionMarkdown,
+        noteKey: currentNoteKey
+      });
+      saveProjects(projects);
+      showToast(`✅ Guardado en "${project.nombre}"`);
+    }
+
+    function formatFecha(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+          + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
+
+    function renderProjectsTab() {
+      const container = document.getElementById('proyectos-container');
+      if (!container) return;
+      if (currentOpenProjectId) { renderProjectDetail(currentOpenProjectId, container); return; }
+
+      const projects = getProjects();
+      const grid = projects.length ? `<div class="proyectos-grid">${projects.map(p => `
+        <div class="proyecto-card" data-id="${escHtml(p.id)}">
+          <span class="p-icon">📁</span>
+          <span class="p-name">${escHtml(p.nombre)}</span>
+          <span class="p-meta">${(p.notas || []).length} nota(s) · ${formatFecha(p.fecha)}</span>
+        </div>`).join('')}</div>`
+        : '<div class="state-msg"><span class="big">📁</span><span>Aún no tienes proyectos. Crea uno para empezar.</span></div>';
+
+      container.innerHTML = `
+        <div class="proyectos-create-row">
+          <input type="text" id="new-project-name" placeholder="Nombre del nuevo proyecto" />
+          <button id="btn-create-project">➕ Crear</button>
+        </div>
+        ${grid}
+      `;
+
+      document.getElementById('btn-create-project').addEventListener('click', () => {
+        const input = document.getElementById('new-project-name');
+        const name = input.value.trim();
+        if (!name) { showToast('⚠️ Escribe un nombre.'); return; }
+        createProject(name);
+        showToast(`✅ Proyecto "${name}" creado`);
+        renderProjectsTab();
+      });
+      document.getElementById('new-project-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('btn-create-project').click();
+      });
+
+      container.querySelectorAll('.proyecto-card').forEach(card => {
+        card.addEventListener('click', () => {
+          currentOpenProjectId = card.dataset.id;
+          renderProjectsTab();
+        });
+      });
+    }
+
+    function renderProjectDetail(projectId, container) {
+      const projects = getProjects();
+      const project = projects.find(p => p.id === projectId);
+      if (!project) { currentOpenProjectId = null; renderProjectsTab(); return; }
+
+      const notas = Array.isArray(project.notas) ? project.notas : [];
+      const notasHtml = notas.length ? notas.map(n => {
+        const noteKey = n.noteKey || n.id;
+        const md = n.markdown || '';
+        const title = n.title || 'Nota sin título';
+        const rendered = md
+          ? renderMarkdownToHTML(md, noteKey)
+          : '<span style="color:var(--muted)">Nota sin formato.</span>';
+
+        return `
+          <details class="nota-guardada">
+            <summary>
+              <span>${escHtml(title)}</span>
+              <span class="fecha-tag">${formatFecha(n.fecha)}</span>
+            </summary>
+            <div class="nota-body">
+              <div class="notion-content" data-note-key="${escHtml(noteKey)}">
+                ${rendered}
+              </div>
+            </div>
+          </details>
+        `;
+      }).join('')
+        : '<div class="state-msg"><span class="big">📝</span><span>Sin notas guardadas aún.</span></div>';
+
+      container.innerHTML = `
+        <div class="proyecto-detail-header">
+          <button class="btn-back" id="btn-back-projects">← Volver</button>
+          <h2>📁 ${escHtml(project.nombre)}</h2>
+          <button class="btn-delete-proyecto" id="btn-delete-project">🗑️ Eliminar</button>
+        </div>
+        <button class="btn-global-summary" id="btn-global-summary" ${notas.length === 0 ? 'disabled' : ''}>🧠 Generar Resumen Global</button>
+        <div id="notas-guardadas-list">${notasHtml}</div>
+      `;
+
+      container.querySelectorAll('.notion-content').forEach(el => attachNotionCheckboxListeners(el));
+
+      document.getElementById('btn-back-projects').addEventListener('click', () => {
+        currentOpenProjectId = null;
+        renderProjectsTab();
+      });
+      document.getElementById('btn-delete-project').addEventListener('click', () => {
+        if (confirm(`¿Eliminar el proyecto "${project.nombre}" y todas sus notas?`)) {
+          deleteProject(project.id);
+          currentOpenProjectId = null;
+          showToast('🗑️ Proyecto eliminado');
+          renderProjectsTab();
+        }
+      });
+      const btnGlobal = document.getElementById('btn-global-summary');
+      if (btnGlobal) btnGlobal.addEventListener('click', () => generateGlobalSummary(project));
+    }
+
+    async function generateGlobalSummary(project) {
+      const notas = Array.isArray(project.notas) ? project.notas : [];
+      if (!notas.length) { showToast('⚠️ No hay notas para resumir.'); return; }
+
+      const combined = notas.map(n =>
+        `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`
+      ).join('\n\n');
+
+      openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen con Groq…');
+      const model = memoriaTemporal.obtener(LS_KEY_MODEL) || 'llama-3.3-70b-versatile';
+
+      const systemPrompt = `Eres un asistente experto. Recibirás varias notas Markdown de distintas sesiones de un mismo proyecto. Genera un "Resumen Global" en Markdown bien estructurado.
+REGLAS:
+- Usa H1 para el título, H2 para secciones, H3 para subtemas.
+- Incluye secciones: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (usa checkboxes Markdown "- [ ] tarea").
+- No inventes información. Solo sintetiza lo que está en las notas.
+- Devuelve ÚNICAMENTE Markdown, sin explicaciones.
+- PROHIBIDO usar muletillas como "En este bloque", "Se abordó", "Se discutió".`;
+
+      const modalContent = document.getElementById('modal-content');
+
+      try {
+        const chunks = splitIntoWordChunks(combined, WORDS_PER_CHUNK);
+        console.log(`[globalSummary] ${chunks.length} chunk(s)`);
+        const partialSummaries = [];
+
+        for (let i = 0; i < chunks.length; i++) {
+          if (modalContent) {
+            modalContent.textContent = chunks.length > 1
+              ? `Generando resumen global… bloque ${i + 1} de ${chunks.length}`
+              : 'Generando resumen global con Groq…';
+          }
+
+          const userMessage = chunks.length > 1
+            ? `(Este es el bloque ${i + 1} de ${chunks.length}. Resume SOLO este bloque.)\n\n${chunks[i]}`
+            : chunks[i];
+
+          const payload = {
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.3,
+            max_tokens: 2048
+          };
+
+          const result = await callGroqChat(payload);
+          if (result && result.trim()) partialSummaries.push(result.trim());
+
+          if (i < chunks.length - 1) await delay(2000);
+        }
+
+        if (partialSummaries.length === 0) throw new Error('No se generó ningún resumen.');
+
+        let finalMd = '';
+        if (partialSummaries.length === 1) {
+          finalMd = partialSummaries[0];
+        } else {
+          if (modalContent) modalContent.textContent = 'Fusionando resúmenes parciales…';
+          const fusionPrompt = `Recibirás varios resúmenes parciales de un mismo proyecto. Fusíonálos en UN ÚNICO resumen global coherente, sin repetir información.
+REGLAS:
+- Usa H1 para el título, H2 para secciones, H3 para subtemas.
+- Incluye: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (con "- [ ] tarea").
+- No inventes información.
+- Devuelve ÚNICAMENTE Markdown, sin explicaciones.`;
+
+          const fusionPayload = {
+            model,
+            messages: [
+              { role: 'system', content: fusionPrompt },
+              {
+                role: 'user',
+                content: partialSummaries
+                  .map((s, i) => `--- RESUMEN PARCIAL ${i + 1} ---\n\n${s}`)
+                  .join('\n\n')
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 4096
+          };
+          finalMd = await callGroqChat(fusionPayload);
+        }
+
+        const md = finalMd.trim()
+          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
+          .replace(/\n?```\s*$/i, '')
+          .trim();
+
+        const html = renderMarkdownToHTML(md, 'global_' + Date.now());
+        document.getElementById('modal-content').innerHTML = `<div class="notion-content">${html}</div>`;
+        attachNotionCheckboxListeners(document.getElementById('modal-content'));
+
+      } catch (err) {
+        console.error('Error generando resumen global:', err);
+        if (modalContent) modalContent.textContent = `⚠️ Error: ${err.message}`;
+      }
+    }
+
+    function openModal(title, content) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-content').textContent = content;
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
