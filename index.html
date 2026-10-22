@@ -184,10 +184,6 @@
     .btn-close-modal { margin-top: 16px; width: 100%; background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 12px; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; min-height: 48px; }
     .btn-close-modal:active { border-color: var(--accent); color: var(--accent); }
 
-    .prompt-modal-box { max-width: 560px; }
-    .prompt-step { margin-bottom: 20px; animation: fadeSlide 0.25s ease; }
-    .prompt-step-label { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-    .prompt-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; flex-shrink: 0; }
     .prompt-cat-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .prompt-cat-chip { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; font-size: 0.88rem; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 8px; min-height: 52px; text-align: left; font-family: var(--font); touch-action: manipulation; }
     .prompt-cat-chip:active { transform: scale(0.97); }
@@ -201,6 +197,12 @@
     .prompt-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .prompt-btn-secondary { background: transparent; color: var(--muted); border: 2px solid var(--border); flex: 0 0 auto; min-width: 100px; }
     .prompt-btn-secondary:active { border-color: var(--accent); color: var(--text); }
+
+    .prompt-step { margin-bottom: 18px; }
+    .prompt-step-label { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .prompt-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.68rem; font-weight: 800; flex-shrink: 0; }
+
+    #summary-level-chips { grid-template-columns: repeat(3, 1fr); }
 
     .state-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: var(--muted); font-size: 0.9rem; text-align: center; }
     .state-msg.error-msg { color: var(--error); }
@@ -237,18 +239,14 @@
       .notion-content h2 { font-size: 1.25em; }
       .notion-content h3 { font-size: 1.08em; }
       .prompt-cat-chips { grid-template-columns: 1fr; }
+      #summary-level-chips { grid-template-columns: 1fr; }
       .prompt-actions { flex-direction: column-reverse; }
       .prompt-btn-secondary { width: 100%; }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════
-       🖥️ DESKTOP LAYOUT (≥ 1024px) — dos columnas
-       ═══════════════════════════════════════════════════════════════════ */
     @media (min-width: 1024px) {
       :root { --max-width: 1440px; --radius: 16px; }
-
       body { padding: 22px 32px 48px; font-size: 15px; }
-
       header { margin-bottom: 20px; gap: 16px; }
       .logo { font-size: 1.35rem; }
       .logo-icon { font-size: 1.55rem; }
@@ -268,67 +266,24 @@
         padding: 0 22px 22px;
       }
 
-      .actions {
-        grid-area: actions;
-        border-bottom: 1px solid var(--border);
-        padding: 22px 0 20px;
-        margin-bottom: 4px;
-      }
-
+      .actions { grid-area: actions; border-bottom: 1px solid var(--border); padding: 22px 0 20px; margin-bottom: 4px; }
       .btn-row { gap: 12px; }
-
       .btn { padding: 10px 20px; font-size: 0.86rem; min-height: 42px; }
-      #btn-start-record {
-        flex: 0 0 auto;
-        min-width: 200px;
-        width: auto;
-        padding: 12px 22px;
-        font-size: 0.92rem;
-        min-height: 46px;
-      }
+      #btn-start-record { flex: 0 0 auto; min-width: 200px; width: auto; padding: 12px 22px; font-size: 0.92rem; min-height: 46px; }
       #btn-upload, #btn-clear { min-height: 46px; }
-
-      /* 👇 Nuevo botón de audio del sistema visible sólo en PC */
-      #btn-record-system {
-        display: inline-flex;
-        min-height: 46px;
-        padding: 12px 20px;
-        font-size: 0.86rem;
-      }
+      #btn-record-system { display: inline-flex; min-height: 46px; padding: 12px 20px; font-size: 0.86rem; }
 
       #status-dot { font-size: 0.76rem; padding: 5px 12px; margin-top: 4px; }
 
-      .tabs {
-        grid-area: tabs;
-        border-top: none;
-        border-bottom: 1px solid var(--border);
-        overflow: visible;
-        margin-bottom: 4px;
-      }
+      .tabs { grid-area: tabs; border-top: none; border-bottom: 1px solid var(--border); overflow: visible; margin-bottom: 4px; }
       .tab { padding: 13px 18px; font-size: 0.84rem; min-width: 0; }
       .tab[data-tab="transcripcion"] { display: none; }
 
-      #tab-transcripcion {
-        grid-area: transcript;
-        display: block !important;
-        padding: 16px 0 4px;
-        animation: none !important;
-        min-height: 0;
-      }
-
-      #transcript-box {
-        min-height: 460px;
-        height: calc(100vh - 400px);
-        max-height: 700px;
-        font-size: 0.92rem;
-        line-height: 1.75;
-        padding: 18px 20px;
-      }
-
+      #tab-transcripcion { grid-area: transcript; display: block !important; padding: 16px 0 4px; animation: none !important; min-height: 0; }
+      #transcript-box { min-height: 460px; height: calc(100vh - 400px); max-height: 700px; font-size: 0.92rem; line-height: 1.75; padding: 18px 20px; }
       .notes-header { margin-bottom: 12px; }
 
-      #tab-notas,
-      #tab-proyectos {
+      #tab-notas, #tab-proyectos {
         grid-area: sidebar;
         padding: 16px 0 4px;
         max-height: calc(100vh - 320px);
@@ -351,49 +306,28 @@
       #transcript-box { min-height: 300px; }
     }
 
-    /* ═══════════════════════════════════════════════════════════════════
-       📥 DRAG & DROP OVERLAY
-       ═══════════════════════════════════════════════════════════════════ */
     .drop-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
+      position: fixed; inset: 0; z-index: 2000;
       background: rgba(11, 19, 43, 0.88);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      animation: fadeIn 0.18s ease;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      pointer-events: none; animation: fadeIn 0.18s ease;
     }
     .drop-overlay.visible { display: flex; }
-
     .drop-overlay-box {
-      background: var(--surface);
-      border: 3px dashed var(--accent);
-      border-radius: var(--radius);
-      padding: 44px 56px;
-      text-align: center;
+      background: var(--surface); border: 3px dashed var(--accent);
+      border-radius: var(--radius); padding: 44px 56px; text-align: center;
       box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 12px rgba(255, 122, 0, 0.08);
       animation: dropPulse 1.6s ease-in-out infinite;
     }
     .drop-icon { font-size: 3.2rem; line-height: 1; margin-bottom: 14px; }
     .drop-title { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
     .drop-sub { font-size: 0.82rem; color: var(--muted); margin-top: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
-
     @keyframes dropPulse {
       0%, 100% { transform: scale(1); box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 12px rgba(255,122,0,0.08); }
       50%      { transform: scale(1.02); box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 20px rgba(255,122,0,0.0); }
     }
-
-    .actions.drag-active {
-      background: rgba(255, 122, 0, 0.06);
-      outline: 2px dashed var(--accent);
-      outline-offset: -10px;
-      border-radius: var(--radius);
-      transition: all 0.18s ease;
-    }
+    .actions.drag-active { background: rgba(255, 122, 0, 0.06); outline: 2px dashed var(--accent); outline-offset: -10px; border-radius: var(--radius); transition: all 0.18s ease; }
   </style>
 </head>
 <body>
@@ -408,7 +342,6 @@
   </header>
 
   <div id="config-panel">
-
     <label for="model-select">Modelo de Notas Inteligentes (Groq)</label>
     <select id="model-select">
       <option value="">Cargando modelos...</option>
@@ -430,10 +363,7 @@
       </p>
       <textarea id="groq-keys-input"
                 placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#10;gsk_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
-                spellcheck="false"
-                autocapitalize="off"
-                autocomplete="off"
-                autocorrect="off"></textarea>
+                spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
       <div class="keys-btn-row">
         <button id="btn-save-keys" class="btn-secondary">💾 Guardar Keys</button>
         <button id="btn-reset-keys" class="btn-secondary">↺ Borrar Keys</button>
@@ -471,7 +401,6 @@
              multiple />
 
       <div id="status-dot"><span class="dot"></span><span id="status-text">Listo. Elige un modo y empieza.</span></div>
-
       <div id="wake-lock-notice">💡 Pantalla mantenida encendida por seguridad</div>
 
       <p class="drop-hint" style="font-size:0.76rem;color:var(--muted);margin-top:-4px;display:none;">
@@ -489,13 +418,10 @@
       <div class="notes-header">
         <button id="btn-copy-transcript" class="btn-copy-notion">📋 Copiar</button>
       </div>
-
       <div id="transcript-progress-area"></div>
-
       <textarea id="transcript-box"
                 placeholder="La transcripción aparecerá aquí... También puedes PEGAR tu propia transcripción y pulsar 'Analizar Texto Pegado'."
                 spellcheck="false"></textarea>
-
       <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
         <button id="btn-analyze-pasted" class="btn btn-primary" style="flex:1; min-width:180px;">
           ✨ Analizar Texto Pegado
@@ -530,29 +456,52 @@
     </div>
   </div>
 
+  <!-- 🎯 MODAL 1: Selección de MODO -->
   <div class="modal-overlay" id="mode-select-modal">
     <div class="modal-box" style="max-width: 480px;">
       <h3>🎯 ¿Qué enfoque de notas deseas?</h3>
       <p class="modal-subtitle">Elige el tipo de contenido para esta sesión. Las notas se generarán <strong>automáticamente</strong> al terminar la transcripción.</p>
 
       <div class="prompt-cat-chips" id="mode-select-chips" style="grid-template-columns: repeat(2, 1fr);">
-        <button type="button" class="prompt-cat-chip" data-mode="academico">
-          <span class="cat-emoji">🎓</span> Académico
-        </button>
-        <button type="button" class="prompt-cat-chip" data-mode="idiomas">
-          <span class="cat-emoji">🌐</span> Idiomas
-        </button>
-        <button type="button" class="prompt-cat-chip" data-mode="ejecutivo">
-          <span class="cat-emoji">💼</span> Ejecutivo
-        </button>
-        <button type="button" class="prompt-cat-chip" data-mode="libre">
-          <span class="cat-emoji">📝</span> Libre
-        </button>
+        <button type="button" class="prompt-cat-chip" data-mode="academico"><span class="cat-emoji">🎓</span> Académico</button>
+        <button type="button" class="prompt-cat-chip" data-mode="idiomas"><span class="cat-emoji">🌐</span> Idiomas</button>
+        <button type="button" class="prompt-cat-chip" data-mode="ejecutivo"><span class="cat-emoji">💼</span> Ejecutivo</button>
+        <button type="button" class="prompt-cat-chip" data-mode="libre"><span class="cat-emoji">📝</span> Libre</button>
       </div>
 
       <div class="prompt-actions">
         <button type="button" class="prompt-btn prompt-btn-secondary" id="mode-select-cancel">Cancelar</button>
         <button type="button" class="prompt-btn prompt-btn-primary" id="mode-select-confirm" disabled>Comenzar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🆕 MODAL 2: Detalle / Nivel de resumen -->
+  <div class="modal-overlay" id="detail-select-modal">
+    <div class="modal-box" style="max-width: 520px;">
+      <h3>📊 ¿Cómo quieres tus notas?</h3>
+      <p class="modal-subtitle">La transcripción está lista. Elige el nivel de detalle de las notas que se generarán ahora.</p>
+
+      <div class="prompt-step">
+        <div class="prompt-step-label"><span class="prompt-step-num">1</span> Nivel de detalle</div>
+        <div class="prompt-cat-chips" id="detail-select-chips">
+          <button type="button" class="prompt-cat-chip" data-detail="detallado"><span class="cat-emoji">📚</span> Detallado</button>
+          <button type="button" class="prompt-cat-chip" data-detail="resumido"><span class="cat-emoji">✂️</span> Resumido</button>
+        </div>
+      </div>
+
+      <div class="prompt-step" id="summary-level-section" style="display:none;">
+        <div class="prompt-step-label"><span class="prompt-step-num">2</span> Nivel de resumen</div>
+        <div class="prompt-cat-chips" id="summary-level-chips">
+          <button type="button" class="prompt-cat-chip" data-level="nivel1"><span class="cat-emoji">1️⃣</span> Breve</button>
+          <button type="button" class="prompt-cat-chip" data-level="nivel2"><span class="cat-emoji">2️⃣</span> Balanceado</button>
+          <button type="button" class="prompt-cat-chip" data-level="nivel3"><span class="cat-emoji">3️⃣</span> Exhaustivo</button>
+        </div>
+      </div>
+
+      <div class="prompt-actions">
+        <button type="button" class="prompt-btn prompt-btn-secondary" id="detail-select-cancel">Omitir por ahora</button>
+        <button type="button" class="prompt-btn prompt-btn-primary" id="detail-select-confirm" disabled>Generar Notas</button>
       </div>
     </div>
   </div>
@@ -579,26 +528,21 @@
     })();
 
     // ═══════════════════════════════════════════════════════════════
-    // 🤖 BRIDGE NATIVO ENCAPSULADO
+    // 🤖 BRIDGE NATIVO
     // ═══════════════════════════════════════════════════════════════
     const NativeBridge = {
-      isAvailable() {
-        return typeof window.AndroidNative === 'object' && window.AndroidNative !== null;
-      },
+      isAvailable() { return typeof window.AndroidNative === 'object' && window.AndroidNative !== null; },
       startRecording() {
         if (!this.isAvailable() || typeof window.AndroidNative.startRecording !== 'function') return false;
-        try { window.AndroidNative.startRecording(); return true; }
-        catch (err) { console.warn('[NativeBridge] startRecording falló:', err); return false; }
+        try { window.AndroidNative.startRecording(); return true; } catch (err) { console.warn(err); return false; }
       },
       stopRecording() {
         if (!this.isAvailable() || typeof window.AndroidNative.stopRecording !== 'function') return false;
-        try { window.AndroidNative.stopRecording(); return true; }
-        catch (err) { console.warn('[NativeBridge] stopRecording falló:', err); return false; }
+        try { window.AndroidNative.stopRecording(); return true; } catch (err) { console.warn(err); return false; }
       },
       saveFile(name, mime, text) {
         if (!this.isAvailable() || typeof window.AndroidNative.saveFile !== 'function') return false;
-        try { window.AndroidNative.saveFile(name, mime, text); return true; }
-        catch (err) { console.warn('[NativeBridge] saveFile falló:', err); return false; }
+        try { window.AndroidNative.saveFile(name, mime, text); return true; } catch (err) { console.warn(err); return false; }
       }
     };
 
@@ -606,7 +550,6 @@
     // 🎙️ GROQ — Keys y endpoints
     // ═══════════════════════════════════════════════════════════════
     const GROQ_KEYS_DEFAULT = [];
-
     const LS_KEY_GROQ_KEYS = 'meetingmind_groq_keys';
     const LS_KEY_MODEL = 'meetingmind_groq_text_model';
     const LS_KEY_PROJECTS = 'meetingmind_projects';
@@ -658,9 +601,7 @@
         cachedAvailableModels = null;
         keyCooldown.clear();
         return { ok: true, count: cleaned.length };
-      } catch (e) {
-        return { ok: false, error: e.message };
-      }
+      } catch (e) { return { ok: false, error: e.message }; }
     }
 
     function resetGroqKeys() {
@@ -680,30 +621,10 @@
     // 📋 MODOS DE SESIÓN
     // ═══════════════════════════════════════════════════════════════
     const MODE_DEFINITIONS = {
-      academico: {
-        categoria: 'academico', categoriaLabel: 'Académico',
-        contexto: ['Clase Teórica'],
-        enfoque: ['Conceptos Clave', 'Extraer Fórmulas y Cálculos'],
-        isLanguageFocus: false
-      },
-      idiomas: {
-        categoria: 'academico', categoriaLabel: 'Idiomas',
-        contexto: ['Clase de Idioma'],
-        enfoque: ['Vocabulario Nuevo', 'Gramática'],
-        isLanguageFocus: true
-      },
-      ejecutivo: {
-        categoria: 'ejecutivo', categoriaLabel: 'Ejecutivo',
-        contexto: ['Reunión de Avance'],
-        enfoque: ['Acuerdos', 'Tareas Pendientes', 'Decisiones Clave'],
-        isLanguageFocus: false
-      },
-      libre: {
-        categoria: 'libre', categoriaLabel: 'Libre',
-        contexto: ['Conversación Libre'],
-        enfoque: ['Resumen General', 'Ideas Principales'],
-        isLanguageFocus: false
-      }
+      academico: { categoria: 'academico', categoriaLabel: 'Académico', contexto: ['Clase Teórica'], enfoque: ['Conceptos Clave', 'Extraer Fórmulas y Cálculos'], isLanguageFocus: false },
+      idiomas: { categoria: 'academico', categoriaLabel: 'Idiomas', contexto: ['Clase de Idioma'], enfoque: ['Vocabulario Nuevo', 'Gramática'], isLanguageFocus: true },
+      ejecutivo: { categoria: 'ejecutivo', categoriaLabel: 'Ejecutivo', contexto: ['Reunión de Avance'], enfoque: ['Acuerdos', 'Tareas Pendientes', 'Decisiones Clave'], isLanguageFocus: false },
+      libre: { categoria: 'libre', categoriaLabel: 'Libre', contexto: ['Conversación Libre'], enfoque: ['Resumen General', 'Ideas Principales'], isLanguageFocus: false }
     };
 
     // ═══════════════════════════════════════════════════════════════
@@ -717,34 +638,21 @@
       const words = clean.split(/\s+/).filter(Boolean);
       if (words.length <= wordsPerChunk) return [clean];
       const chunks = [];
-      for (let i = 0; i < words.length; i += wordsPerChunk) {
-        chunks.push(words.slice(i, i + wordsPerChunk).join(' '));
-      }
+      for (let i = 0; i < words.length; i += wordsPerChunk) chunks.push(words.slice(i, i + wordsPerChunk).join(' '));
       return chunks;
     }
 
     function mergeJsonNotes(jsonNotesArray) {
       if (!Array.isArray(jsonNotesArray) || jsonNotesArray.length === 0) return null;
       if (jsonNotesArray.length === 1) return jsonNotesArray[0];
-
-      const merged = {
-        titulo_principal: jsonNotesArray[0]?.titulo_principal || 'Apuntes de la sesión',
-        secciones: []
-      };
+      const merged = { titulo_principal: jsonNotesArray[0]?.titulo_principal || 'Apuntes de la sesión', secciones: [] };
       const sectionMap = new Map();
-
       for (const notes of jsonNotesArray) {
         if (!notes || !Array.isArray(notes.secciones)) continue;
         for (const sec of notes.secciones) {
           const title = sec.titulo_seccion || 'Sección';
           const key = title.toLowerCase().trim();
-          if (!sectionMap.has(key)) {
-            sectionMap.set(key, {
-              titulo_seccion: title,
-              tipo_contenido: sec.tipo_contenido || 'lista',
-              contenido: []
-            });
-          }
+          if (!sectionMap.has(key)) sectionMap.set(key, { titulo_seccion: title, tipo_contenido: sec.tipo_contenido || 'lista', contenido: [] });
           const target = sectionMap.get(key);
           const items = Array.isArray(sec.contenido) ? sec.contenido : [];
           for (const it of items) {
@@ -810,13 +718,10 @@
     let cachedAvailableModels = null;
     async function fetchAvailableModels(forceRefresh = false) {
       if (cachedAvailableModels && !forceRefresh) return cachedAvailableModels;
-      if (GROQ_KEYS.length === 0) {
-        return ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
-      }
+      if (GROQ_KEYS.length === 0) return ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
       try {
         const response = await fetchWithTimeout(GROQ_MODELS_URL, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${GROQ_KEYS[0]}` }
+          method: 'GET', headers: { 'Authorization': `Bearer ${GROQ_KEYS[0]}` }
         }, 20000, 'json');
         if (!response.ok) {
           cachedAvailableModels = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
@@ -824,30 +729,20 @@
         }
         const data = response.parsed;
         const ids = (data.data || []).map(m => m.id);
-
         const valid = ids.filter(id => {
           const low = id.toLowerCase();
-          return !low.includes('whisper') && !low.includes('prompt-guard') &&
-                 !low.includes('safeguard') && !low.includes('llava') &&
-                 !low.includes('vision') && !low.includes('tts') &&
+          return !low.includes('whisper') && !low.includes('prompt-guard') && !low.includes('safeguard') &&
+                 !low.includes('llava') && !low.includes('vision') && !low.includes('tts') &&
                  !low.includes('embed') && !low.includes('guard');
         });
-
         const preferred = [];
         const prioridad = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b', 'llama-3.3-70b-versatile'];
-
-        for (const p of prioridad) {
-          if (valid.includes(p) && !preferred.includes(p)) preferred.push(p);
-        }
+        for (const p of prioridad) if (valid.includes(p) && !preferred.includes(p)) preferred.push(p);
         for (const id of valid) {
           if (preferred.length >= 5) break;
           const low = id.toLowerCase();
-          if (!preferred.includes(id) &&
-              (low.includes('qwen') || low.includes('llama') || low.includes('mixtral') || low.includes('gemma'))) {
-            preferred.push(id);
-          }
+          if (!preferred.includes(id) && (low.includes('qwen') || low.includes('llama') || low.includes('mixtral') || low.includes('gemma'))) preferred.push(id);
         }
-
         cachedAvailableModels = preferred.length > 0 ? preferred : ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
         console.log('[fetchAvailableModels] Modelos válidos:', cachedAvailableModels);
         return cachedAvailableModels;
@@ -870,20 +765,27 @@
       }
     };
 
+    // ═══════════════════════════════════════════════════════════════
+    // ESTADO GLOBAL
+    // ═══════════════════════════════════════════════════════════════
     let currentNotionMarkdown = '';
     let currentNoteKey = '';
     let currentOpenProjectId = null;
     let currentSessionMode = null;
+
+    let currentDetailLevel = null;      // 'detallado' | 'resumido'
+    let currentSummaryLevel = null;     // 'nivel1' | 'nivel2' | 'nivel3'
 
     let micStream = null;
     let currentRecorder = null;
     let isRecordingActive = false;
     let isStarting = false;
     let recordingChunkInterval = null;
-    let currentRecordingMode = null;   // 'mic' | 'system' | null
+    let currentRecordingMode = null;    // 'mic' | 'system' | null
     let systemAudioStream = null;
 
     let modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
+    let detailSelectState = { detailLevel: null, summaryLevel: null, pendingAction: null };
     let wakeLock = null;
 
     async function requestWakeLock() {
@@ -895,17 +797,12 @@
         wakeLock.addEventListener('release', () => { wakeLock = null; });
         if (notice) notice.classList.add('show');
         return true;
-      } catch (err) {
-        wakeLock = null;
-        return false;
-      }
+      } catch (err) { wakeLock = null; return false; }
     }
 
     async function releaseWakeLock() {
       const notice = document.getElementById('wake-lock-notice');
-      try {
-        if (wakeLock) { await wakeLock.release(); wakeLock = null; }
-      } catch (err) {}
+      try { if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (err) {}
       if (notice) notice.classList.remove('show');
     }
 
@@ -917,12 +814,8 @@
       ta.remove(); return ok;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 💾 GUARDADO DE ARCHIVOS (File System Access API con fallback)
-    // ═══════════════════════════════════════════════════════════════
     async function saveTextFile(name, mime, text) {
       if (NativeBridge.saveFile(name, mime, text)) return true;
-
       if (typeof window.showSaveFilePicker === 'function' && !/Android/i.test(navigator.userAgent)) {
         try {
           const ext = (name.split('.').pop() || '').toLowerCase();
@@ -937,10 +830,9 @@
           return true;
         } catch (err) {
           if (err?.name === 'AbortError') return false;
-          console.warn('[saveTextFile] File System Access falló, usando fallback', err);
+          console.warn('[saveTextFile] FSA falló, usando fallback', err);
         }
       }
-
       const url = URL.createObjectURL(new Blob([text], { type: mime }));
       const a = Object.assign(document.createElement('a'), { href: url, download: name });
       document.body.appendChild(a); a.click(); a.remove();
@@ -949,25 +841,20 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 🖥️ CAPTURA DE AUDIO DEL SISTEMA / PESTAÑA (solo PC)
+    // 🖥️ CAPTURA DE AUDIO DEL SISTEMA
     // ═══════════════════════════════════════════════════════════════
     async function getSystemAudioStream() {
       if (typeof navigator.mediaDevices?.getDisplayMedia !== 'function') {
         throw new Error('Tu navegador no soporta captura de audio del sistema.');
       }
-
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: { restrictOwnAudio: true }
+        video: true, audio: { restrictOwnAudio: true }
       });
-
       const audioTracks = displayStream.getAudioTracks();
-
       if (audioTracks.length === 0) {
         displayStream.getVideoTracks().forEach(t => t.stop());
         throw new Error('No se seleccionó audio. Marca "Compartir audio" en el selector del navegador.');
       }
-
       const audioOnly = new MediaStream(audioTracks);
       displayStream.getVideoTracks().forEach(t => t.stop());
       return audioOnly;
@@ -1000,10 +887,7 @@
           modelSelect.innerHTML = models.map(m => `<option value="${m}">🧠 ${m}</option>`).join('');
           const saved = memoriaTemporal.obtener(LS_KEY_MODEL);
           if (saved && models.includes(saved)) modelSelect.value = saved;
-          else {
-            modelSelect.value = models[0];
-            memoriaTemporal.guardar(LS_KEY_MODEL, models[0]);
-          }
+          else { modelSelect.value = models[0]; memoriaTemporal.guardar(LS_KEY_MODEL, models[0]); }
         }
       });
       modelSelect.addEventListener('change', () => {
@@ -1049,10 +933,7 @@
           tabPanes.forEach(p => p.classList.remove('active'));
           tab.classList.add('active');
           document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
-          if (tab.dataset.tab === 'proyectos') {
-            currentOpenProjectId = null;
-            renderProjectsTab();
-          }
+          if (tab.dataset.tab === 'proyectos') { currentOpenProjectId = null; renderProjectsTab(); }
         });
       });
 
@@ -1065,13 +946,13 @@
         }
       });
 
-      // 👇 Botón de audio del sistema
+      // ✅ Audio del sistema abre el modal de modo
       btnRecordSystem?.addEventListener('click', () => {
         if (isRecordingActive) {
           if (currentRecordingMode === 'system') stopSystemAudioRecording();
           else showToast('Detén primero la grabación de micrófono.');
         } else {
-          startSystemAudioRecordingProcess();
+          openModeSelectModal('record-system');
         }
       });
 
@@ -1091,18 +972,10 @@
         const validExt = ['flac','mp3','mp4','mpeg','mpga','m4a','ogg','wav','webm'];
         for (const f of files) {
           const ext = f.name.includes('.') ? f.name.split('.').pop().toLowerCase() : '';
-          if (!ext || !validExt.includes(ext)) {
-            showToast(`⚠️ Formato no soportado: ${f.name}`);
-            return;
-          }
+          if (!ext || !validExt.includes(ext)) { showToast(`⚠️ Formato no soportado: ${f.name}`); return; }
         }
-        try {
-          await handleMultipleAudioFiles(files);
-        } catch (err) {
-          showToast(`❌ Error: ${err.message}`);
-          setStatus('error', 'Error al procesar');
-          enableAllButtons();
-        }
+        try { await handleMultipleAudioFiles(files); }
+        catch (err) { showToast(`❌ Error: ${err.message}`); setStatus('error', 'Error al procesar'); enableAllButtons(); }
       });
 
       document.getElementById('btn-copy-transcript').addEventListener('click', async () => {
@@ -1115,12 +988,9 @@
 
       btnAnalyzePasted.addEventListener('click', async () => {
         const text = transcriptBox.value.trim();
-        if (!text || text.length < 20) {
-          showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
-          return;
-        }
+        if (!text || text.length < 20) { showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).'); return; }
         if (!currentSessionMode) { openModeSelectModal('analyze-pasted'); return; }
-        await triggerAutoAnalysis();
+        openDetailSelectModal('analyze-pasted');
       });
 
       btnClearTranscript.addEventListener('click', () => {
@@ -1137,6 +1007,7 @@
       });
 
       initModeSelectModalListeners();
+      initDetailSelectModalListeners();
       renderProjectsTab();
 
       document.getElementById('btn-export-data').addEventListener('click', async () => {
@@ -1160,9 +1031,7 @@
             memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(parsed));
             showToast('✅ Datos importados.');
             renderProjectsTab();
-          } catch (err) {
-            showToast('⚠️ Archivo inválido.');
-          }
+          } catch (err) { showToast('⚠️ Archivo inválido.'); }
         };
         reader.readAsText(file);
         e.target.value = '';
@@ -1189,8 +1058,7 @@
             resultEl.textContent = lines.join('\n');
             try {
               const res = await fetchWithTimeout(GROQ_MODELS_URL, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${key}` }
+                method: 'GET', headers: { 'Authorization': `Bearer ${key}` }
               }, 15000, 'json');
               if (res.ok) {
                 const count = (res.parsed.data || []).length;
@@ -1221,9 +1089,7 @@
         const notasTab = document.querySelector('.tab[data-tab="notas"]');
         const notasPane = document.getElementById('tab-notas');
         const proyPane = document.getElementById('tab-proyectos');
-        if (notasTab && notasPane && proyPane
-            && !notasPane.classList.contains('active')
-            && !proyPane.classList.contains('active')) {
+        if (notasTab && notasPane && proyPane && !notasPane.classList.contains('active') && !proyPane.classList.contains('active')) {
           document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
           notasTab.classList.add('active');
           notasPane.classList.add('active');
@@ -1246,61 +1112,36 @@
         return VALID_EXT.includes(ext) || (f.type || '').startsWith('audio/');
       };
 
-      const showOverlay = () => {
-        overlay?.classList.add('visible');
-        actionsEl?.classList.add('drag-active');
-      };
-      const hideOverlay = () => {
-        overlay?.classList.remove('visible');
-        actionsEl?.classList.remove('drag-active');
-        dragDepth = 0;
-      };
+      const showOverlay = () => { overlay?.classList.add('visible'); actionsEl?.classList.add('drag-active'); };
+      const hideOverlay = () => { overlay?.classList.remove('visible'); actionsEl?.classList.remove('drag-active'); dragDepth = 0; };
 
       ['dragenter','dragover','dragleave','drop'].forEach(evt => {
-        window.addEventListener(evt, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }, false);
+        window.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
       });
 
       window.addEventListener('dragenter', (e) => {
         if (isRecordingActive) return;
         if (!e.dataTransfer?.types?.includes('Files')) return;
-        dragDepth++;
-        showOverlay();
+        dragDepth++; showOverlay();
       });
 
-      window.addEventListener('dragleave', () => {
-        dragDepth--;
-        if (dragDepth <= 0) hideOverlay();
-      });
+      window.addEventListener('dragleave', () => { dragDepth--; if (dragDepth <= 0) hideOverlay(); });
 
       window.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideOverlay();
-
+        e.preventDefault(); e.stopPropagation(); hideOverlay();
         if (isRecordingActive) { showToast('⚠️ Detén la grabación antes de soltar archivos.'); return; }
         if (globalTranscriptionController) { showToast('⚠️ Ya hay una transcripción en curso.'); return; }
-
         const files = Array.from(e.dataTransfer?.files || []);
         if (!files.length) return;
-
         const audioFiles = files.filter(isValidAudio);
         if (!audioFiles.length) { showToast('⚠️ No se detectaron archivos de audio válidos.'); return; }
-        if (audioFiles.length < files.length) {
-          showToast(`⚠️ ${files.length - audioFiles.length} archivo(s) ignorados.`);
-        }
-
+        if (audioFiles.length < files.length) showToast(`⚠️ ${files.length - audioFiles.length} archivo(s) ignorados.`);
         if (!currentSessionMode) { openModeSelectModal('upload-files', audioFiles); return; }
-
         try {
           setStatus('loading', 'Procesando archivos arrastrados…');
           await handleMultipleAudioFiles(audioFiles);
         } catch (err) {
-          showToast(`❌ ${err.message}`);
-          setStatus('error', 'Error al procesar archivos.');
-          enableAllButtons();
+          showToast(`❌ ${err.message}`); setStatus('error', 'Error al procesar archivos.'); enableAllButtons();
         }
       });
     }
@@ -1310,7 +1151,6 @@
     // ═══════════════════════════════════════════════════════════════
     function initKeyboardShortcuts() {
       if (!IS_DESKTOP) return;
-
       document.addEventListener('keydown', (e) => {
         const tag = (e.target.tagName || '').toLowerCase();
         const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
@@ -1318,7 +1158,13 @@
 
         if (e.key === 'Escape') {
           const modeModal = document.getElementById('mode-select-modal');
+          const detailModal = document.getElementById('detail-select-modal');
           const mainModal = document.getElementById('modal-overlay');
+          if (detailModal?.classList.contains('open')) {
+            detailModal.classList.remove('open');
+            detailSelectState = { detailLevel: null, summaryLevel: null, pendingAction: null };
+            return;
+          }
           if (modeModal?.classList.contains('open')) {
             modeModal.classList.remove('open');
             modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
@@ -1362,6 +1208,9 @@
       });
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // MODAL DE MODO
+    // ═══════════════════════════════════════════════════════════════
     function initModeSelectModalListeners() {
       const modal = document.getElementById('mode-select-modal');
       const chips = document.querySelectorAll('#mode-select-chips .prompt-cat-chip');
@@ -1370,10 +1219,9 @@
 
       chips.forEach(chip => {
         chip.addEventListener('click', () => {
-          const mode = chip.dataset.mode;
-          modeSelectState.mode = mode;
+          modeSelectState.mode = chip.dataset.mode;
           chips.forEach(c => c.classList.toggle('selected', c === chip));
-          btnConfirm.disabled = !mode;
+          btnConfirm.disabled = !modeSelectState.mode;
         });
       });
 
@@ -1396,8 +1244,7 @@
         if (!mode) return;
 
         currentSessionMode = mode;
-        const modeDef = MODE_DEFINITIONS[mode];
-        showToast(`🎯 Modo: ${modeDef.categoriaLabel}`);
+        showToast(`🎯 Modo: ${MODE_DEFINITIONS[mode].categoriaLabel}`);
         modal.classList.remove('open');
         modeSelectState = { mode: null, pendingAction: null, pendingFiles: null };
 
@@ -1405,7 +1252,7 @@
         else if (action === 'record-system') startSystemAudioRecordingProcess();
         else if (action === 'upload') document.getElementById('file-input').click();
         else if (action === 'upload-files') { if (files && files.length) handleMultipleAudioFiles(files); }
-        else if (action === 'analyze-pasted') triggerAutoAnalysis();
+        else if (action === 'analyze-pasted') openDetailSelectModal('analyze-pasted');
       });
     }
 
@@ -1418,14 +1265,105 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // 🆕 MODAL DE DETALLE / NIVEL
+    // ═══════════════════════════════════════════════════════════════
+    function initDetailSelectModalListeners() {
+      const modal = document.getElementById('detail-select-modal');
+      const detailChips = modal.querySelectorAll('#detail-select-chips .prompt-cat-chip');
+      const levelChips = modal.querySelectorAll('#summary-level-chips .prompt-cat-chip');
+      const levelSection = document.getElementById('summary-level-section');
+      const btnCancel = document.getElementById('detail-select-cancel');
+      const btnConfirm = document.getElementById('detail-select-confirm');
+
+      function updateConfirmButton() {
+        const d = detailSelectState.detailLevel;
+        const l = detailSelectState.summaryLevel;
+        btnConfirm.disabled = !d || (d === 'resumido' && !l);
+      }
+
+      detailChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          detailSelectState.detailLevel = chip.dataset.detail;
+          detailChips.forEach(c => c.classList.toggle('selected', c === chip));
+          if (chip.dataset.detail === 'resumido') {
+            levelSection.style.display = 'block';
+            if (!detailSelectState.summaryLevel) {
+              detailSelectState.summaryLevel = 'nivel2';
+              levelChips.forEach(c => c.classList.toggle('selected', c.dataset.level === 'nivel2'));
+            }
+          } else {
+            levelSection.style.display = 'none';
+          }
+          updateConfirmButton();
+        });
+      });
+
+      levelChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          detailSelectState.summaryLevel = chip.dataset.level;
+          levelChips.forEach(c => c.classList.toggle('selected', c === chip));
+          updateConfirmButton();
+        });
+      });
+
+      btnCancel.addEventListener('click', () => {
+        modal.classList.remove('open');
+        detailSelectState = { detailLevel: null, summaryLevel: null, pendingAction: null };
+        document.getElementById('notes-container').innerHTML =
+          '<div class="state-msg"><span class="big">✨</span><span>Transcripción lista. Pulsa "Analizar Texto Pegado" cuando quieras generar notas.</span></div>';
+      });
+
+      modal.addEventListener('click', (e) => {
+        if (e.target.id === 'detail-select-modal') {
+          modal.classList.remove('open');
+          detailSelectState = { detailLevel: null, summaryLevel: null, pendingAction: null };
+        }
+      });
+
+      btnConfirm.addEventListener('click', async () => {
+        if (!detailSelectState.detailLevel) return;
+        currentDetailLevel = detailSelectState.detailLevel;
+        currentSummaryLevel = detailSelectState.summaryLevel;
+        const action = detailSelectState.pendingAction;
+        modal.classList.remove('open');
+        detailSelectState = { detailLevel: null, summaryLevel: null, pendingAction: null };
+
+        if (action === 'analyze-pasted') await runAnalysisWithCurrentOptions();
+      });
+    }
+
+    function openDetailSelectModal(action) {
+      detailSelectState = {
+        detailLevel: currentDetailLevel || 'resumido',
+        summaryLevel: currentSummaryLevel || 'nivel2',
+        pendingAction: action
+      };
+      const modal = document.getElementById('detail-select-modal');
+      const detailChips = modal.querySelectorAll('#detail-select-chips .prompt-cat-chip');
+      const levelChips = modal.querySelectorAll('#summary-level-chips .prompt-cat-chip');
+      const levelSection = document.getElementById('summary-level-section');
+
+      detailChips.forEach(c => c.classList.toggle('selected', c.dataset.detail === detailSelectState.detailLevel));
+      levelChips.forEach(c => c.classList.toggle('selected', c.dataset.level === detailSelectState.summaryLevel));
+      levelSection.style.display = detailSelectState.detailLevel === 'resumido' ? 'block' : 'none';
+      document.getElementById('detail-select-confirm').disabled = !detailSelectState.detailLevel;
+      modal.classList.add('open');
+    }
+
+    async function runAnalysisWithCurrentOptions() {
+      const text = document.getElementById('transcript-box').value.trim();
+      if (!text || text.length < 20) { showToast('⚠️ Transcripción muy corta para analizar.'); return; }
+      const opts = getSessionOptions();
+      await analyzeText(text, document.getElementById('notes-container'), opts);
+      document.querySelector('[data-tab="notas"]')?.click();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // 🎙️ GRABACIÓN DE MICRÓFONO
     // ═══════════════════════════════════════════════════════════════
     async function startRecordingProcess() {
       if (isRecordingActive || isStarting) return;
-      if (GROQ_KEYS.length === 0) {
-        showToast('⚠️ Configura al menos una API Key de Groq antes de grabar.', 5000);
-        return;
-      }
+      if (GROQ_KEYS.length === 0) { showToast('⚠️ Configura al menos una API Key de Groq antes de grabar.', 5000); return; }
       isStarting = true;
       await requestWakeLock();
 
@@ -1461,20 +1399,12 @@
         resetRecordButton();
         enableAllButtons();
         releaseWakeLock();
-      } finally {
-        isStarting = false;
-      }
+      } finally { isStarting = false; }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 🖥️ GRABACIÓN DE AUDIO DEL SISTEMA
-    // ═══════════════════════════════════════════════════════════════
     async function startSystemAudioRecordingProcess() {
       if (isRecordingActive || isStarting) return;
-      if (GROQ_KEYS.length === 0) {
-        showToast('⚠️ Configura al menos una API Key de Groq antes de grabar.', 5000);
-        return;
-      }
+      if (GROQ_KEYS.length === 0) { showToast('⚠️ Configura al menos una API Key de Groq antes de grabar.', 5000); return; }
       if (!IS_DESKTOP) { showToast('⚠️ Esta función solo está disponible en PC.'); return; }
 
       isStarting = true;
@@ -1482,7 +1412,6 @@
 
       try {
         const stream = await getSystemAudioStream();
-
         isRecordingActive = true;
         currentRecordingMode = 'system';
         systemAudioStream = stream;
@@ -1493,7 +1422,6 @@
         setStatus('active', '🔊 Grabando audio del sistema / pestaña...');
         disableButtonsExcept(btn);
 
-        // Si el usuario detiene la compartición desde la barra del navegador
         stream.getAudioTracks()[0]?.addEventListener('ended', () => {
           if (isRecordingActive && currentRecordingMode === 'system') stopSystemAudioRecording();
         });
@@ -1506,9 +1434,7 @@
         currentRecordingMode = null;
         enableAllButtons();
         releaseWakeLock();
-      } finally {
-        isStarting = false;
-      }
+      } finally { isStarting = false; }
     }
 
     function stopSystemAudioRecording() {
@@ -1516,22 +1442,16 @@
       isRecordingActive = false;
       currentRecordingMode = null;
       releaseWakeLock();
-
       clearTimeout(recordingChunkInterval);
       if (currentRecorder && currentRecorder.state !== 'inactive') currentRecorder.stop();
-
       if (systemAudioStream) {
         systemAudioStream.getTracks().forEach(t => t.stop());
         systemAudioStream = null;
       }
-
       resetRecordButton();
       setStatus('loading', 'Procesando grabación del sistema…');
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 🎙️ MEDIARECORDER — Recibe cualquier MediaStream
-    // ═══════════════════════════════════════════════════════════════
     function startMediaRecorderChunk(stream) {
       if (!isRecordingActive || !stream) return;
       let mime = 'audio/webm;codecs=opus';
@@ -1552,10 +1472,7 @@
           showToast('❌ ' + err.message);
           setStatus('error', 'Error al transcribir');
         } finally {
-          if (!isRecordingActive) {
-            resetRecordButton();
-            enableAllButtons();
-          }
+          if (!isRecordingActive) { resetRecordButton(); enableAllButtons(); }
         }
       };
 
@@ -1589,19 +1506,12 @@
 
     function resetRecordButton() {
       const micBtn = document.getElementById('btn-start-record');
-      if (micBtn) {
-        micBtn.textContent = '🔴 Iniciar Grabación (Mic)';
-        micBtn.classList.remove('recording');
-      }
+      if (micBtn) { micBtn.textContent = '🔴 Iniciar Grabación (Mic)'; micBtn.classList.remove('recording'); }
       const sysBtn = document.getElementById('btn-record-system');
-      if (sysBtn) {
-        sysBtn.textContent = '🖥️ Grabar Audio del Sistema';
-        sysBtn.classList.remove('recording');
-      }
+      if (sysBtn) { sysBtn.textContent = '🖥️ Grabar Audio del Sistema'; sysBtn.classList.remove('recording'); }
     }
 
     let transcribeQueue = Promise.resolve();
-
     function transcribeRecordedChunk(file) {
       const run = transcribeQueue.then(() => _transcribeRecordedChunkImpl(file));
       transcribeQueue = run.catch(() => {});
@@ -1610,22 +1520,17 @@
 
     async function _transcribeRecordedChunkImpl(file) {
       setStatus('loading', 'Transcribiendo bloque de audio…');
-      setTranscriptProgressHTML(
-        '<div class="transcript-progress"><span class="spinner"></span><span>Transcribiendo bloque de audio…</span></div>');
+      setTranscriptProgressHTML('<div class="transcript-progress"><span class="spinner"></span><span>Transcribiendo bloque de audio…</span></div>');
       try {
         const text = await transcribeFile(file, msg => setStatus('loading', msg));
         if (text && text.trim()) appendToTranscript(text);
-      } finally {
-        clearTranscriptProgress();
-      }
+      } finally { clearTranscriptProgress(); }
     }
 
     window.receiveNativeAudio = async function (base64Audio) {
       clearTimeout(nativeStopTimer);
       try {
-        if (!base64Audio || typeof base64Audio !== 'string' || base64Audio.length < 10) {
-          throw new Error('Audio nativo vacío o inválido.');
-        }
+        if (!base64Audio || typeof base64Audio !== 'string' || base64Audio.length < 10) throw new Error('Audio nativo vacío o inválido.');
         const cleanB64 = base64Audio.includes(',') ? base64Audio.split(',').pop() : base64Audio;
         const binary = atob(cleanB64);
         const len = binary.length;
@@ -1635,18 +1540,12 @@
         const file = new File([blob], `record_native_${Date.now()}.m4a`, { type: 'audio/mp4' });
         resetRecordButton();
         setStatus('loading', 'Transcribiendo grabación nativa…');
-
         await transcribeRecordedChunk(file);
         await maybeAutoAnalyze();
       } catch (err) {
         console.error('[receiveNativeAudio]', err);
         const msg = (err && err.message) ? err.message : '';
-        const isNetworkError =
-          msg.includes('Error de red') || msg.includes('timeout') ||
-          msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
-          msg.includes('Todas las') || msg.includes('todas las') ||
-          msg.includes('API Keys fallaron') || msg.includes('Load failed');
-
+        const isNetworkError = msg.includes('Error de red') || msg.includes('timeout') || msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Todas las') || msg.includes('API Keys fallaron') || msg.includes('Load failed');
         if (isNetworkError) {
           showToast('⚠️ Sin conexión. Tu audio está guardado en Música > MeetingMind', 8000);
           setStatus('error', '⚠️ Error de red — audio guardado en Música > MeetingMind');
@@ -1654,11 +1553,7 @@
           if (area) {
             const notice = document.createElement('div');
             notice.className = 'transcript-error';
-            notice.innerHTML = `
-              <span class="err-title">⚠️ No se pudo transcribir por error de red</span>
-              <strong>Tu grabación NO se perdió.</strong> Está guardada en:
-              <div class="err-detail">📁 Música › MeetingMind › MeetingMind_*.m4a</div>
-            `;
+            notice.innerHTML = `<span class="err-title">⚠️ No se pudo transcribir por error de red</span><strong>Tu grabación NO se perdió.</strong> Está guardada en:<div class="err-detail">📁 Música › MeetingMind › MeetingMind_*.m4a</div>`;
             area.appendChild(notice);
           }
         } else {
@@ -1686,7 +1581,7 @@
     };
 
     // ═══════════════════════════════════════════════════════════════
-    // ✍️ TRANSCRIPCIÓN Y CHUNKING
+    // ✍️ TRANSCRIPCIÓN
     // ═══════════════════════════════════════════════════════════════
     function appendToTranscript(text) {
       const box = document.getElementById('transcript-box');
@@ -1700,7 +1595,6 @@
       if (!area) return;
       area.innerHTML = html;
     }
-
     function clearTranscriptProgress() { setTranscriptProgressHTML(''); }
 
     async function handleMultipleAudioFiles(files) {
@@ -1783,12 +1677,12 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 🎧 CHUNKING ADAPTATIVO POR DISPOSITIVO
+    // 🎧 CHUNKING ADAPTATIVO
     // ═══════════════════════════════════════════════════════════════
-    const GROQ_MAX_BYTES   = 24 * 1024 * 1024;
+    const GROQ_MAX_BYTES = 24 * 1024 * 1024;
     const MAX_DIRECT_BYTES = GROQ_MAX_BYTES;
-    const CHUNK_SECONDS    = IS_DESKTOP ? 600 : 300;
-    const CHUNK_MAX_MB     = IS_DESKTOP ? 200 : 150;
+    const CHUNK_SECONDS = IS_DESKTOP ? 600 : 300;
+    const CHUNK_MAX_MB = IS_DESKTOP ? 200 : 150;
 
     function extFromFile(f) {
       const OK_EXT = ['flac','mp3','mp4','mpeg','mpga','m4a','ogg','wav','webm'];
@@ -1799,35 +1693,20 @@
     }
 
     async function transcribeFile(file, onProgress) {
-      if (file.size <= MAX_DIRECT_BYTES) {
-        return transcribeSingleChunk(file, 1);
-      }
-
-      if (file.size > CHUNK_MAX_MB * 1024 * 1024) {
-        throw new Error(`Archivo demasiado grande (${(file.size/1024/1024).toFixed(1)}MB). Divídelo antes de subirlo.`);
-      }
+      if (file.size <= MAX_DIRECT_BYTES) return transcribeSingleChunk(file, 1);
+      if (file.size > CHUNK_MAX_MB * 1024 * 1024) throw new Error(`Archivo demasiado grande (${(file.size/1024/1024).toFixed(1)}MB). Divídelo antes de subirlo.`);
 
       const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
       let buf;
-      try {
-        buf = await ctx.decodeAudioData(await file.arrayBuffer());
-      } finally {
-        ctx.close();
-      }
+      try { buf = await ctx.decodeAudioData(await file.arrayBuffer()); } finally { ctx.close(); }
 
-      const step  = CHUNK_SECONDS * buf.sampleRate;
+      const step = CHUNK_SECONDS * buf.sampleRate;
       const total = Math.ceil(buf.length / step);
       let full = '';
 
-      console.log(`[transcribeFile] ${(file.size/1024/1024).toFixed(1)}MB → ${total} chunk(s) de ${CHUNK_SECONDS}s`);
-
       for (let i = 0; i < total; i++) {
-        if (globalTranscriptionController?.signal.aborted) {
-          throw new Error('Cancelado por el usuario.');
-        }
-
+        if (globalTranscriptionController?.signal.aborted) throw new Error('Cancelado por el usuario.');
         onProgress?.(`Transcribiendo parte ${i + 1} de ${total}…`);
-
         const s = i * step;
         const e = Math.min(s + step, buf.length);
         const mono = new Float32Array(e - s);
@@ -1835,10 +1714,8 @@
           const d = buf.getChannelData(c);
           for (let k = 0; k < mono.length; k++) mono[k] += d[s + k] / buf.numberOfChannels;
         }
-
         const t = await transcribeSingleChunk(floatToWavBlob(mono, buf.sampleRate), i + 1);
         if (t?.trim()) full += (full ? ' ' : '') + t.trim();
-
         if (i < total - 1) await delay(IS_DESKTOP ? 1200 : 3000);
       }
       return full;
@@ -1862,10 +1739,7 @@
       let lastError = null;
       const maxAttempts = 5;
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) {
-          throw new Error('Cancelado por el usuario.');
-        }
-
+        if (globalTranscriptionController && globalTranscriptionController.signal.aborted) throw new Error('Cancelado por el usuario.');
         const apiKey = getNextGroqKey();
         if (!apiKey) throw new Error('No hay API Keys configuradas.');
 
@@ -1910,17 +1784,12 @@
             await delay(3000);
             continue;
           }
-
           throw new Error(`Error HTTP ${response.status}`);
-
         } catch (err) {
           lastError = err;
           if (err.message.includes('cancelada')) throw err;
           if (err.message.includes('413') || err.message.includes('400')) throw err;
-          if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-            await delay(3000);
-            continue;
-          }
+          if (err.message.startsWith('Error de red') || err.message.includes('timeout')) { await delay(3000); continue; }
           throw err;
         }
       }
@@ -1928,7 +1797,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 🎯 AUTO-ANÁLISIS Y PROMPTS
+    // 🎯 AUTO-ANÁLISIS
     // ═══════════════════════════════════════════════════════════════
     async function maybeAutoAnalyze() {
       const text = document.getElementById('transcript-box').value.trim();
@@ -1937,25 +1806,19 @@
         return;
       }
       if (!currentSessionMode) {
-        showToast('⚠️ Selecciona primero un enfoque de notas.');
-        setStatus('idle', 'Transcripción lista. Pulsa "Analizar Texto Pegado" para generar notas.');
+        showToast('🎯 Elige el enfoque de notas para continuar.');
+        openModeSelectModal('analyze-pasted');
         return;
       }
-      const opts = getSessionOptions();
-      await analyzeText(text, document.getElementById('notes-container'), opts);
-      document.querySelector('[data-tab="notas"]')?.click();
+      setStatus('idle', 'Transcripción lista. Elige cómo quieres tus notas.');
+      openDetailSelectModal('analyze-pasted');
     }
 
     async function triggerAutoAnalysis() {
       const text = document.getElementById('transcript-box').value.trim();
-      if (!text || text.length < 20) {
-        showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).');
-        return;
-      }
+      if (!text || text.length < 20) { showToast('⚠️ Pega primero un texto para analizar (mínimo 20 caracteres).'); return; }
       if (!currentSessionMode) { openModeSelectModal('analyze-pasted'); return; }
-      const opts = getSessionOptions();
-      await analyzeText(text, document.getElementById('notes-container'), opts);
-      document.querySelector('[data-tab="notas"]')?.click();
+      openDetailSelectModal('analyze-pasted');
     }
 
     function getSessionOptions() {
@@ -1966,11 +1829,38 @@
         categoriaLabel: def.categoriaLabel,
         contexto: [...def.contexto],
         enfoque: [...def.enfoque],
-        isLanguageFocus: def.isLanguageFocus === true
+        isLanguageFocus: def.isLanguageFocus === true,
+        detailLevel: currentDetailLevel || 'resumido',
+        summaryLevel: currentSummaryLevel || 'nivel2'
       };
     }
 
-    function getSystemPromptForMode(mode, isLanguageFocus) {
+    // 🆕 Instrucción de detalle
+    function getDetailInstruction(detailLevel, summaryLevel) {
+      if (detailLevel === 'detallado') {
+        return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NIVEL DE DETALLE: DETALLADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Captura TODOS los conceptos, datos y ejemplos mencionados.
+• NO omitas información relevante aunque sea secundaria.
+• Usa TODAS las secciones disponibles para este modo.
+• Prioriza exhaustividad sobre brevedad, pero mantén el estilo telegráfico (sin muletillas).`;
+      }
+      const levels = {
+        nivel1: 'MUY BREVE (Nivel 1): Captura SOLO los puntos más importantes. Máximo 3-4 secciones. Cada sección con 2-3 elementos máximo. Prioriza los titulares sobre los detalles.',
+        nivel2: 'BALANCEADO (Nivel 2): Captura los puntos clave con algo de detalle de soporte. 4-6 secciones. Cada sección con 3-5 elementos. Equilibrio entre síntesis y contexto.',
+        nivel3: 'EXHAUSTIVO (Nivel 3): Captura la mayor cantidad de información posible manteniendo la síntesis. Todas las secciones relevantes. Cada sección con 5-8 elementos. No omitas matices.'
+      };
+      const levelText = levels[summaryLevel] || levels.nivel2;
+      return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NIVEL DE DETALLE: RESUMIDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• ${levelText}
+• Omite secciones que no aporten información sustancial.
+• Prioriza síntesis sobre cobertura completa.`;
+    }
+
+    function getSystemPromptForMode(mode, isLanguageFocus, detailLevel, summaryLevel) {
       const REGLAS_COMUNES = `Eres el motor de procesamiento de texto de "Meeting Mind". Tu único propósito es limpiar, estructurar y resumir transcripciones de audio en crudo, priorizando la precisión absoluta y la concisión extrema.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1978,8 +1868,8 @@ REGLAS UNIVERSALES INQUEBRANTABLES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1) CORRECCIÓN SILENCIOSA DE TRANSCRIPCIÓN:
-   • Si el texto contiene ruidos, palabras inaudibles o errores de captura, infiere la palabra correcta basándote en el contexto general. Sustituye la palabra de forma invisible.
-   • Tienes ESTRICTAMENTE PROHIBIDO agregar notas aclaratorias o usar frases como "(el audio decía...)".
+   • Si el texto contiene ruidos, palabras inaudibles o errores de captura, infiere la palabra correcta basándote en el contexto. Sustituye la palabra de forma invisible.
+   • PROHIBIDO agregar notas aclaratorias o frases como "(el audio decía...)".
 
 2) CORRECCIÓN FACTUAL SIN EXPANSIÓN:
    • Si identificas un error técnico o de datos, aplica la corrección directamente en los apuntes.
@@ -2015,7 +1905,7 @@ REGLAS UNIVERSALES INQUEBRANTABLES
    • "tipo_contenido": exactamente "lista" o "parrafos".
    • "contenido": siempre array de strings.
    • Escapa comillas internas (\\") y saltos de línea (\\n).
-   • PROHIBIDO usar markdown dentro de los strings (nada de **, ##, -).`;
+   • PROHIBIDO usar markdown dentro de los strings.`;
 
       const ACADEMICO_PROMPT = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2071,13 +1961,14 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
       else if (mode === 'libre') reglasEspecificas = LIBRE_PROMPT;
       else reglasEspecificas = ACADEMICO_PROMPT;
 
-      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}\n\n[RECORDATORIO FINAL: DEVUELVE EXCLUSIVAMENTE CÓDIGO JSON VÁLIDO. CERO TEXTO DE INTRODUCCIÓN O CONCLUSIÓN.]`;
+      const detailInstruction = getDetailInstruction(detailLevel, summaryLevel);
+
+      return `${REGLAS_COMUNES}\n\n${reglasEspecificas}\n\n${detailInstruction}\n\n[RECORDATORIO FINAL: DEVUELVE EXCLUSIVAMENTE CÓDIGO JSON VÁLIDO. CERO TEXTO DE INTRODUCCIÓN O CONCLUSIÓN.]`;
     }
 
     async function callGroqChat(payload) {
       const dynamicModels = await fetchAvailableModels();
       const modelsToTry = [...new Set([payload.model, ...dynamicModels])].filter(Boolean);
-
       let lastError = null;
       const maxAttempts = modelsToTry.length * GROQ_KEYS.length;
       let attemptCount = 0;
@@ -2093,10 +1984,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
           try {
             const response = await fetchWithTimeout(GROQ_CHAT_URL, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-              },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
               body: JSON.stringify(currentPayload)
             }, 90000);
 
@@ -2112,7 +2000,6 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
               lastError = new Error(`[Auth] ${response.status}`);
               continue;
             }
-
             if (response.status === 429) {
               const ra = parseFloat(response.headers.get('retry-after')) || 5;
               keyCooldown.set(apiKey, Date.now() + ra * 1000);
@@ -2122,19 +2009,12 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
             }
 
             let errMsg = `HTTP ${response.status}`;
-            try {
-              const errData = await response.json();
-              errMsg = errData?.error?.message || errMsg;
-            } catch (_) {}
-
+            try { const errData = await response.json(); errMsg = errData?.error?.message || errMsg; } catch (_) {}
             lastError = new Error(errMsg);
             break;
           } catch (err) {
             lastError = err;
-            if (err.message.startsWith('Error de red') || err.message.includes('timeout')) {
-              await delay(1500 * (ka + 1));
-              continue;
-            }
+            if (err.message.startsWith('Error de red') || err.message.includes('timeout')) { await delay(1500 * (ka + 1)); continue; }
             break;
           }
         }
@@ -2153,33 +2033,18 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
       for (const sec of secciones) {
         const secTitulo = sec.titulo_seccion || sec.titulo || 'Sección';
         const tipo = (sec.tipo_contenido || sec.tipo || 'lista').toLowerCase();
-        const contenido = Array.isArray(sec.contenido)
-          ? sec.contenido
-          : (typeof sec.contenido === 'string' ? [sec.contenido] : []);
-
+        const contenido = Array.isArray(sec.contenido) ? sec.contenido : (typeof sec.contenido === 'string' ? [sec.contenido] : []);
         lines.push(`### ${secTitulo}`);
         lines.push('');
 
         if (tipo === 'lista') {
-          for (const item of contenido) {
-            const text = String(item).trim();
-            if (text) lines.push(`- ${text}`);
-          }
+          for (const item of contenido) { const text = String(item).trim(); if (text) lines.push(`- ${text}`); }
         } else if (tipo === 'parrafos') {
-          for (const item of contenido) {
-            const text = String(item).trim();
-            if (text) { lines.push(text); lines.push(''); }
-          }
+          for (const item of contenido) { const text = String(item).trim(); if (text) { lines.push(text); lines.push(''); } }
         } else if (tipo === 'bloque') {
-          for (const item of contenido) {
-            const text = String(item).trim();
-            if (text) lines.push(`> ${text}`);
-          }
+          for (const item of contenido) { const text = String(item).trim(); if (text) lines.push(`> ${text}`); }
         } else {
-          for (const item of contenido) {
-            const text = String(item).trim();
-            if (text) lines.push(`- ${text}`);
-          }
+          for (const item of contenido) { const text = String(item).trim(); if (text) lines.push(`- ${text}`); }
         }
         lines.push('');
       }
@@ -2188,10 +2053,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
 
     function tryParseNotesJson(rawText) {
       if (!rawText || typeof rawText !== 'string') return null;
-      let cleaned = rawText.trim()
-        .replace(/^```(?:json)?\s*\n?/i, '')
-        .replace(/\n?```\s*$/i, '')
-        .trim();
+      let cleaned = rawText.trim().replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
       try {
         const parsed = JSON.parse(cleaned);
@@ -2211,49 +2073,29 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
     }
 
     function getCheckboxState() {
-      try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); }
-      catch (e) { return {}; }
+      try { return JSON.parse(localStorage.getItem(LS_KEY_CHECKBOX) || '{}'); } catch (e) { return {}; }
     }
-    function saveCheckboxState(s) {
-      try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(s)); } catch (e) {}
-    }
-    function toggleCheckboxState(key, checked) {
-      const s = getCheckboxState(); s[key] = checked; saveCheckboxState(s);
-    }
+    function saveCheckboxState(s) { try { localStorage.setItem(LS_KEY_CHECKBOX, JSON.stringify(s)); } catch (e) {} }
+    function toggleCheckboxState(key, checked) { const s = getCheckboxState(); s[key] = checked; saveCheckboxState(s); }
 
     function renderMarkdownToHTML(markdown, noteKey) {
       if (!markdown || typeof markdown !== 'string') return '';
-      let clean = markdown.trim()
-        .replace(/^```(?:markdown|md)?\s*\n?/i, '')
-        .replace(/\n?```\s*$/i, '')
-        .trim();
+      let clean = markdown.trim().replace(/^```(?:markdown|md)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
       let html = '';
       if (typeof marked !== 'undefined' && marked.parse) {
-        try {
-          marked.setOptions({ gfm: true, breaks: true });
-          html = marked.parse(clean);
-        } catch (e) {
-          html = fallbackMarkdownRenderer(clean);
-        }
-      } else {
-        html = fallbackMarkdownRenderer(clean);
-      }
+        try { marked.setOptions({ gfm: true, breaks: true }); html = marked.parse(clean); }
+        catch (e) { html = fallbackMarkdownRenderer(clean); }
+      } else html = fallbackMarkdownRenderer(clean);
 
-      if (typeof DOMPurify !== 'undefined') {
-        html = DOMPurify.sanitize(html, { ADD_ATTR: ['checked'] });
-      }
+      if (typeof DOMPurify !== 'undefined') html = DOMPurify.sanitize(html, { ADD_ATTR: ['checked'] });
 
       return postProcessCheckboxes(html, noteKey);
     }
 
     function fallbackMarkdownRenderer(md) {
       const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const inline = (t) => esc(t)
-        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>');
-
+      const inline = (t) => esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/`([^`]+)`/g, '<code>$1</code>');
       const lines = md.split('\n');
       const out = [];
       let inList = false, inCheck = false, listType = '';
@@ -2261,11 +2103,9 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
         if (inList) { out.push(listType === 'ul' ? '</ul>' : '</ol>'); inList = false; }
         if (inCheck) { out.push('</ul>'); inCheck = false; }
       };
-
       for (const raw of lines) {
         const t = raw.trim();
         if (!t) { closeLists(); continue; }
-
         const cb = t.match(/^[-*+]\s+\[([ xX])\]\s+(.+)$/);
         if (cb) {
           if (!inCheck) { closeLists(); out.push('<ul>'); inCheck = true; }
@@ -2275,7 +2115,6 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
         }
         const h = t.match(/^(#{1,6})\s+(.+)$/);
         if (h) { closeLists(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); continue; }
-
         if (/^[-*+]\s+/.test(t)) {
           if (!inList || listType !== 'ul') { closeLists(); out.push('<ul>'); inList = true; listType = 'ul'; }
           out.push(`<li>${inline(t.replace(/^[-*+]\s+/, ''))}</li>`);
@@ -2286,11 +2125,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
           out.push(`<li>${inline(t.replace(/^\d+[.)]\s+/, ''))}</li>`);
           continue;
         }
-        if (/^>\s?/.test(t)) {
-          closeLists();
-          out.push(`<blockquote>${inline(t.replace(/^>\s?/, ''))}</blockquote>`);
-          continue;
-        }
+        if (/^>\s?/.test(t)) { closeLists(); out.push(`<blockquote>${inline(t.replace(/^>\s?/, ''))}</blockquote>`); continue; }
         closeLists();
         out.push(`<p>${inline(t)}</p>`);
       }
@@ -2303,13 +2138,11 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
       temp.innerHTML = html;
       const stored = getCheckboxState();
       let idx = 0;
-
       temp.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
         const id = `cb_${noteKey}_${idx++}`;
         cb.removeAttribute('disabled');
         cb.classList.add('notion-checkbox');
         cb.setAttribute('data-check-id', id);
-
         const li = cb.closest('li');
         if (li) {
           li.classList.add('notion-check-item');
@@ -2346,15 +2179,10 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
     }
 
     async function analyzeText(text, notesContainer, options) {
-      const systemPrompt = getSystemPromptForMode(options.categoria, options.isLanguageFocus === true);
+      const systemPrompt = getSystemPromptForMode(options.categoria, options.isLanguageFocus === true, options.detailLevel, options.summaryLevel);
 
       disableAllButtons();
-      notesContainer.innerHTML = `
-        <div class="state-msg">
-          <span class="big">✨</span>
-          <span id="notion-progress">Generando notas con Groq…</span>
-        </div>
-      `;
+      notesContainer.innerHTML = `<div class="state-msg"><span class="big">✨</span><span id="notion-progress">Generando notas con Groq…</span></div>`;
       setStatus('loading', 'Generando notas con Groq…');
 
       const currentModel = memoriaTemporal.obtener(LS_KEY_MODEL) || (await fetchAvailableModels())[0] || 'openai/gpt-oss-120b';
@@ -2362,8 +2190,7 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
       try {
         const totalWords = String(text || '').trim().split(/\s+/).filter(Boolean).length;
         const chunks = splitIntoWordChunks(text, WORDS_PER_CHUNK);
-
-        console.log(`[analyzeText] ${totalWords} palabras → ${chunks.length} chunk(s)`);
+        console.log(`[analyzeText] ${totalWords} palabras → ${chunks.length} chunk(s) | detalle=${options.detailLevel} nivel=${options.summaryLevel}`);
 
         if (chunks.length === 0) throw new Error('La transcripción está vacía.');
 
@@ -2373,20 +2200,14 @@ Utiliza estas secciones para tu JSON (omite las que no tengan datos):
 
         for (let i = 0; i < chunks.length; i++) {
           if (progressEl) {
-            progressEl.textContent = chunks.length > 1
-              ? `Procesando bloque ${i + 1} de ${chunks.length}…`
-              : 'Procesando respuesta del modelo…';
+            progressEl.textContent = chunks.length > 1 ? `Procesando bloque ${i + 1} de ${chunks.length}…` : 'Procesando respuesta del modelo…';
           }
-          if (chunks.length > 1) {
-            setStatus('loading', `Analizando bloque ${i + 1}/${chunks.length}…`);
-          }
+          if (chunks.length > 1) setStatus('loading', `Analizando bloque ${i + 1}/${chunks.length}…`);
 
           const userMessage = `${options.isLanguageFocus ? 'Enfoque adicional: CLASE DE IDIOMAS.\n\n' : ''}Contexto del audio: ${options.contexto.join(', ')}
 Enfoque principal: ${options.enfoque.join(', ')}
 
-${chunks.length > 1
-  ? `(Este es el bloque ${i + 1} de ${chunks.length}. Genera las secciones definidas para este modo SOLO con la información de este fragmento. NO uses muletillas, NO introduzcas el fragmento.)\n\n`
-  : ''}TRANSCRIPCIÓN CRUDA:
+${chunks.length > 1 ? `(Este es el bloque ${i + 1} de ${chunks.length}. Genera las secciones definidas para este modo SOLO con la información de este fragmento. NO uses muletillas, NO introduzcas el fragmento.)\n\n` : ''}TRANSCRIPCIÓN CRUDA:
 """
 ${chunks[i]}
 """
@@ -2395,10 +2216,7 @@ Genera las notas AHORA en JSON estricto.`;
 
           const payload = {
             model: currentModel,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userMessage }
-            ],
+            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }],
             temperature: 0.2,
             max_tokens: 4096,
             response_format: { type: 'json_object' }
@@ -2406,11 +2224,8 @@ Genera las notas AHORA en JSON estricto.`;
 
           let jsonNotes = null;
           for (let t = 0; t < 2 && !jsonNotes; t++) {
-            try {
-              jsonNotes = tryParseNotesJson(await callGroqChat(payload));
-            } catch(e) {
-              console.warn(`[analyzeText] Fallo intento ${t+1} bloque ${i+1}`, e);
-            }
+            try { jsonNotes = tryParseNotesJson(await callGroqChat(payload)); }
+            catch(e) { console.warn(`[analyzeText] Fallo intento ${t+1} bloque ${i+1}`, e); }
           }
 
           if (jsonNotes) partialResults.push(jsonNotes);
@@ -2419,9 +2234,7 @@ Genera las notas AHORA en JSON estricto.`;
           if (i < chunks.length - 1) await delay(2000);
         }
 
-        if (partialResults.length === 0) {
-          throw new Error('El modelo no devolvió notas válidas en ningún bloque.');
-        }
+        if (partialResults.length === 0) throw new Error('El modelo no devolvió notas válidas en ningún bloque.');
 
         const mergedNotes = mergeJsonNotes(partialResults);
         const markdownNotes = jsonNotesToMarkdown(mergedNotes);
@@ -2440,17 +2253,9 @@ Genera las notas AHORA en JSON estricto.`;
       } catch (err) {
         console.error('Error generando notas:', err);
         setStatus('error', 'Error al generar notas');
-        notesContainer.innerHTML = `
-          <div class="state-msg error-msg">
-            <span class="big">⚠️</span>
-            <strong>Error:</strong>
-            <span>${escHtml(err.message)}</span>
-          </div>
-        `;
+        notesContainer.innerHTML = `<div class="state-msg error-msg"><span class="big">⚠️</span><strong>Error:</strong><span>${escHtml(err.message)}</span></div>`;
         showToast(`❌ ${err.message}`);
-      } finally {
-        enableAllButtons();
-      }
+      } finally { enableAllButtons(); }
     }
 
     function renderNotionNotes(markdown, container, docTitle) {
@@ -2463,9 +2268,14 @@ Genera las notas AHORA en JSON estricto.`;
         ? projects.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.nombre)}</option>`).join('')
         : '<option value="">Sin proyectos aún</option>';
 
+      const detailBadge = currentDetailLevel === 'detallado'
+        ? '📚 Detallado'
+        : `✂️ Resumido ${{nivel1:'(Breve)', nivel2:'(Balanceado)', nivel3:'(Exhaustivo)'}[currentSummaryLevel] || ''}`;
+
       container.innerHTML = `
         <div class="notes-header">
           <div class="notes-header-left">
+            <span style="font-size:0.72rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:6px 10px;border-radius:99px;">${detailBadge}</span>
             <select id="save-project-select" class="select-inline">${projectOptionsHtml}</select>
             <button id="btn-save-to-project" class="btn-copy-notion">💾 Guardar</button>
           </div>
@@ -2475,17 +2285,14 @@ Genera las notas AHORA en JSON estricto.`;
             <button id="btn-reconfigure" class="btn-copy-notion">🔄 Re-generar</button>
           </div>
         </div>
-        <div class="notion-content" id="notion-render-target">
-          ${html}
-        </div>
+        <div class="notion-content" id="notion-render-target">${html}</div>
       `;
 
       attachNotionCheckboxListeners(document.getElementById('notion-render-target'));
 
       document.getElementById('btn-copy-notion').addEventListener('click', async () => {
         const ok = await copyText(currentNotionMarkdown);
-        if (ok) showToast('✅ Markdown copiado');
-        else showToast('⚠️ Error al copiar');
+        if (ok) showToast('✅ Markdown copiado'); else showToast('⚠️ Error al copiar');
       });
 
       document.getElementById('btn-download-md').addEventListener('click', async () => {
@@ -2517,6 +2324,9 @@ Genera las notas AHORA en JSON estricto.`;
       document.getElementById('transcript-progress-area').innerHTML = '';
       currentNotionMarkdown = '';
       currentNoteKey = '';
+      currentRecordingMode = null;
+      if (systemAudioStream) { try { systemAudioStream.getTracks().forEach(t => t.stop()); } catch (_) {} systemAudioStream = null; }
+      if (micStream) { try { micStream.getTracks().forEach(t => t.stop()); } catch (_) {} micStream = null; }
       document.getElementById('notes-container').innerHTML = '<div class="state-msg"><span class="big">✨</span><span>Graba o sube un audio, y las notas se generarán automáticamente.</span></div>';
       document.getElementById('btn-clear').style.display = 'none';
       currentSessionMode = null;
@@ -2536,23 +2346,12 @@ Genera las notas AHORA en JSON estricto.`;
       });
     }
     function enableAllButtons() {
-      const btnStart = document.getElementById('btn-start-record');
-      const btnSys = document.getElementById('btn-record-system');
-      const btnUpload = document.getElementById('btn-upload');
-      const btnAnalyze = document.getElementById('btn-analyze-pasted');
-      const btnClearT = document.getElementById('btn-clear-transcript');
+      const ids = ['btn-start-record', 'btn-record-system', 'btn-upload', 'btn-analyze-pasted', 'btn-clear-transcript', 'btn-clear'];
+      ids.forEach(id => { const b = document.getElementById(id); if (b) b.disabled = false; });
       const btnClearS = document.getElementById('btn-clear');
-
-      if (btnStart) btnStart.disabled = false;
-      if (btnSys) btnSys.disabled = false;
-      if (btnUpload) btnUpload.disabled = false;
-      if (btnAnalyze) btnAnalyze.disabled = false;
-      if (btnClearT) btnClearT.disabled = false;
-
       if (btnClearS) {
         const hasContent = document.getElementById('transcript-box').value.trim().length > 0;
         btnClearS.style.display = hasContent ? 'block' : 'none';
-        btnClearS.disabled = false;
       }
     }
 
@@ -2563,34 +2362,22 @@ Genera las notas AHORA en JSON estricto.`;
     });
 
     function getProjects() {
-      try {
-        const raw = memoriaTemporal.obtener(LS_KEY_PROJECTS);
-        const p = raw ? JSON.parse(raw) : [];
-        return Array.isArray(p) ? p : [];
-      } catch (e) { return []; }
+      try { const raw = memoriaTemporal.obtener(LS_KEY_PROJECTS); const p = raw ? JSON.parse(raw) : []; return Array.isArray(p) ? p : []; }
+      catch (e) { return []; }
     }
-
     function saveProjects(p) {
       const ok = memoriaTemporal.guardar(LS_KEY_PROJECTS, JSON.stringify(p));
       if (!ok) showToast('⚠️ Almacenamiento lleno. Exporta tus datos ya.', 6000);
       return ok;
     }
-
     function createProject(nombre) {
       const projects = getProjects();
-      const nuevo = {
-        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-        nombre, fecha: new Date().toISOString(), notas: []
-      };
+      const nuevo = { id: 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), nombre, fecha: new Date().toISOString(), notas: [] };
       projects.unshift(nuevo);
       saveProjects(projects);
       return nuevo;
     }
-    function deleteProject(id) {
-      let p = getProjects();
-      p = p.filter(x => x.id !== id);
-      saveProjects(p);
-    }
+    function deleteProject(id) { let p = getProjects(); p = p.filter(x => x.id !== id); saveProjects(p); }
 
     function saveNotionNoteToProject(projectId, title) {
       if (!currentNotionMarkdown) { showToast('⚠️ No hay notas generadas.'); return; }
@@ -2598,23 +2385,14 @@ Genera las notas AHORA en JSON estricto.`;
       const project = projects.find(p => p.id === projectId);
       if (!project) { showToast('⚠️ Proyecto no encontrado.'); return; }
       if (!Array.isArray(project.notas)) project.notas = [];
-      project.notas.push({
-        id: 'nota_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-        fecha: new Date().toISOString(),
-        title: title,
-        markdown: currentNotionMarkdown,
-        noteKey: currentNoteKey
-      });
-      if (saveProjects(projects)) {
-        showToast(`✅ Guardado en "${project.nombre}"`);
-      }
+      project.notas.push({ id: 'nota_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), fecha: new Date().toISOString(), title, markdown: currentNotionMarkdown, noteKey: currentNoteKey });
+      if (saveProjects(projects)) showToast(`✅ Guardado en "${project.nombre}"`);
     }
 
     function formatFecha(iso) {
       try {
         const d = new Date(iso);
-        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-          + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
       } catch (e) { return ''; }
     }
 
@@ -2651,12 +2429,8 @@ Genera las notas AHORA en JSON estricto.`;
       document.getElementById('new-project-name').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') document.getElementById('btn-create-project').click();
       });
-
       container.querySelectorAll('.proyecto-card').forEach(card => {
-        card.addEventListener('click', () => {
-          currentOpenProjectId = card.dataset.id;
-          renderProjectsTab();
-        });
+        card.addEventListener('click', () => { currentOpenProjectId = card.dataset.id; renderProjectsTab(); });
       });
     }
 
@@ -2670,25 +2444,14 @@ Genera las notas AHORA en JSON estricto.`;
         const noteKey = n.noteKey || n.id;
         const md = n.markdown || '';
         const title = n.title || 'Nota sin título';
-        const rendered = md
-          ? renderMarkdownToHTML(md, noteKey)
-          : '<span style="color:var(--muted)">Nota sin formato.</span>';
-
+        const rendered = md ? renderMarkdownToHTML(md, noteKey) : '<span style="color:var(--muted)">Nota sin formato.</span>';
         return `
           <details class="nota-guardada">
-            <summary>
-              <span>${escHtml(title)}</span>
-              <span class="fecha-tag">${formatFecha(n.fecha)}</span>
-            </summary>
-            <div class="nota-body">
-              <div class="notion-content" data-note-key="${escHtml(noteKey)}">
-                ${rendered}
-              </div>
-            </div>
+            <summary><span>${escHtml(title)}</span><span class="fecha-tag">${formatFecha(n.fecha)}</span></summary>
+            <div class="nota-body"><div class="notion-content" data-note-key="${escHtml(noteKey)}">${rendered}</div></div>
           </details>
         `;
-      }).join('')
-        : '<div class="state-msg"><span class="big">📝</span><span>Sin notas guardadas aún.</span></div>';
+      }).join('') : '<div class="state-msg"><span class="big">📝</span><span>Sin notas guardadas aún.</span></div>';
 
       container.innerHTML = `
         <div class="proyecto-detail-header">
@@ -2702,10 +2465,7 @@ Genera las notas AHORA en JSON estricto.`;
 
       container.querySelectorAll('.notion-content').forEach(el => attachNotionCheckboxListeners(el));
 
-      document.getElementById('btn-back-projects').addEventListener('click', () => {
-        currentOpenProjectId = null;
-        renderProjectsTab();
-      });
+      document.getElementById('btn-back-projects').addEventListener('click', () => { currentOpenProjectId = null; renderProjectsTab(); });
       document.getElementById('btn-delete-project').addEventListener('click', () => {
         if (confirm(`¿Eliminar el proyecto "${project.nombre}" y todas sus notas?`)) {
           deleteProject(project.id);
@@ -2722,9 +2482,7 @@ Genera las notas AHORA en JSON estricto.`;
       const notas = Array.isArray(project.notas) ? project.notas : [];
       if (!notas.length) { showToast('⚠️ No hay notas para resumir.'); return; }
 
-      const combined = notas.map(n =>
-        `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`
-      ).join('\n\n');
+      const combined = notas.map(n => `--- APUNTES DEL ${formatFecha(n.fecha)} (${n.title || 'Sin título'}) ---\n\n${n.markdown || ''}`).join('\n\n');
 
       openModal(`🧠 Resumen Global — ${project.nombre}`, 'Generando resumen con Groq…');
       const model = memoriaTemporal.obtener(LS_KEY_MODEL) || (await fetchAvailableModels())[0] || 'openai/gpt-oss-120b';
@@ -2752,33 +2510,18 @@ REGLAS:
               ? `Generando resumen global… bloque ${i + 1} de ${chunks.length}`
               : 'Generando resumen global con Groq…';
           }
-
-          const userMessage = chunks.length > 1
-            ? `(Este es el bloque ${i + 1} de ${chunks.length}. Resume SOLO este bloque.)\n\n${chunks[i]}`
-            : chunks[i];
-
-          const payload = {
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userMessage }
-            ],
-            temperature: 0.3,
-            max_tokens: 2048
-          };
-
+          const userMessage = chunks.length > 1 ? `(Este es el bloque ${i + 1} de ${chunks.length}. Resume SOLO este bloque.)\n\n${chunks[i]}` : chunks[i];
+          const payload = { model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }], temperature: 0.3, max_tokens: 2048 };
           const result = await callGroqChat(payload);
           if (result && result.trim()) partialSummaries.push(result.trim());
-
           if (i < chunks.length - 1) await delay(2000);
         }
 
         if (partialSummaries.length === 0) throw new Error('No se generó ningún resumen.');
 
         let finalMd = '';
-        if (partialSummaries.length === 1) {
-          finalMd = partialSummaries[0];
-        } else {
+        if (partialSummaries.length === 1) finalMd = partialSummaries[0];
+        else {
           if (modalContent) modalContent.textContent = 'Fusionando resúmenes parciales…';
           const fusionPrompt = `Recibirás varios resúmenes parciales de un mismo proyecto. Fusíonálos en UN ÚNICO resumen global coherente, sin repetir información.
 REGLAS:
@@ -2786,37 +2529,22 @@ REGLAS:
 - Incluye: Resumen, Temas recurrentes, Decisiones clave, Elementos de acción (con "- [ ] tarea").
 - No inventes información.
 - Devuelve ÚNICAMENTE Markdown, sin explicaciones.`;
-
           const fusionPayload = {
             model,
-            messages: [
-              { role: 'system', content: fusionPrompt },
-              {
-                role: 'user',
-                content: partialSummaries.map((s, i) => `--- RESUMEN PARCIAL ${i + 1} ---\n\n${s}`).join('\n\n')
-              }
-            ],
-            temperature: 0.3,
-            max_tokens: 4096
+            messages: [{ role: 'system', content: fusionPrompt }, { role: 'user', content: partialSummaries.map((s, i) => `--- RESUMEN PARCIAL ${i + 1} ---\n\n${s}`).join('\n\n') }],
+            temperature: 0.3, max_tokens: 4096
           };
           finalMd = await callGroqChat(fusionPayload);
         }
 
-        const md = finalMd.trim()
-          .replace(/^```(?:markdown|md)?\s*\n?/i, '')
-          .replace(/\n?```\s*$/i, '')
-          .trim();
-
+        const md = finalMd.trim().replace(/^```(?:markdown|md)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
         const html = renderMarkdownToHTML(md, 'global_' + Date.now());
         document.getElementById('modal-content').innerHTML = `<div class="notion-content">${html}</div>`;
         attachNotionCheckboxListeners(document.getElementById('modal-content'));
-
       } catch (err) {
         console.error('Error generando resumen global:', err);
         if (modalContent) modalContent.textContent = `⚠️ Error: ${err.message}`;
-      } finally {
-        if (btnGlobal) btnGlobal.disabled = false;
-      }
+      } finally { if (btnGlobal) btnGlobal.disabled = false; }
     }
 
     function openModal(title, content) {
@@ -2824,9 +2552,7 @@ REGLAS:
       document.getElementById('modal-content').textContent = content;
       document.getElementById('modal-overlay').classList.add('open');
     }
-    function closeModal() {
-      document.getElementById('modal-overlay').classList.remove('open');
-    }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
   </script>
 </body>
 </html>
